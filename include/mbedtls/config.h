@@ -1791,6 +1791,16 @@
 #define MBEDTLS_GCM_C
 
 /**
+ * \def MBEDTLS_GOST15_C
+ *
+ * Enable the GOST 34.12-15 block cipher.
+ *
+ * Module:  library/gost15.c
+ * Caller:
+ */
+#define MBEDTLS_GOST15_C
+
+/**
  * \def MBEDTLS_HAVEGE_C
  *
  * Enable the HAVEGE random generator.
