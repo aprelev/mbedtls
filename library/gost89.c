@@ -112,23 +112,36 @@ static const mbedtls_gost89_sbox_t SbZ =
     }
 };
 
-#define GOST89_ROUND(N1,N2,S,RK,Sb)                           \
-    S = ( N1 + *RK ) & 0xFFFFFFFF;                            \
-    S = ( (uint32_t) Sb->data[0][(S      ) & 0x0F]       )    \
-      | ( (uint32_t) Sb->data[1][(S >>  4) & 0x0F] <<  4 )    \
-      | ( (uint32_t) Sb->data[2][(S >>  8) & 0x0F] <<  8 )    \
-      | ( (uint32_t) Sb->data[3][(S >> 12) & 0x0F] << 12 )    \
-      | ( (uint32_t) Sb->data[4][(S >> 16) & 0x0F] << 16 )    \
-      | ( (uint32_t) Sb->data[5][(S >> 20) & 0x0F] << 20 )    \
-      | ( (uint32_t) Sb->data[6][(S >> 24) & 0x0F] << 24 )    \
-      | ( (uint32_t) Sb->data[7][(S >> 28) & 0x0F] << 28 );   \
-    S = ( ( S << 11 ) & 0xFFFFFFFF ) | ( S >> 21 );           \
-    S ^= N2;                                                  \
-    N2 = N1;                                                  \
-    N1 = S;                                                   \
+/*
+ * CryptoPro Key Meshing algorithm constant from RFC 4357:
+ *
+ * https://tools.ietf.org/html/rfc4357
+ */
+static const unsigned char MeshC[32] =
+{
+    0x69, 0x00, 0x72, 0x22, 0x64, 0xC9, 0x04, 0x23,
+    0x8D, 0x3A, 0xDB, 0x96, 0x46, 0xE9, 0x2A, 0xC4,
+    0x18, 0xFE, 0xAC, 0x94, 0x00, 0xED, 0x07, 0x12,
+    0xC0, 0x86, 0xDC, 0xC2, 0xEF, 0x4C, 0xA9, 0x2B
+};
+
+#define GOST89_ROUND(N1,N2,S,RK,Sb)                                 \
+    S = ( N1 + *RK ) & 0xFFFFFFFF;                                  \
+    S = ( (uint32_t) Sb->data[ 0 ][ ( S       ) & 0x0F ]       )    \
+      | ( (uint32_t) Sb->data[ 1 ][ ( S >>  4 ) & 0x0F ] <<  4 )    \
+      | ( (uint32_t) Sb->data[ 2 ][ ( S >>  8 ) & 0x0F ] <<  8 )    \
+      | ( (uint32_t) Sb->data[ 3 ][ ( S >> 12 ) & 0x0F ] << 12 )    \
+      | ( (uint32_t) Sb->data[ 4 ][ ( S >> 16 ) & 0x0F ] << 16 )    \
+      | ( (uint32_t) Sb->data[ 5 ][ ( S >> 20 ) & 0x0F ] << 20 )    \
+      | ( (uint32_t) Sb->data[ 6 ][ ( S >> 24 ) & 0x0F ] << 24 )    \
+      | ( (uint32_t) Sb->data[ 7 ][ ( S >> 28 ) & 0x0F ] << 28 );   \
+    S = ( ( S << 11 ) & 0xFFFFFFFF ) | ( S >> 21 );                 \
+    S ^= N2;                                                        \
+    N2 = N1;                                                        \
+    N1 = S;                                                         \
 
 void mbedtls_gost89_init( mbedtls_gost89_context *ctx,
-                          const mbedtls_gost89_sbox_id_t sbox_id )
+                          mbedtls_gost89_sbox_id_t sbox_id )
 {
     memset( ctx, 0, sizeof( mbedtls_gost89_context ) );
     ctx->sbox_id = sbox_id;
@@ -155,7 +168,7 @@ int mbedtls_gost89_setkey( mbedtls_gost89_context *ctx,
     return( 0 );
 }
 
-static const mbedtls_gost89_sbox_t* mbedtls_gost89_sbox_from_id( mbedtls_gost89_sbox_id_t sbox_id )
+static const mbedtls_gost89_sbox_t *mbedtls_gost89_sbox_from_id( mbedtls_gost89_sbox_id_t sbox_id )
 {
     switch( sbox_id )
     {
@@ -171,6 +184,56 @@ static const mbedtls_gost89_sbox_t* mbedtls_gost89_sbox_from_id( mbedtls_gost89_
 }
 
 /*
+ * Copy round keys from one GOST89 context to another
+ */
+static const void mbedtls_gost89_key_copy( mbedtls_gost89_context *dst,
+                                           mbedtls_gost89_context *src )
+{
+    int i;
+
+    for( i = 0; i < 8; i++ )
+    {
+        dst->rk[i] = src->rk[i];
+    }
+}
+
+/*
+ * CryptoPro Key Meshing algorithm from RFC 4357:
+ *
+ * https://tools.ietf.org/html/rfc4357
+ */
+static const void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
+                                              unsigned char *iv )
+{
+    int i;
+    unsigned char output[MBEDTLS_GOST89_BLOCKSIZE];
+    mbedtls_gost89_context mesh;
+    mbedtls_gost89_init( &mesh, ctx->sbox_id );
+
+    /*
+     * Key Meshing
+     */
+    mbedtls_gost89_key_copy( &mesh, ctx );
+    for( i = 0; i < 4; i++ )
+    {
+        mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_DECRYPT, &MeshC[i * MBEDTLS_GOST89_BLOCKSIZE], output );
+        GET_UINT32_LE( ctx->rk[ i << 1 ], output, 0 );
+        GET_UINT32_LE( ctx->rk[ ( i << 1 ) + 1 ], output, 4 );
+    }
+
+    /*
+     * IV Meshing
+     */
+    if( iv != NULL )
+    {
+        mbedtls_gost89_key_copy( &mesh, ctx );
+        mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_ENCRYPT, iv, iv );
+    }
+
+    mbedtls_gost89_free( &mesh );
+}
+
+/*
  * GOST89-ECB block encryption
  */
 #if !defined(MBEDTLS_GOST89_ENCRYPT_ALT)
@@ -180,7 +243,7 @@ void mbedtls_gost89_encrypt( mbedtls_gost89_context *ctx,
 {
     int i, j;
     uint32_t N1, N2, S, *RK;
-    const mbedtls_gost89_sbox_t* Sb = mbedtls_gost89_sbox_from_id( ctx->sbox_id );
+    const mbedtls_gost89_sbox_t *Sb = mbedtls_gost89_sbox_from_id( ctx->sbox_id );
 
     GET_UINT32_LE( N1, input, 0 );
     GET_UINT32_LE( N2, input, 4 );
@@ -215,7 +278,7 @@ void mbedtls_gost89_decrypt( mbedtls_gost89_context *ctx,
 {
     int i, j;
     uint32_t N1, N2, S, *RK;
-    const mbedtls_gost89_sbox_t* Sb = mbedtls_gost89_sbox_from_id( ctx->sbox_id );
+    const mbedtls_gost89_sbox_t *Sb = mbedtls_gost89_sbox_from_id( ctx->sbox_id );
 
     GET_UINT32_LE( N1, input, 0 );
     GET_UINT32_LE( N2, input, 4 );
@@ -248,10 +311,17 @@ int mbedtls_gost89_crypt_ecb( mbedtls_gost89_context *ctx,
                               const unsigned char input[MBEDTLS_GOST89_BLOCKSIZE],
                               unsigned char output[MBEDTLS_GOST89_BLOCKSIZE] )
 {
+    if( ctx->processed_len == 1024 )
+    {
+        mbedtls_gost89_key_meshing( ctx, NULL );
+    }
+
     if( mode == MBEDTLS_GOST89_ENCRYPT )
         mbedtls_gost89_encrypt( ctx, input, output );
     else
         mbedtls_gost89_decrypt( ctx, input, output );
+
+    ctx->processed_len += MBEDTLS_GOST89_BLOCKSIZE;
 
     return( 0 );
 }
@@ -277,6 +347,11 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
     {
         while( length > 0 )
         {
+            if( ctx->processed_len == 1024 )
+            {
+                mbedtls_gost89_key_meshing( ctx, iv );
+            }
+
             memcpy( temp, input, MBEDTLS_GOST89_BLOCKSIZE );
             mbedtls_gost89_crypt_ecb( ctx, mode, input, output );
 
@@ -288,12 +363,19 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
             input  += MBEDTLS_GOST89_BLOCKSIZE;
             output += MBEDTLS_GOST89_BLOCKSIZE;
             length -= MBEDTLS_GOST89_BLOCKSIZE;
+
+            ctx->processed_len += MBEDTLS_GOST89_BLOCKSIZE;
         }
     }
     else
     {
         while( length > 0 )
         {
+            if( ctx->processed_len == 1024 )
+            {
+                mbedtls_gost89_key_meshing( ctx, iv );
+            }
+
             for( i = 0; i < MBEDTLS_GOST89_BLOCKSIZE; i++ )
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
@@ -303,6 +385,8 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
             input  += MBEDTLS_GOST89_BLOCKSIZE;
             output += MBEDTLS_GOST89_BLOCKSIZE;
             length -= MBEDTLS_GOST89_BLOCKSIZE;
+
+            ctx->processed_len += MBEDTLS_GOST89_BLOCKSIZE;
         }
     }
 

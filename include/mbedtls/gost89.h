@@ -46,8 +46,9 @@ typedef enum
  */
 typedef struct
 {
-    uint32_t rk[8]; /* round keys */
-    mbedtls_gost89_sbox_id_t sbox_id; /* S-Box */
+    uint32_t rk[8];                   /*!<  round keys                */
+    mbedtls_gost89_sbox_id_t sbox_id; /*!<  S-Box                     */
+    size_t processed_len;             /*!<  number of processed bytes */
 } mbedtls_gost89_context;
 
 /**
@@ -57,7 +58,7 @@ typedef struct
  * \param sbox_id  S-Box identifier
  */
 void mbedtls_gost89_init( mbedtls_gost89_context *ctx,
-                          const mbedtls_gost89_sbox_id_t sbox_id );
+                          mbedtls_gost89_sbox_id_t sbox_id );
 
 /**
  * \brief          Clear GOST89 context
