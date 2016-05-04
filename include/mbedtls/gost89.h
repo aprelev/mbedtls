@@ -36,9 +36,9 @@ extern "C" {
  */
 typedef enum
 {
-    MBEDTLS_GOST89_SBOX_TEST = 0,
-    MBEDTLS_GOST89_SBOX_A,
-    MBEDTLS_GOST89_SBOX_Z,
+    MBEDTLS_GOST89_SBOX_TEST = 0, /*!< 1.2.643.2.2.31.0    */
+    MBEDTLS_GOST89_SBOX_A,        /*!< 1.2.643.2.2.31.1    */
+    MBEDTLS_GOST89_SBOX_Z,        /*!< 1.2.643.7.1.2.5.1.1 */
 } mbedtls_gost89_sbox_id_t;
 
 /**
