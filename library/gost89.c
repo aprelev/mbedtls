@@ -112,8 +112,23 @@ static const mbedtls_gost89_sbox_t SbZ =
     }
 };
 
+static const mbedtls_gost89_sbox_t *mbedtls_gost89_sbox_from_id( mbedtls_gost89_sbox_id_t sbox_id )
+{
+    switch( sbox_id )
+    {
+        case MBEDTLS_GOST89_SBOX_TEST:
+            return &TestSb;
+        case MBEDTLS_GOST89_SBOX_A:
+            return &SbA;
+        case MBEDTLS_GOST89_SBOX_Z:
+            return &SbZ;
+        default:
+            return &SbA;
+    }
+}
+
 /*
- * CryptoPro Key Meshing algorithm constant from RFC 4357:
+ * CryptoPro Key Meshing algorithm from RFC 4357:
  *
  * https://tools.ietf.org/html/rfc4357
  */
@@ -125,20 +140,48 @@ static const unsigned char MeshC[32] =
     0xC0, 0x86, 0xDC, 0xC2, 0xEF, 0x4C, 0xA9, 0x2B
 };
 
-#define GOST89_ROUND(N1,N2,S,RK,Sb)                                 \
-    S = ( N1 + *RK ) & 0xFFFFFFFF;                                  \
-    S = ( (uint32_t) Sb->data[ 0 ][ ( S       ) & 0x0F ]       )    \
-      | ( (uint32_t) Sb->data[ 1 ][ ( S >>  4 ) & 0x0F ] <<  4 )    \
-      | ( (uint32_t) Sb->data[ 2 ][ ( S >>  8 ) & 0x0F ] <<  8 )    \
-      | ( (uint32_t) Sb->data[ 3 ][ ( S >> 12 ) & 0x0F ] << 12 )    \
-      | ( (uint32_t) Sb->data[ 4 ][ ( S >> 16 ) & 0x0F ] << 16 )    \
-      | ( (uint32_t) Sb->data[ 5 ][ ( S >> 20 ) & 0x0F ] << 20 )    \
-      | ( (uint32_t) Sb->data[ 6 ][ ( S >> 24 ) & 0x0F ] << 24 )    \
-      | ( (uint32_t) Sb->data[ 7 ][ ( S >> 28 ) & 0x0F ] << 28 );   \
-    S = ( ( S << 11 ) & 0xFFFFFFFF ) | ( S >> 21 );                 \
-    S ^= N2;                                                        \
-    N2 = N1;                                                        \
-    N1 = S;                                                         \
+static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
+                                        unsigned char *iv )
+{
+    int i;
+    unsigned char output[MBEDTLS_GOST89_BLOCKSIZE];
+    mbedtls_gost89_context mesh;
+    mbedtls_gost89_init( &mesh, ctx->sbox_id );
+
+    /*
+     * Key Meshing
+     */
+    for( i = 0; i < 8; i++ )
+    {
+        mesh.rk[i] = ctx->rk[i];
+    }
+    for( i = 0; i < 4; i++ )
+    {
+        mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_DECRYPT,
+                                  &MeshC[i * MBEDTLS_GOST89_BLOCKSIZE], output );
+        GET_UINT32_LE( ctx->rk[ i << 1 ], output, 0 );
+        GET_UINT32_LE( ctx->rk[ ( i << 1 ) + 1 ], output, 4 );
+    }
+
+    /*
+     * IV Meshing
+     */
+    if( iv != NULL )
+    {
+        for( i = 0; i < 8; i++ )
+        {
+            mesh.rk[i] = ctx->rk[i];
+        }
+        mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_ENCRYPT, iv, iv );
+    }
+
+    mbedtls_gost89_free( &mesh );
+}
+
+static inline int mbedtls_gost89_is_meshing_needed( const mbedtls_gost89_context *ctx )
+{
+    return ( ctx->processed_len == 1024 );
+}
 
 void mbedtls_gost89_init( mbedtls_gost89_context *ctx,
                           mbedtls_gost89_sbox_id_t sbox_id )
@@ -168,70 +211,20 @@ int mbedtls_gost89_setkey( mbedtls_gost89_context *ctx,
     return( 0 );
 }
 
-static const mbedtls_gost89_sbox_t *mbedtls_gost89_sbox_from_id( mbedtls_gost89_sbox_id_t sbox_id )
-{
-    switch( sbox_id )
-    {
-        case MBEDTLS_GOST89_SBOX_TEST:
-            return &TestSb;
-        case MBEDTLS_GOST89_SBOX_A:
-            return &SbA;
-        case MBEDTLS_GOST89_SBOX_Z:
-            return &SbZ;
-        default:
-            return &SbA;
-    }
-}
-
-/*
- * Copy round keys from one GOST89 context to another
- */
-static const void mbedtls_gost89_key_copy( mbedtls_gost89_context *dst,
-                                           mbedtls_gost89_context *src )
-{
-    int i;
-
-    for( i = 0; i < 8; i++ )
-    {
-        dst->rk[i] = src->rk[i];
-    }
-}
-
-/*
- * CryptoPro Key Meshing algorithm from RFC 4357:
- *
- * https://tools.ietf.org/html/rfc4357
- */
-static const void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
-                                              unsigned char *iv )
-{
-    int i;
-    unsigned char output[MBEDTLS_GOST89_BLOCKSIZE];
-    mbedtls_gost89_context mesh;
-    mbedtls_gost89_init( &mesh, ctx->sbox_id );
-
-    /*
-     * Key Meshing
-     */
-    mbedtls_gost89_key_copy( &mesh, ctx );
-    for( i = 0; i < 4; i++ )
-    {
-        mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_DECRYPT, &MeshC[i * MBEDTLS_GOST89_BLOCKSIZE], output );
-        GET_UINT32_LE( ctx->rk[ i << 1 ], output, 0 );
-        GET_UINT32_LE( ctx->rk[ ( i << 1 ) + 1 ], output, 4 );
-    }
-
-    /*
-     * IV Meshing
-     */
-    if( iv != NULL )
-    {
-        mbedtls_gost89_key_copy( &mesh, ctx );
-        mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_ENCRYPT, iv, iv );
-    }
-
-    mbedtls_gost89_free( &mesh );
-}
+#define GOST89_ROUND(N1,N2,S,RK,Sb)                                 \
+    S = ( N1 + *RK ) & 0xFFFFFFFF;                                  \
+    S = ( (uint32_t) Sb->data[ 0 ][ ( S       ) & 0x0F ]       )    \
+      | ( (uint32_t) Sb->data[ 1 ][ ( S >>  4 ) & 0x0F ] <<  4 )    \
+      | ( (uint32_t) Sb->data[ 2 ][ ( S >>  8 ) & 0x0F ] <<  8 )    \
+      | ( (uint32_t) Sb->data[ 3 ][ ( S >> 12 ) & 0x0F ] << 12 )    \
+      | ( (uint32_t) Sb->data[ 4 ][ ( S >> 16 ) & 0x0F ] << 16 )    \
+      | ( (uint32_t) Sb->data[ 5 ][ ( S >> 20 ) & 0x0F ] << 20 )    \
+      | ( (uint32_t) Sb->data[ 6 ][ ( S >> 24 ) & 0x0F ] << 24 )    \
+      | ( (uint32_t) Sb->data[ 7 ][ ( S >> 28 ) & 0x0F ] << 28 );   \
+    S = ( ( S << 11 ) & 0xFFFFFFFF ) | ( S >> 21 );                 \
+    S ^= N2;                                                        \
+    N2 = N1;                                                        \
+    N1 = S;                                                         \
 
 /*
  * GOST89-ECB block encryption
@@ -311,7 +304,7 @@ int mbedtls_gost89_crypt_ecb( mbedtls_gost89_context *ctx,
                               const unsigned char input[MBEDTLS_GOST89_BLOCKSIZE],
                               unsigned char output[MBEDTLS_GOST89_BLOCKSIZE] )
 {
-    if( ctx->processed_len == 1024 )
+    if( mbedtls_gost89_is_meshing_needed( ctx ) )
     {
         mbedtls_gost89_key_meshing( ctx, NULL );
     }
@@ -347,7 +340,7 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
     {
         while( length > 0 )
         {
-            if( ctx->processed_len == 1024 )
+            if( mbedtls_gost89_is_meshing_needed( ctx ) )
             {
                 mbedtls_gost89_key_meshing( ctx, iv );
             }
@@ -371,7 +364,7 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
     {
         while( length > 0 )
         {
-            if( ctx->processed_len == 1024 )
+            if( mbedtls_gost89_is_meshing_needed( ctx ) )
             {
                 mbedtls_gost89_key_meshing( ctx, iv );
             }
@@ -491,7 +484,8 @@ int mbedtls_gost89_self_test( int verbose )
     mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
     mbedtls_gost89_setkey( &ctx, gost89_test3412_key );
     memset( buf, 0, sizeof( buf ) );
-    mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT, gost89_test3412_pt, buf );
+    mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT, gost89_test3412_pt,
+                              buf );
     if( memcmp( gost89_test3412_ecb_ct, buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
@@ -508,7 +502,8 @@ int mbedtls_gost89_self_test( int verbose )
     mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
     mbedtls_gost89_setkey( &ctx, gost89_test3412_key );
     memset( buf, 0, sizeof( buf ) );
-    mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT, gost89_test3412_ecb_ct, buf );
+    mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT, gost89_test3412_ecb_ct,
+                              buf );
     if( memcmp( gost89_test3412_pt, buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
     {
         if( verbose != 0 )
@@ -527,9 +522,12 @@ int mbedtls_gost89_self_test( int verbose )
     for( i = 0; i < 4; i++ )
     {
         memset( buf, 0, sizeof( buf ) );
-        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT, &gost89_test3413_pt[i * MBEDTLS_GOST89_BLOCKSIZE], buf );
+        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT,
+                                  &gost89_test3413_pt[i * MBEDTLS_GOST89_BLOCKSIZE],
+                                  buf );
 
-        if( memcmp( &gost89_test3413_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE], buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
+        if( memcmp( &gost89_test3413_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE],
+                    buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -548,9 +546,12 @@ int mbedtls_gost89_self_test( int verbose )
     for( i = 0; i < 4; i++ )
     {
         memset( buf, 0, sizeof( buf ) );
-        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT, &gost89_test3413_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE], buf );
+        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT,
+                                  &gost89_test3413_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE],
+                                  buf );
 
-        if( memcmp( &gost89_test3413_pt[i * MBEDTLS_GOST89_BLOCKSIZE], buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
+        if( memcmp( &gost89_test3413_pt[i * MBEDTLS_GOST89_BLOCKSIZE],
+                    buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -569,9 +570,12 @@ int mbedtls_gost89_self_test( int verbose )
     for( i = 0; i < 2; i++ )
     {
         memset( buf, 0, sizeof( buf ) );
-        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT, &gost89_testz_pt[i * MBEDTLS_GOST89_BLOCKSIZE], buf );
+        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT,
+                                  &gost89_testz_pt[i * MBEDTLS_GOST89_BLOCKSIZE],
+                                  buf );
 
-        if( memcmp( &gost89_testz_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE], buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
+        if( memcmp( &gost89_testz_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE],
+                    buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -590,9 +594,12 @@ int mbedtls_gost89_self_test( int verbose )
     for( i = 0; i < 2; i++ )
     {
         memset( buf, 0, sizeof( buf ) );
-        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT, &gost89_testz_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE], buf );
+        mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT,
+                                  &gost89_testz_ecb_ct[i * MBEDTLS_GOST89_BLOCKSIZE],
+                                  buf );
 
-        if( memcmp( &gost89_testz_pt[i * MBEDTLS_GOST89_BLOCKSIZE], buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
+        if( memcmp( &gost89_testz_pt[i * MBEDTLS_GOST89_BLOCKSIZE],
+                    buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
