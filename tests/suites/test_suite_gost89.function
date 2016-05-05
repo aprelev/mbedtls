@@ -1,0 +1,68 @@
+/* BEGIN_HEADER */
+#include "mbedtls/gost89.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_GOST89_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void gost89_encrypt_ecb( char *hex_key_string, char *hex_src_string,
+                         char *hex_dst_string, int sbox_id )
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    mbedtls_gost89_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+    mbedtls_gost89_init( &ctx, sbox_id );
+
+    unhexify( key_str, hex_key_string );
+    unhexify( src_str, hex_src_string );
+
+    mbedtls_gost89_setkey( &ctx, key_str );
+    TEST_ASSERT( mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT, src_str, output ) == 0 );
+    hexify( dst_str, output, 8 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+exit:
+    mbedtls_gost89_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void gost89_decrypt_ecb( char *hex_key_string, char *hex_src_string,
+                         char *hex_dst_string, int sbox_id )
+{
+    unsigned char key_str[100];
+    unsigned char src_str[100];
+    unsigned char dst_str[100];
+    unsigned char output[100];
+    mbedtls_gost89_context ctx;
+
+    memset(key_str, 0x00, 100);
+    memset(src_str, 0x00, 100);
+    memset(dst_str, 0x00, 100);
+    memset(output, 0x00, 100);
+    mbedtls_gost89_init( &ctx, sbox_id );
+
+    unhexify( key_str, hex_key_string );
+    unhexify( src_str, hex_src_string );
+
+    mbedtls_gost89_setkey( &ctx, key_str );
+    TEST_ASSERT( mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT, src_str, output ) == 0 );
+    hexify( dst_str, output, 8 );
+
+    TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
+
+exit:
+    mbedtls_gost89_free( &ctx );
+}
+/* END_CASE */

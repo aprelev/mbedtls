@@ -69,6 +69,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_gcm.aes192_en$(EXEXT)				\
 	test_suite_gcm.aes256_en$(EXEXT)				\
 	test_suite_gcm.camellia$(EXEXT)					\
+	test_suite_gost89.ecb$(EXEXT)					\
 	test_suite_hmac_drbg.misc$(EXEXT)				\
 	test_suite_hmac_drbg.no_reseed$(EXEXT)				\
 	test_suite_hmac_drbg.nopr$(EXEXT)				\
@@ -175,6 +176,10 @@ test_suite_gcm.aes256_en.c : suites/test_suite_gcm.function suites/test_suite_gc
 test_suite_gcm.camellia.c : suites/test_suite_gcm.function suites/test_suite_gcm.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.camellia
+
+test_suite_gost89.ecb.c : suites/test_suite_gost89.function suites/test_suite_gost89.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89.ecb
 
 test_suite_hmac_drbg.misc.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -333,6 +338,10 @@ test_suite_gcm.aes256_en$(EXEXT): test_suite_gcm.aes256_en.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.camellia$(EXEXT): test_suite_gcm.camellia.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_gost89.ecb$(EXEXT): test_suite_gost89.ecb.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
