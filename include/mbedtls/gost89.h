@@ -19,7 +19,7 @@
 #define MBEDTLS_GOST89_DECRYPT     0
 #define MBEDTLS_GOST89_BLOCKSIZE   8
 
-#define MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH              -0x0042  /**< Invalid data input length. */
+#define MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH              -0x007E  /**< Invalid data input length. */
 
 #define MBEDTLS_GOST89_KEY_SIZE    32
 

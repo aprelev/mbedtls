@@ -57,6 +57,10 @@
 #include "mbedtls/gcm.h"
 #endif
 
+#if defined(MBEDTLS_GOST89_C)
+#include "mbedtls/gost89.h"
+#endif
+
 #if defined(MBEDTLS_CCM_C)
 #include "mbedtls/ccm.h"
 #endif
@@ -1283,6 +1287,208 @@ static const mbedtls_cipher_info_t arc4_128_info = {
 };
 #endif /* MBEDTLS_ARC4_C */
 
+#if defined(MBEDTLS_GOST89_C)
+static int gost89_crypt_ecb_wrap( void *ctx, mbedtls_operation_t operation,
+        const unsigned char *input, unsigned char *output )
+{
+    return mbedtls_gost89_crypt_ecb( (mbedtls_gost89_context *) ctx, operation, input, output );
+}
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+static int gost89_crypt_cbc_wrap( void *ctx, mbedtls_operation_t operation, size_t length,
+        unsigned char *iv, const unsigned char *input, unsigned char *output )
+{
+    return mbedtls_gost89_crypt_cbc( (mbedtls_gost89_context *) ctx, operation, length, iv, input,
+                          output );
+}
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+static int gost89_setkey_wrap( void *ctx, const unsigned char *key,
+                                unsigned int key_bitlen )
+{
+    ((void) key_bitlen);
+
+    return mbedtls_gost89_setkey( (mbedtls_gost89_context *) ctx, key );
+}
+
+static void * gost89_test_ctx_alloc( void )
+{
+    mbedtls_gost89_context *gost89 = mbedtls_calloc( 1, sizeof( mbedtls_gost89_context ) );
+
+    if( gost89 == NULL )
+        return( NULL );
+
+    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_TEST );
+
+    return( gost89 );
+}
+
+static void * gost89_a_ctx_alloc( void )
+{
+    mbedtls_gost89_context *gost89 = mbedtls_calloc( 1, sizeof( mbedtls_gost89_context ) );
+
+    if( gost89 == NULL )
+        return( NULL );
+
+    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_A );
+
+    return( gost89 );
+}
+
+static void * gost89_z_ctx_alloc( void )
+{
+    mbedtls_gost89_context *gost89 = mbedtls_calloc( 1, sizeof( mbedtls_gost89_context ) );
+
+    if( gost89 == NULL )
+        return( NULL );
+
+    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_Z );
+
+    return( gost89 );
+}
+
+static void gost89_ctx_free( void *ctx )
+{
+    mbedtls_gost89_free( (mbedtls_gost89_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static const mbedtls_cipher_base_t gost89_test_info = {
+    MBEDTLS_CIPHER_ID_GOST89,
+    gost89_crypt_ecb_wrap,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    gost89_crypt_cbc_wrap,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+    NULL,
+#endif
+    gost89_setkey_wrap,
+    gost89_setkey_wrap,
+    gost89_test_ctx_alloc,
+    gost89_ctx_free
+};
+
+static const mbedtls_cipher_info_t gost89_test_ecb_info = {
+    MBEDTLS_CIPHER_GOST89_TEST_ECB,
+    MBEDTLS_MODE_ECB,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-TEST-ECB",
+    8,
+    0,
+    8,
+    &gost89_test_info
+};
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+static const mbedtls_cipher_info_t gost89_test_cbc_info = {
+    MBEDTLS_CIPHER_GOST89_TEST_CBC,
+    MBEDTLS_MODE_CBC,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-TEST-CBC",
+    8,
+    0,
+    8,
+    &gost89_test_info
+};
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+static const mbedtls_cipher_base_t gost89_a_info = {
+    MBEDTLS_CIPHER_ID_GOST89,
+    gost89_crypt_ecb_wrap,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    gost89_crypt_cbc_wrap,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+    NULL,
+#endif
+    gost89_setkey_wrap,
+    gost89_setkey_wrap,
+    gost89_a_ctx_alloc,
+    gost89_ctx_free
+};
+
+static const mbedtls_cipher_info_t gost89_a_ecb_info = {
+    MBEDTLS_CIPHER_GOST89_A_ECB,
+    MBEDTLS_MODE_ECB,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-A-ECB",
+    8,
+    0,
+    8,
+    &gost89_a_info
+};
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+static const mbedtls_cipher_info_t gost89_a_cbc_info = {
+    MBEDTLS_CIPHER_GOST89_A_CBC,
+    MBEDTLS_MODE_CBC,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-A-CBC",
+    8,
+    0,
+    8,
+    &gost89_a_info
+};
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+static const mbedtls_cipher_base_t gost89_z_info = {
+    MBEDTLS_CIPHER_ID_GOST89,
+    gost89_crypt_ecb_wrap,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    gost89_crypt_cbc_wrap,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+    NULL,
+#endif
+    gost89_setkey_wrap,
+    gost89_setkey_wrap,
+    gost89_z_ctx_alloc,
+    gost89_ctx_free
+};
+
+static const mbedtls_cipher_info_t gost89_z_ecb_info = {
+    MBEDTLS_CIPHER_GOST89_Z_ECB,
+    MBEDTLS_MODE_ECB,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-Z-ECB",
+    8,
+    0,
+    8,
+    &gost89_z_info
+};
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+static const mbedtls_cipher_info_t gost89_z_cbc_info = {
+    MBEDTLS_CIPHER_GOST89_Z_CBC,
+    MBEDTLS_MODE_CBC,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-Z-CBC",
+    8,
+    0,
+    8,
+    &gost89_z_info
+};
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_GOST89_C */
+
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 static int null_crypt_stream( void *ctx, size_t length,
                               const unsigned char *input,
@@ -1437,6 +1643,17 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_DES_EDE3_CBC,         &des_ede3_cbc_info },
 #endif
 #endif /* MBEDTLS_DES_C */
+
+#if defined(MBEDTLS_GOST89_C)
+    { MBEDTLS_CIPHER_GOST89_TEST_ECB,      &gost89_test_ecb_info },
+    { MBEDTLS_CIPHER_GOST89_A_ECB,         &gost89_a_ecb_info },
+    { MBEDTLS_CIPHER_GOST89_Z_ECB,         &gost89_z_ecb_info },
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    { MBEDTLS_CIPHER_GOST89_TEST_CBC,      &gost89_test_cbc_info },
+    { MBEDTLS_CIPHER_GOST89_A_CBC,         &gost89_a_cbc_info },
+    { MBEDTLS_CIPHER_GOST89_Z_CBC,         &gost89_z_cbc_info },
+#endif
+#endif /* MBEDTLS_GOST89_C */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
     { MBEDTLS_CIPHER_NULL,                 &null_cipher_info },

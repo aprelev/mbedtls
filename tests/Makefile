@@ -53,6 +53,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_cipher.aes$(EXEXT)					\
 	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
 	test_suite_cipher.gcm$(EXEXT)					\
+	test_suite_cipher.gost89$(EXEXT)				\
 	test_suite_cipher.blowfish$(EXEXT)				\
 	test_suite_cipher.camellia$(EXEXT)				\
 	test_suite_cipher.des$(EXEXT)	test_suite_cipher.null$(EXEXT)	\
@@ -128,6 +129,10 @@ test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_ci
 test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gcm
+
+test_suite_cipher.gost89.c : suites/test_suite_cipher.function suites/test_suite_cipher.gost89.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gost89
 
 test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -254,6 +259,10 @@ test_suite_cipher.ccm$(EXEXT): test_suite_cipher.ccm.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.gcm$(EXEXT): test_suite_cipher.gcm.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_cipher.gost89$(EXEXT): test_suite_cipher.gost89.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
