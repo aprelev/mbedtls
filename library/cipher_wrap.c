@@ -1303,6 +1303,16 @@ static int gost89_crypt_cbc_wrap( void *ctx, mbedtls_operation_t operation, size
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+static int gost89_crypt_cnt_wrap( void *ctx, size_t length, size_t *nc_off,
+        unsigned char *nonce_counter, unsigned char *stream_block,
+        const unsigned char *input, unsigned char *output )
+{
+    return mbedtls_gost89_crypt_cnt( (mbedtls_gost89_context *) ctx, length, nc_off, nonce_counter,
+                          stream_block, input, output );
+}
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
 static int gost89_setkey_wrap( void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen )
 {
@@ -1363,7 +1373,7 @@ static const mbedtls_cipher_base_t gost89_test_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
-    NULL,
+    gost89_crypt_cnt_wrap,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
@@ -1398,6 +1408,19 @@ static const mbedtls_cipher_info_t gost89_test_cbc_info = {
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+static const mbedtls_cipher_info_t gost89_test_cnt_info = {
+    MBEDTLS_CIPHER_GOST89_TEST_CNT,
+    MBEDTLS_MODE_CTR,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-TEST-CNT",
+    8,
+    0,
+    8,
+    &gost89_test_info
+};
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
 static const mbedtls_cipher_base_t gost89_a_info = {
     MBEDTLS_CIPHER_ID_GOST89,
     gost89_crypt_ecb_wrap,
@@ -1408,7 +1431,7 @@ static const mbedtls_cipher_base_t gost89_a_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
-    NULL,
+    gost89_crypt_cnt_wrap,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
@@ -1443,6 +1466,19 @@ static const mbedtls_cipher_info_t gost89_a_cbc_info = {
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+static const mbedtls_cipher_info_t gost89_a_cnt_info = {
+    MBEDTLS_CIPHER_GOST89_A_CNT,
+    MBEDTLS_MODE_CTR,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-A-CNT",
+    8,
+    0,
+    8,
+    &gost89_a_info
+};
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
 static const mbedtls_cipher_base_t gost89_z_info = {
     MBEDTLS_CIPHER_ID_GOST89,
     gost89_crypt_ecb_wrap,
@@ -1453,7 +1489,7 @@ static const mbedtls_cipher_base_t gost89_z_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
-    NULL,
+    gost89_crypt_cnt_wrap,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
@@ -1487,6 +1523,19 @@ static const mbedtls_cipher_info_t gost89_z_cbc_info = {
     &gost89_z_info
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+static const mbedtls_cipher_info_t gost89_z_cnt_info = {
+    MBEDTLS_CIPHER_GOST89_Z_CNT,
+    MBEDTLS_MODE_CTR,
+    MBEDTLS_KEY_LENGTH_GOST89,
+    "GOST89-Z-CNT",
+    8,
+    0,
+    8,
+    &gost89_z_info
+};
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
 #endif /* MBEDTLS_GOST89_C */
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
@@ -1652,6 +1701,11 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_GOST89_TEST_CBC,      &gost89_test_cbc_info },
     { MBEDTLS_CIPHER_GOST89_A_CBC,         &gost89_a_cbc_info },
     { MBEDTLS_CIPHER_GOST89_Z_CBC,         &gost89_z_cbc_info },
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    { MBEDTLS_CIPHER_GOST89_TEST_CNT,      &gost89_test_cnt_info },
+    { MBEDTLS_CIPHER_GOST89_A_CNT,         &gost89_a_cnt_info },
+    { MBEDTLS_CIPHER_GOST89_Z_CNT,         &gost89_z_cnt_info },
 #endif
 #endif /* MBEDTLS_GOST89_C */
 

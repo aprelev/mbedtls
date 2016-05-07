@@ -124,6 +124,34 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
                               unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+/**
+ * \brief               GOST89-CNT buffer encryption/decryption
+ *
+ * Warning: You have to keep the maximum use of your counter in mind!
+ *
+ * \param ctx           GOST89 context
+ * \param length        The length of the data
+ * \param nc_off        The offset in the current stream_block (for resuming
+ *                      within current cipher stream). The offset pointer to
+ *                      should be 0 at the start of a stream.
+ * \param nonce_counter The 64-bit nonce and counter.
+ * \param stream_block  The saved stream-block for resuming. Is overwritten
+ *                      by the function.
+ * \param input         The input data stream
+ * \param output        The output data stream
+ *
+ * \return         0 if successful
+ */
+int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
+                              size_t length,
+                              size_t *nc_off,
+                              unsigned char nonce_counter[MBEDTLS_GOST89_BLOCKSIZE],
+                              unsigned char stream_block[MBEDTLS_GOST89_BLOCKSIZE],
+                              const unsigned char *input,
+                              unsigned char *output );
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
 /**
  * \brief           Internal GOST89 block encryption function
  *                  (Only exposed to allow overriding it,

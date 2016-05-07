@@ -387,6 +387,74 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+/*
+ * GOST89-CNT buffer encryption/decryption
+ */
+int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
+                              size_t length,
+                              size_t *nc_off,
+                              unsigned char nonce_counter[MBEDTLS_GOST89_BLOCKSIZE],
+                              unsigned char stream_block[MBEDTLS_GOST89_BLOCKSIZE],
+                              const unsigned char *input,
+                              unsigned char *output )
+{
+    int c;
+    size_t n = *nc_off;
+    uint32_t N3, N4;
+
+    if( ctx->processed_len == 0 )
+    {
+        mbedtls_gost89_crypt_ecb( ctx, MBEDTLS_GOST89_ENCRYPT, nonce_counter,
+                                  nonce_counter );
+    }
+
+    while( length-- )
+    {
+        if( mbedtls_gost89_is_meshing_needed( ctx ) )
+        {
+            mbedtls_gost89_key_meshing( ctx, nonce_counter );
+        }
+
+        if( n == 0 )
+        {
+            GET_UINT32_LE( N3, nonce_counter, 0 );
+            GET_UINT32_LE( N4, nonce_counter, 4 );
+
+            /*
+             * Sum modulo 2^32
+             */
+            N3 += 0x1010101;
+
+            /*
+             * Sum modulo 2^32-1
+             */
+            N4 += 0x1010104;
+            if( N4 < 0x1010104 )
+            {
+                N4++;
+            }
+
+            PUT_UINT32_LE( N3, nonce_counter, 0 );
+            PUT_UINT32_LE( N4, nonce_counter, 4 );
+
+            mbedtls_gost89_crypt_ecb( ctx, MBEDTLS_GOST89_ENCRYPT, nonce_counter,
+                                      stream_block );
+        }
+        c = *input++;
+        *output++ = (unsigned char)( c ^ stream_block[n] );
+
+        n = ( n + 1 ) % MBEDTLS_GOST89_BLOCKSIZE;
+
+        ctx->processed_len++;
+    }
+
+    *nc_off = n;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
 #endif /* !MBEDTLS_GOST89_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
