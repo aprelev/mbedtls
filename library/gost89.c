@@ -146,7 +146,7 @@ static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
     int i;
     unsigned char output[MBEDTLS_GOST89_BLOCKSIZE];
     mbedtls_gost89_context mesh;
-    mbedtls_gost89_init( &mesh, ctx->sbox_id );
+    mbedtls_gost89_init( &mesh, ctx->sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE );
 
     /*
      * Key Meshing
@@ -180,14 +180,17 @@ static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
 
 static inline int mbedtls_gost89_is_meshing_needed( const mbedtls_gost89_context *ctx )
 {
-    return ( ctx->processed_len == 1024 );
+    return( ( ctx->key_meshing == MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO ) &&
+            ( ctx->processed_len == 1024 ) );
 }
 
 void mbedtls_gost89_init( mbedtls_gost89_context *ctx,
-                          mbedtls_gost89_sbox_id_t sbox_id )
+                          mbedtls_gost89_sbox_id_t sbox_id,
+                          mbedtls_gost89_key_meshing_t key_meshing )
 {
     memset( ctx, 0, sizeof( mbedtls_gost89_context ) );
     ctx->sbox_id = sbox_id;
+    ctx->key_meshing = key_meshing;
 }
 
 void mbedtls_gost89_free( mbedtls_gost89_context *ctx )
@@ -549,7 +552,7 @@ int mbedtls_gost89_self_test( int verbose )
      */
     if( verbose != 0 )
         mbedtls_printf( "  GOST89-Z-ECB 34.12 (enc): ");
-    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_NONE );
     mbedtls_gost89_setkey( &ctx, gost89_test3412_key );
     memset( buf, 0, sizeof( buf ) );
     mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_ENCRYPT, gost89_test3412_pt,
@@ -567,7 +570,7 @@ int mbedtls_gost89_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "  GOST89-Z-ECB 34.12 (dec): ");
-    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_NONE );
     mbedtls_gost89_setkey( &ctx, gost89_test3412_key );
     memset( buf, 0, sizeof( buf ) );
     mbedtls_gost89_crypt_ecb( &ctx, MBEDTLS_GOST89_DECRYPT, gost89_test3412_ecb_ct,
@@ -585,7 +588,7 @@ int mbedtls_gost89_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "  GOST89-Z-ECB 34.13 (enc): ");
-    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_NONE );
     mbedtls_gost89_setkey( &ctx, gost89_test3413_key );
     for( i = 0; i < 4; i++ )
     {
@@ -609,7 +612,7 @@ int mbedtls_gost89_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "  GOST89-Z-ECB 34.13 (dec): ");
-    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_NONE );
     mbedtls_gost89_setkey( &ctx, gost89_test3413_key );
     for( i = 0; i < 4; i++ )
     {
@@ -633,7 +636,7 @@ int mbedtls_gost89_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "  GOST89-Z-ECB Z (enc): ");
-    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_NONE );
     mbedtls_gost89_setkey( &ctx, gost89_testz_key );
     for( i = 0; i < 2; i++ )
     {
@@ -657,7 +660,7 @@ int mbedtls_gost89_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "  GOST89-Z-ECB Z (dec): ");
-    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_NONE );
     mbedtls_gost89_setkey( &ctx, gost89_testz_key );
     for( i = 0; i < 2; i++ )
     {

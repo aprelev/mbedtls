@@ -21,7 +21,7 @@ void gost89_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    mbedtls_gost89_init( &ctx, sbox_id );
+    mbedtls_gost89_init( &ctx, sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE );
 
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -51,7 +51,7 @@ void gost89_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     memset(src_str, 0x00, 100);
     memset(dst_str, 0x00, 100);
     memset(output, 0x00, 100);
-    mbedtls_gost89_init( &ctx, sbox_id );
+    mbedtls_gost89_init( &ctx, sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE );
 
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
@@ -85,7 +85,7 @@ void gost89_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
     memset(output, 0x00, 1000);
-    mbedtls_gost89_init( &ctx, sbox_id );
+    mbedtls_gost89_init( &ctx, sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE );
 
     unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -124,7 +124,7 @@ void gost89_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
     memset(output, 0x00, 1000);
-    mbedtls_gost89_init( &ctx, sbox_id );
+    mbedtls_gost89_init( &ctx, sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE );
 
     unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );
@@ -165,7 +165,7 @@ void gost89_encrypt_cnt( char *hex_key_string, char *hex_iv_string,
     memset(src_str, 0x00, 1000);
     memset(dst_str, 0x00, 1000);
     memset(output, 0x00, 1000);
-    mbedtls_gost89_init( &ctx, sbox_id );
+    mbedtls_gost89_init( &ctx, sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE );
 
     unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );

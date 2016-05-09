@@ -1328,7 +1328,7 @@ static void * gost89_test_ctx_alloc( void )
     if( gost89 == NULL )
         return( NULL );
 
-    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_TEST );
+    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_TEST, MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 
     return( gost89 );
 }
@@ -1340,7 +1340,7 @@ static void * gost89_a_ctx_alloc( void )
     if( gost89 == NULL )
         return( NULL );
 
-    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_A );
+    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_A, MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 
     return( gost89 );
 }
@@ -1352,7 +1352,7 @@ static void * gost89_z_ctx_alloc( void )
     if( gost89 == NULL )
         return( NULL );
 
-    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_init( gost89, MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 
     return( gost89 );
 }

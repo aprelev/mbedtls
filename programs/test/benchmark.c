@@ -498,11 +498,13 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(MBEDTLS_GOST89_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_GOST89_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( todo.gost89 )
     {
         mbedtls_gost89_context gost89;
-        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_A );
+        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_A,
+                             MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 
         mbedtls_snprintf( title, sizeof( title ), "GOST89-A-CBC" );
 
@@ -516,6 +518,33 @@ int main( int argc, char *argv[] )
 
         mbedtls_gost89_free( &gost89 );
     }
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    if( todo.gost89 )
+    {
+        unsigned char iv[8];
+        unsigned char stream_block[8];
+        size_t iv_offset = 0;
+
+        mbedtls_gost89_context gost89;
+        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_A,
+                             MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
+
+        mbedtls_snprintf( title, sizeof( title ), "GOST89-A-CNT" );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+        memset( iv, 0, sizeof( iv ) );
+        memset( stream_block, 0, sizeof( stream_block ) );
+        mbedtls_gost89_setkey( &gost89, tmp );
+
+        TIME_AND_TSC( title,
+                mbedtls_gost89_crypt_cnt( &gost89, BUFSIZE, &iv_offset, iv,
+                    stream_block, buf, buf ) );
+
+        mbedtls_gost89_free( &gost89 );
+    }
+#endif
 #endif
 
 #if defined(MBEDTLS_HAVEGE_C)

@@ -36,19 +36,26 @@ extern "C" {
  */
 typedef enum
 {
-    MBEDTLS_GOST89_SBOX_TEST = 0, /*!< 1.2.643.2.2.31.0    */
-    MBEDTLS_GOST89_SBOX_A,        /*!< 1.2.643.2.2.31.1    */
-    MBEDTLS_GOST89_SBOX_Z,        /*!< 1.2.643.7.1.2.5.1.1 */
+    MBEDTLS_GOST89_SBOX_TEST = 0, /**< 1.2.643.2.2.31.0    */
+    MBEDTLS_GOST89_SBOX_A,        /**< 1.2.643.2.2.31.1    */
+    MBEDTLS_GOST89_SBOX_Z,        /**< 1.2.643.7.1.2.5.1.1 */
 } mbedtls_gost89_sbox_id_t;
+
+typedef enum
+{
+    MBEDTLS_GOST89_KEY_MESHING_NONE = 0,  /**< not use key meshing                  */
+    MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO, /**< CryptoPro Key Meshing (see RFC 4357) */
+} mbedtls_gost89_key_meshing_t;
 
 /**
  * \brief          GOST89 context structure
  */
 typedef struct
 {
-    uint32_t rk[8];                   /*!<  round keys                */
-    mbedtls_gost89_sbox_id_t sbox_id; /*!<  S-Box                     */
-    size_t processed_len;             /*!<  number of processed bytes */
+    uint32_t rk[8];                           /*!<  round keys                */
+    mbedtls_gost89_sbox_id_t sbox_id;         /*!<  S-Box                     */
+    mbedtls_gost89_key_meshing_t key_meshing; /*!<  key meshing type          */
+    size_t processed_len;                     /*!<  number of processed bytes */
 } mbedtls_gost89_context;
 
 /**
@@ -58,7 +65,8 @@ typedef struct
  * \param sbox_id  S-Box identifier
  */
 void mbedtls_gost89_init( mbedtls_gost89_context *ctx,
-                          mbedtls_gost89_sbox_id_t sbox_id );
+                          mbedtls_gost89_sbox_id_t sbox_id,
+                          mbedtls_gost89_key_meshing_t key_meshing );
 
 /**
  * \brief          Clear GOST89 context
