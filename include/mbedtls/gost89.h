@@ -59,10 +59,20 @@ typedef struct
 } mbedtls_gost89_context;
 
 /**
- * \brief          Initialize GOST89 context
+ * \brief          GOST89-MAC context structure
+ */
+typedef struct
+{
+    mbedtls_gost89_context gost89_ctx;              /**< cipher context             */
+    unsigned char buffer[MBEDTLS_GOST89_BLOCKSIZE]; /**< data block being processed */
+} mbedtls_gost89_mac_context;
+
+/**
+ * \brief             Initialize GOST89 context
  *
- * \param ctx      GOST89 context to be initialized
- * \param sbox_id  S-Box identifier
+ * \param ctx         GOST89 context to be initialized
+ * \param sbox_id     S-Box identifier
+ * \param key_meshing key meshing to use
  */
 void mbedtls_gost89_init( mbedtls_gost89_context *ctx,
                           mbedtls_gost89_sbox_id_t sbox_id,
@@ -149,7 +159,7 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
  * \param input         The input data stream
  * \param output        The output data stream
  *
- * \return         0 if successful
+ * \return              0 if successful
  */
 int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
                               size_t length,
@@ -186,6 +196,70 @@ void mbedtls_gost89_decrypt( mbedtls_gost89_context *ctx,
                              const unsigned char input[MBEDTLS_GOST89_BLOCKSIZE],
                              unsigned char output[MBEDTLS_GOST89_BLOCKSIZE] );
 
+/**
+ * \brief          Initialize GOST89-MAC context
+ *
+ * \param ctx      GOST89-MAC context to be initialized
+ * \param sbox_id  S-Box identifier
+ */
+void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx,
+                              mbedtls_gost89_sbox_id_t sbox_id );
+
+/**
+ * \brief          Clear GOST89-MAC context
+ *
+ * \param ctx      GOST89-MAC context to be cleared
+ */
+void mbedtls_gost89_mac_free( mbedtls_gost89_mac_context *ctx );
+
+/**
+ * \brief          GOST89-MAC key schedule
+ *
+ * \param ctx      GOST89-MAC context to be initialized
+ * \param key      32-byte secret key
+ *
+ * \return         0
+ */
+inline int mbedtls_gost89_mac_setkey( mbedtls_gost89_mac_context *ctx,
+                                      const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] )
+{
+    mbedtls_gost89_setkey( &ctx->gost89_ctx, key );
+}
+
+/**
+ * \brief          Clone (the state of) a GOST89-MAC context
+ *
+ * \param dst      The destination context
+ * \param src      The context to be cloned
+ */
+void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
+                               const mbedtls_gost89_mac_context *src );
+
+/**
+ * \brief          GOST89-MAC context setup
+ *
+ * \param ctx      context to be initialized
+ */
+void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx );
+
+/**
+ * \brief          GOST89-MAC process buffer
+ *
+ * \param ctx      GOST89-MAC context
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ */
+void mbedtls_gost89_mac_update( mbedtls_gost89_mac_context *ctx, const unsigned char *input,
+                                size_t ilen );
+
+/**
+ * \brief          GOST89-MAC final digest
+ *
+ * \param ctx      GOST89-MAC context
+ * \param output   GOST89-MAC checksum result
+ */
+void mbedtls_gost89_mac_finish( mbedtls_gost89_mac_context *ctx, unsigned char output[4] );
+
 #ifdef __cplusplus
 }
 #endif
@@ -197,6 +271,20 @@ void mbedtls_gost89_decrypt( mbedtls_gost89_context *ctx,
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief          Output = GOST89-MAC( input buffer )
+ *
+ * \param sbox_id  S-Box identifier
+ * \param key      32-byte secret key
+ * \param input    buffer holding the  data
+ * \param ilen     length of the input data
+ * \param output   GOST89-MAC checksum result
+ */
+void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
+                         const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
+                         const unsigned char *input, size_t ilen,
+                         unsigned char output[4] );
 
 /**
  * \brief          Checkup routine
