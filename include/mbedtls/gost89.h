@@ -52,10 +52,10 @@ typedef enum
  */
 typedef struct
 {
-    uint32_t rk[8];                           /*!<  round keys                */
-    mbedtls_gost89_sbox_id_t sbox_id;         /*!<  S-Box                     */
-    mbedtls_gost89_key_meshing_t key_meshing; /*!<  key meshing type          */
-    size_t processed_len;                     /*!<  number of processed bytes */
+    uint32_t rk[8];                           /*!< round keys                */
+    mbedtls_gost89_sbox_id_t sbox_id;         /*!< S-Box identifier          */
+    mbedtls_gost89_key_meshing_t key_meshing; /*!< key meshing type          */
+    size_t processed_len;                     /*!< number of processed bytes */
 } mbedtls_gost89_context;
 
 /**
@@ -63,8 +63,11 @@ typedef struct
  */
 typedef struct
 {
-    mbedtls_gost89_context gost89_ctx;              /**< cipher context             */
-    unsigned char buffer[MBEDTLS_GOST89_BLOCKSIZE]; /**< data block being processed */
+    uint32_t rk[8];                                          /*!< round keys                 */
+    mbedtls_gost89_sbox_id_t sbox_id;                        /*!< S-Box identifier           */
+    unsigned char buffer[MBEDTLS_GOST89_BLOCKSIZE];          /*!< data block being processed */
+    unsigned char encrypted_block[MBEDTLS_GOST89_BLOCKSIZE]; /*!< previous encrypted block   */
+    size_t processed_len;                                    /*!< number of processed bytes  */
 } mbedtls_gost89_mac_context;
 
 /**
@@ -220,17 +223,14 @@ void mbedtls_gost89_mac_free( mbedtls_gost89_mac_context *ctx );
  *
  * \return         0
  */
-inline int mbedtls_gost89_mac_setkey( mbedtls_gost89_mac_context *ctx,
-                                      const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] )
-{
-    mbedtls_gost89_setkey( &ctx->gost89_ctx, key );
-}
+int mbedtls_gost89_mac_setkey( mbedtls_gost89_mac_context *ctx,
+                               const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] );
 
 /**
  * \brief          Clone (the state of) a GOST89-MAC context
  *
  * \param dst      The destination context
- * \param src      The context to be cloned
+ * \param src      The context tostate be cloned
  */
 void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
                                const mbedtls_gost89_mac_context *src );
@@ -259,6 +259,10 @@ void mbedtls_gost89_mac_update( mbedtls_gost89_mac_context *ctx, const unsigned 
  * \param output   GOST89-MAC checksum result
  */
 void mbedtls_gost89_mac_finish( mbedtls_gost89_mac_context *ctx, unsigned char output[4] );
+
+/* Internal use */
+void mbedtls_gost89_mac_process( mbedtls_gost89_mac_context *ctx,
+                                 const unsigned char data[MBEDTLS_GOST89_BLOCKSIZE] );
 
 #ifdef __cplusplus
 }

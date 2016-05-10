@@ -391,6 +391,8 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
+#define C1 0x1010104
+#define C2 0x1010101
 /*
  * GOST89-CNT buffer encryption/decryption
  */
@@ -427,13 +429,13 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
             /*
              * Sum modulo 2^32
              */
-            N3 += 0x1010101;
+            N3 += C2;
 
             /*
              * Sum modulo 2^32-1
              */
-            N4 += 0x1010104;
-            if( N4 < 0x1010104 )
+            N4 += C1;
+            if( N4 < C1 )
             {
                 N4++;
             }
@@ -456,7 +458,173 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
 
     return( 0 );
 }
+#undef C2
+#undef C1
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx,
+                              mbedtls_gost89_sbox_id_t sbox_id )
+{
+    memset( ctx, 0, sizeof( mbedtls_gost89_mac_context ) );
+    ctx->sbox_id = sbox_id;
+}
+
+void mbedtls_gost89_mac_free( mbedtls_gost89_mac_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    mbedtls_zeroize( ctx, sizeof( mbedtls_gost89_mac_context ) );
+}
+
+int mbedtls_gost89_mac_setkey( mbedtls_gost89_mac_context *ctx,
+                               const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] )
+{
+    int i;
+
+    for( i = 0; i < 8; i++ )
+    {
+        GET_UINT32_LE( ctx->rk[i], key, i << 2 );
+    }
+
+    return( 0 );
+}
+
+
+void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
+                               const mbedtls_gost89_mac_context *src )
+{
+    *dst = *src;
+}
+
+/*
+ * GOST89-MAC context setup
+ */
+void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx )
+{
+    int i;
+
+    for( i = 0; i < MBEDTLS_GOST89_BLOCKSIZE; i++ )
+    {
+        ctx->buffer[i] = 0;
+        ctx->encrypted_block[i] = 0;
+    }
+
+    ctx->processed_len = 0;
+}
+
+#if !defined(MBEDTLS_GOST89_MAC_PROCESS_ALT)
+void mbedtls_gost89_mac_process( mbedtls_gost89_mac_context *ctx,
+                                 const unsigned char data[MBEDTLS_GOST89_BLOCKSIZE] )
+{
+    int i, j;
+    uint32_t N1, N2, S, *RK;
+    const mbedtls_gost89_sbox_t *Sb = mbedtls_gost89_sbox_from_id( ctx->sbox_id );
+
+    for( i = 0; i < MBEDTLS_GOST89_BLOCKSIZE; i++ )
+    {
+        ctx->encrypted_block[i] ^= data[i];
+    }
+
+    GET_UINT32_LE( N1, ctx->encrypted_block, 0 );
+    GET_UINT32_LE( N2, ctx->encrypted_block, 4 );
+
+    for( i = 0; i < 2; i++ )
+    {
+        RK = ctx->rk;
+        for( j = 0; j < 8; j++ )
+        {
+            GOST89_ROUND( N1, N2, S, RK, Sb ); RK++;
+        }
+    }
+
+    PUT_UINT32_LE( N1, ctx->encrypted_block, 0 );
+    PUT_UINT32_LE( N2, ctx->encrypted_block, 4 );
+}
+#endif /* !MBEDTLS_GOST89_MAC_PROCESS_ALT */
+
+/*
+ * GOST89-MAC process buffer
+ */
+void mbedtls_gost89_mac_update( mbedtls_gost89_mac_context *ctx, const unsigned char *input,
+                                size_t ilen )
+{
+    size_t fill;
+    uint32_t left;
+
+    if( ilen == 0 )
+        return;
+
+    left = ctx->processed_len % MBEDTLS_GOST89_BLOCKSIZE;
+    fill = MBEDTLS_GOST89_BLOCKSIZE - left;
+
+    ctx->processed_len += ilen;
+
+    if( left && ilen >= fill )
+    {
+        memcpy( (void *) (ctx->buffer + left), input, fill );
+        mbedtls_gost89_mac_process( ctx, ctx->buffer );
+        input += fill;
+        ilen  -= fill;
+        left = 0;
+    }
+
+    while( ilen >= MBEDTLS_GOST89_BLOCKSIZE )
+    {
+        mbedtls_gost89_mac_process( ctx, input );
+        input += MBEDTLS_GOST89_BLOCKSIZE;
+        ilen  -= MBEDTLS_GOST89_BLOCKSIZE;
+    }
+
+    if( ilen > 0 )
+        memcpy( (void *) (ctx->buffer + left), input, ilen );
+}
+
+static const unsigned char gost89_mac_padding[2 * MBEDTLS_GOST89_BLOCKSIZE] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+void mbedtls_gost89_mac_finish( mbedtls_gost89_mac_context *ctx, unsigned char output[4] )
+{
+    size_t padn = 0;
+
+    if( ctx->processed_len < 2 * MBEDTLS_GOST89_BLOCKSIZE )
+    {
+        padn = 2 * MBEDTLS_GOST89_BLOCKSIZE - ctx->processed_len;
+    }
+    else
+    {
+        size_t last = ctx->processed_len % MBEDTLS_GOST89_BLOCKSIZE;
+        if( last != 0 )
+        {
+            padn = MBEDTLS_GOST89_BLOCKSIZE - last;
+        }
+    }
+
+    mbedtls_gost89_mac_update( ctx, gost89_mac_padding, padn );
+
+    memcpy( output, ctx->encrypted_block, 4 );
+}
+
+/*
+ * output = GOST89-MAC( key, input buffer )
+ */
+void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
+                         const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
+                         const unsigned char *input, size_t ilen,
+                         unsigned char output[4] )
+{
+    mbedtls_gost89_mac_context ctx;
+
+    mbedtls_gost89_mac_init( &ctx, sbox_id );
+    mbedtls_gost89_mac_setkey( &ctx, key );
+    mbedtls_gost89_mac_starts( &ctx );
+    mbedtls_gost89_mac_update( &ctx, input, ilen );
+    mbedtls_gost89_mac_finish( &ctx, output );
+    mbedtls_gost89_mac_free( &ctx );
+}
 
 #endif /* !MBEDTLS_GOST89_ALT */
 
