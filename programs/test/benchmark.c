@@ -545,6 +545,15 @@ int main( int argc, char *argv[] )
         mbedtls_gost89_free( &gost89 );
     }
 #endif
+    if( todo.gost89 )
+    {
+        unsigned char key[32];
+
+        memset( key, 0, sizeof( key ) );
+
+        TIME_AND_TSC( "GOST89-A-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, key,
+                                                          buf, BUFSIZE, tmp ) );
+    }
 #endif
 
 #if defined(MBEDTLS_HAVEGE_C)
