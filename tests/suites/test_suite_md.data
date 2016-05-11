@@ -40,6 +40,18 @@ Information on SHA512
 depends_on:MBEDTLS_SHA512_C
 md_info:MBEDTLS_MD_SHA512:"SHA512":64
 
+Information on GOST89-TEST-MAC
+depends_on:MBEDTLS_GOST89_C
+md_info:MBEDTLS_MD_GOST89_TEST_MAC:"GOST89-TEST-MAC":4
+
+Information on GOST89-A-MAC
+depends_on:MBEDTLS_GOST89_C
+md_info:MBEDTLS_MD_GOST89_A_MAC:"GOST89-A-MAC":4
+
+Information on GOST89-Z-MAC
+depends_on:MBEDTLS_GOST89_C
+md_info:MBEDTLS_MD_GOST89_Z_MAC:"GOST89-Z-MAC":4
+
 generic mbedtls_md2 Test vector RFC1319 #1
 depends_on:MBEDTLS_MD2_C
 md_text:"MD2":"":"8350e5a3e24c153df2275c9f80692773"
