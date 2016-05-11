@@ -146,6 +146,7 @@ static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
     int i;
     unsigned char output[MBEDTLS_GOST89_BLOCKSIZE];
     mbedtls_gost89_context mesh;
+
     mbedtls_gost89_init( &mesh, ctx->sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE );
 
     /*
@@ -405,8 +406,8 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
                               unsigned char *output )
 {
     int c;
-    size_t n = *nc_off;
     uint32_t N3, N4;
+    size_t n = *nc_off;
 
     if( ctx->processed_len == 0 )
     {
@@ -590,6 +591,9 @@ void mbedtls_gost89_mac_finish( mbedtls_gost89_mac_context *ctx, unsigned char o
 {
     size_t padn = 0;
 
+    /*
+     * TODO: check behavior when input < 2 full blocks
+     */
     if( ctx->processed_len < 2 * MBEDTLS_GOST89_BLOCKSIZE )
     {
         padn = 2 * MBEDTLS_GOST89_BLOCKSIZE - ctx->processed_len;
