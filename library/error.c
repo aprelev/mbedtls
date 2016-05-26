@@ -617,7 +617,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 
 #if defined(MBEDTLS_GOST89_C)
     if( use_ret == -(MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "GOST89 - The data input has an invalid length" );
+        mbedtls_snprintf( buf, buflen, "GOST89 - Invalid data input length" );
 #endif /* MBEDTLS_GOST89_C */
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
