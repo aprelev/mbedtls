@@ -153,9 +153,7 @@ static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
      * Key Meshing
      */
     for( i = 0; i < 8; i++ )
-    {
         mesh.rk[i] = ctx->rk[i];
-    }
     for( i = 0; i < 4; i++ )
     {
         mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_DECRYPT,
@@ -167,14 +165,9 @@ static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
     /*
      * IV Meshing
      */
-    if( iv != NULL )
-    {
-        for( i = 0; i < 8; i++ )
-        {
-            mesh.rk[i] = ctx->rk[i];
-        }
-        mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_ENCRYPT, iv, iv );
-    }
+    for( i = 0; i < 8; i++ )
+        mesh.rk[i] = ctx->rk[i];
+    mbedtls_gost89_crypt_ecb( &mesh, MBEDTLS_GOST89_ENCRYPT, iv, iv );
 
     mbedtls_gost89_free( &mesh );
 }
@@ -205,12 +198,14 @@ void mbedtls_gost89_free( mbedtls_gost89_context *ctx )
 int mbedtls_gost89_setkey( mbedtls_gost89_context *ctx,
                            const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] )
 {
-    int i;
-
-    for( i = 0; i < 8; i++ )
-    {
-        GET_UINT32_LE( ctx->rk[i], key, i << 2 );
-    }
+    GET_UINT32_LE( ctx->rk[0], key, 0 );
+    GET_UINT32_LE( ctx->rk[1], key, 4 );
+    GET_UINT32_LE( ctx->rk[2], key, 8 );
+    GET_UINT32_LE( ctx->rk[3], key, 12 );
+    GET_UINT32_LE( ctx->rk[4], key, 16 );
+    GET_UINT32_LE( ctx->rk[5], key, 20 );
+    GET_UINT32_LE( ctx->rk[6], key, 24 );
+    GET_UINT32_LE( ctx->rk[7], key, 28 );
 
     return( 0 );
 }
@@ -308,11 +303,6 @@ int mbedtls_gost89_crypt_ecb( mbedtls_gost89_context *ctx,
                               const unsigned char input[MBEDTLS_GOST89_BLOCKSIZE],
                               unsigned char output[MBEDTLS_GOST89_BLOCKSIZE] )
 {
-    if( mbedtls_gost89_is_meshing_needed( ctx ) )
-    {
-        mbedtls_gost89_key_meshing( ctx, NULL );
-    }
-
     if( mode == MBEDTLS_GOST89_ENCRYPT )
         mbedtls_gost89_encrypt( ctx, input, output );
     else
@@ -344,11 +334,6 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
     {
         while( length > 0 )
         {
-            if( mbedtls_gost89_is_meshing_needed( ctx ) )
-            {
-                mbedtls_gost89_key_meshing( ctx, iv );
-            }
-
             memcpy( temp, input, MBEDTLS_GOST89_BLOCKSIZE );
             mbedtls_gost89_crypt_ecb( ctx, mode, input, output );
 
@@ -360,19 +345,12 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
             input  += MBEDTLS_GOST89_BLOCKSIZE;
             output += MBEDTLS_GOST89_BLOCKSIZE;
             length -= MBEDTLS_GOST89_BLOCKSIZE;
-
-            ctx->processed_len += MBEDTLS_GOST89_BLOCKSIZE;
         }
     }
     else
     {
         while( length > 0 )
         {
-            if( mbedtls_gost89_is_meshing_needed( ctx ) )
-            {
-                mbedtls_gost89_key_meshing( ctx, iv );
-            }
-
             for( i = 0; i < MBEDTLS_GOST89_BLOCKSIZE; i++ )
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
@@ -382,8 +360,6 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
             input  += MBEDTLS_GOST89_BLOCKSIZE;
             output += MBEDTLS_GOST89_BLOCKSIZE;
             length -= MBEDTLS_GOST89_BLOCKSIZE;
-
-            ctx->processed_len += MBEDTLS_GOST89_BLOCKSIZE;
         }
     }
 
@@ -410,20 +386,16 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
     size_t n = *nc_off;
 
     if( ctx->processed_len == 0 )
-    {
         mbedtls_gost89_crypt_ecb( ctx, MBEDTLS_GOST89_ENCRYPT, nonce_counter,
                                   nonce_counter );
-    }
 
     while( length-- )
     {
-        if( mbedtls_gost89_is_meshing_needed( ctx ) )
-        {
-            mbedtls_gost89_key_meshing( ctx, nonce_counter );
-        }
-
         if( n == 0 )
         {
+            if( mbedtls_gost89_is_meshing_needed( ctx ) )
+                mbedtls_gost89_key_meshing( ctx, nonce_counter );
+
             GET_UINT32_LE( N3, nonce_counter, 0 );
             GET_UINT32_LE( N4, nonce_counter, 4 );
 
@@ -437,9 +409,7 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
              */
             N4 += C1;
             if( N4 < C1 )
-            {
                 N4++;
-            }
 
             PUT_UINT32_LE( N3, nonce_counter, 0 );
             PUT_UINT32_LE( N4, nonce_counter, 4 );
@@ -451,8 +421,6 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
         *output++ = (unsigned char)( c ^ stream_block[n] );
 
         n = ( n + 1 ) % MBEDTLS_GOST89_BLOCKSIZE;
-
-        ctx->processed_len++;
     }
 
     *nc_off = n;
@@ -481,12 +449,14 @@ void mbedtls_gost89_mac_free( mbedtls_gost89_mac_context *ctx )
 int mbedtls_gost89_mac_setkey( mbedtls_gost89_mac_context *ctx,
                                const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] )
 {
-    int i;
-
-    for( i = 0; i < 8; i++ )
-    {
-        GET_UINT32_LE( ctx->rk[i], key, i << 2 );
-    }
+    GET_UINT32_LE( ctx->rk[0], key, 0 );
+    GET_UINT32_LE( ctx->rk[1], key, 4 );
+    GET_UINT32_LE( ctx->rk[2], key, 8 );
+    GET_UINT32_LE( ctx->rk[3], key, 12 );
+    GET_UINT32_LE( ctx->rk[4], key, 16 );
+    GET_UINT32_LE( ctx->rk[5], key, 20 );
+    GET_UINT32_LE( ctx->rk[6], key, 24 );
+    GET_UINT32_LE( ctx->rk[7], key, 28 );
 
     return( 0 );
 }
@@ -523,9 +493,7 @@ void mbedtls_gost89_mac_process( mbedtls_gost89_mac_context *ctx,
     const mbedtls_gost89_sbox_t *Sb = mbedtls_gost89_sbox_from_id( ctx->sbox_id );
 
     for( i = 0; i < MBEDTLS_GOST89_BLOCKSIZE; i++ )
-    {
         ctx->encrypted_block[i] ^= data[i];
-    }
 
     GET_UINT32_LE( N1, ctx->encrypted_block, 0 );
     GET_UINT32_LE( N2, ctx->encrypted_block, 4 );
@@ -711,6 +679,33 @@ static const unsigned char gost89_testz_ecb_ct[2 * MBEDTLS_GOST89_BLOCKSIZE] =
 };
 
 /*
+ * CryptoPro Key Meshing algorithm test data from unknown source
+ */
+static const unsigned char gost89_key_meshing_test_src_key[MBEDTLS_GOST89_KEY_SIZE] =
+{
+    0x54, 0x6d, 0x20, 0x33, 0x68, 0x65, 0x6c, 0x32,
+    0x69, 0x73, 0x65, 0x20, 0x73, 0x73, 0x6e, 0x62,
+    0x20, 0x61, 0x67, 0x79, 0x69, 0x67, 0x74, 0x74,
+    0x73, 0x65, 0x68, 0x65, 0x20, 0x2c, 0x3d, 0x73
+};
+
+static const unsigned char gost89_key_meshing_test_src_iv[MBEDTLS_GOST89_BLOCKSIZE] =
+{
+    0x7a, 0xd2, 0xb2, 0x41, 0xe1, 0x12, 0x9a, 0x37
+};
+
+static const uint32_t gost89_key_meshing_test_dst_rk[8] =
+{
+    0x4d73f1c2, 0xed886761, 0x3188ea2d, 0xaf73b0b2,
+    0xb3f5aae6, 0x1b8cb563, 0x3faf2ccd, 0x5a3d29dd
+};
+
+static const unsigned char gost89_key_meshing_test_dst_iv[MBEDTLS_GOST89_BLOCKSIZE] =
+{
+    0x18, 0x35, 0x40, 0x74, 0x06, 0xcb, 0x26, 0xfa
+};
+
+/*
  * Checkup routine
  */
 int mbedtls_gost89_self_test( int verbose )
@@ -857,8 +852,29 @@ int mbedtls_gost89_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "\n" );
 
+    if( verbose != 0 )
+        mbedtls_printf( "  GOST89 CryptoPro Key Meshing: ");
+    mbedtls_gost89_init( &ctx, MBEDTLS_GOST89_SBOX_A, MBEDTLS_GOST89_KEY_MESHING_NONE );
+    mbedtls_gost89_setkey( &ctx, gost89_key_meshing_test_src_key );
+    memcpy( buf, gost89_key_meshing_test_src_iv, MBEDTLS_GOST89_BLOCKSIZE );
+    mbedtls_gost89_key_meshing( &ctx, buf );
+    if( ( memcmp( gost89_key_meshing_test_dst_iv, buf, MBEDTLS_GOST89_BLOCKSIZE ) != 0 ) ||
+        ( memcmp( gost89_key_meshing_test_dst_rk, ctx.rk, 8 * sizeof(uint32_t) ) != 0 ) )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        ret = 1;
+        goto exit;
+    }
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
 exit:
     mbedtls_gost89_free( &ctx );
+
+    if( verbose != 0 )
+        mbedtls_printf( "\n" );
 
     return( ret );
 }
