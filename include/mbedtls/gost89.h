@@ -52,10 +52,11 @@ typedef enum
  */
 typedef struct
 {
-    uint32_t rk[8];                           /*!< round keys                */
-    mbedtls_gost89_sbox_id_t sbox_id;         /*!< S-Box identifier          */
-    mbedtls_gost89_key_meshing_t key_meshing; /*!< key meshing type          */
-    size_t processed_len;                     /*!< number of processed bytes */
+    uint32_t rk[8];                           /*!< round keys                                               */
+    mbedtls_gost89_sbox_id_t sbox_id;         /*!< S-Box identifier                                         */
+    mbedtls_gost89_key_meshing_t key_meshing; /*!< key meshing type                                         */
+    size_t processed_len;                     /*!< number of processed bytes (for CNT mode only)            */
+    int iv_encrypted;                         /*!< flag indicates that IV was encrypted (for CNT mode only) */
 } mbedtls_gost89_context;
 
 /**

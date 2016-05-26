@@ -308,8 +308,6 @@ int mbedtls_gost89_crypt_ecb( mbedtls_gost89_context *ctx,
     else
         mbedtls_gost89_decrypt( ctx, input, output );
 
-    ctx->processed_len += MBEDTLS_GOST89_BLOCKSIZE;
-
     return( 0 );
 }
 
@@ -385,9 +383,12 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
     uint32_t N3, N4;
     size_t n = *nc_off;
 
-    if( ctx->processed_len == 0 )
+    if( !ctx->iv_encrypted )
+    {
         mbedtls_gost89_crypt_ecb( ctx, MBEDTLS_GOST89_ENCRYPT, nonce_counter,
                                   nonce_counter );
+        ctx->iv_encrypted = 1;
+    }
 
     while( length-- )
     {
@@ -416,6 +417,8 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
 
             mbedtls_gost89_crypt_ecb( ctx, MBEDTLS_GOST89_ENCRYPT, nonce_counter,
                                       stream_block );
+
+            ctx->processed_len += MBEDTLS_GOST89_BLOCKSIZE;
         }
         c = *input++;
         *output++ = (unsigned char)( c ^ stream_block[n] );
