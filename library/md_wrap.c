@@ -61,6 +61,10 @@
 #include "mbedtls/sha512.h"
 #endif
 
+#if defined(MBEDTLS_GOST89_C)
+#include "mbedtls/gost89.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -571,5 +575,132 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 };
 
 #endif /* MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_GOST89_C)
+
+static void gost89_mac_starts_wrap( void *ctx )
+{
+    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx );
+}
+
+static void gost89_mac_update_wrap( void *ctx, const unsigned char *input,
+                                size_t ilen )
+{
+    mbedtls_gost89_mac_update( (mbedtls_gost89_mac_context *) ctx, input, ilen );
+}
+
+static void gost89_mac_finish_wrap( void *ctx, unsigned char *output )
+{
+    mbedtls_gost89_mac_finish( (mbedtls_gost89_mac_context *) ctx, output );
+}
+
+/*
+ * Just to save mbedtls MD interface
+ */
+static const unsigned char gost89_mac_zero_key[32] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+static void gost89_mac_wrap( const unsigned char *input, size_t ilen,
+                    unsigned char *output )
+{
+    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, gost89_mac_zero_key, input, ilen, output );
+}
+
+static void *gost89_test_mac_ctx_alloc( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost89_mac_context ) );
+
+    if( ctx != NULL )
+        mbedtls_gost89_mac_init( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_TEST );
+
+    return( ctx );
+}
+
+static void *gost89_a_mac_ctx_alloc( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost89_mac_context ) );
+
+    if( ctx != NULL )
+        mbedtls_gost89_mac_init( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_A );
+
+    return( ctx );
+}
+
+static void *gost89_z_mac_ctx_alloc( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost89_mac_context ) );
+
+    if( ctx != NULL )
+        mbedtls_gost89_mac_init( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_Z );
+
+    return( ctx );
+}
+
+static void gost89_mac_ctx_free( void *ctx )
+{
+    mbedtls_gost89_mac_free( (mbedtls_gost89_mac_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static void gost89_mac_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_gost89_mac_clone( (mbedtls_gost89_mac_context *) dst,
+                    (const mbedtls_gost89_mac_context *) src );
+}
+
+static void gost89_mac_process_wrap( void *ctx, const unsigned char *data )
+{
+    mbedtls_gost89_mac_process( (mbedtls_gost89_mac_context *) ctx, data );
+}
+
+const mbedtls_md_info_t mbedtls_gost89_test_mac_info = {
+    MBEDTLS_MD_GOST89_TEST_MAC,
+    "GOST89-TEST-MAC",
+    4,
+    8,
+    gost89_mac_starts_wrap,
+    gost89_mac_update_wrap,
+    gost89_mac_finish_wrap,
+    gost89_mac_wrap,
+    gost89_test_mac_ctx_alloc,
+    gost89_mac_ctx_free,
+    gost89_mac_clone_wrap,
+    gost89_mac_process_wrap,
+};
+
+const mbedtls_md_info_t mbedtls_gost89_a_mac_info = {
+    MBEDTLS_MD_GOST89_A_MAC,
+    "GOST89-A-MAC",
+    4,
+    8,
+    gost89_mac_starts_wrap,
+    gost89_mac_update_wrap,
+    gost89_mac_finish_wrap,
+    gost89_mac_wrap,
+    gost89_a_mac_ctx_alloc,
+    gost89_mac_ctx_free,
+    gost89_mac_clone_wrap,
+    gost89_mac_process_wrap,
+};
+
+const mbedtls_md_info_t mbedtls_gost89_z_mac_info = {
+    MBEDTLS_MD_GOST89_Z_MAC,
+    "GOST89-Z-MAC",
+    4,
+    8,
+    gost89_mac_starts_wrap,
+    gost89_mac_update_wrap,
+    gost89_mac_finish_wrap,
+    gost89_mac_wrap,
+    gost89_z_mac_ctx_alloc,
+    gost89_mac_ctx_free,
+    gost89_mac_clone_wrap,
+    gost89_mac_process_wrap,
+};
+
+#endif /* MBEDTLS_GOST89_C */
 
 #endif /* MBEDTLS_MD_C */

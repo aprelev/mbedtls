@@ -106,6 +106,11 @@ extern const mbedtls_md_info_t mbedtls_sha256_info;
 extern const mbedtls_md_info_t mbedtls_sha384_info;
 extern const mbedtls_md_info_t mbedtls_sha512_info;
 #endif
+#if defined(MBEDTLS_GOST89_C)
+extern const mbedtls_md_info_t mbedtls_gost89_test_mac_info;
+extern const mbedtls_md_info_t mbedtls_gost89_a_mac_info;
+extern const mbedtls_md_info_t mbedtls_gost89_z_mac_info;
+#endif
 
 #ifdef __cplusplus
 }

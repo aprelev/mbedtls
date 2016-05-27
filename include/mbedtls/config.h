@@ -1791,6 +1791,16 @@
 #define MBEDTLS_GCM_C
 
 /**
+ * \def MBEDTLS_GOST89_C
+ *
+ * Enable the GOST 28147-89 block cipher.
+ *
+ * Module:  library/gost89.c
+ * Caller:
+ */
+#define MBEDTLS_GOST89_C
+
+/**
  * \def MBEDTLS_HAVEGE_C
  *
  * Enable the HAVEGE random generator.

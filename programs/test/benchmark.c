@@ -58,6 +58,7 @@ int main( void )
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/blowfish.h"
+#include "mbedtls/gost89.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
@@ -90,10 +91,10 @@ int main( void )
 #define HEADER_FORMAT   "  %-24s :  "
 #define TITLE_LEN       25
 
-#define OPTIONS                                                         \
-    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,\n" \
-    "havege, ctr_drbg, hmac_drbg\n"                                     \
+#define OPTIONS                                                                 \
+    "md4, md5, ripemd160, sha1, sha256, sha512,\n"                              \
+    "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,\n" \
+    "havege, ctr_drbg, hmac_drbg\n"                                             \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)
@@ -234,7 +235,7 @@ unsigned char buf[BUFSIZE];
 
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
-         arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish,
+         arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
@@ -287,6 +288,8 @@ int main( int argc, char *argv[] )
                 todo.camellia = 1;
             else if( strcmp( argv[i], "blowfish" ) == 0 )
                 todo.blowfish = 1;
+            else if( strcmp( argv[i], "gost89" ) == 0 )
+                todo.gost89 = 1;
             else if( strcmp( argv[i], "havege" ) == 0 )
                 todo.havege = 1;
             else if( strcmp( argv[i], "ctr_drbg" ) == 0 )
@@ -492,6 +495,64 @@ int main( int argc, char *argv[] )
         }
 
         mbedtls_blowfish_free( &blowfish );
+    }
+#endif
+
+#if defined(MBEDTLS_GOST89_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    if( todo.gost89 )
+    {
+        mbedtls_gost89_context gost89;
+        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_A,
+                             MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
+
+        mbedtls_snprintf( title, sizeof( title ), "GOST89-A-CBC" );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+        mbedtls_gost89_setkey( &gost89, tmp );
+
+        TIME_AND_TSC( title,
+                mbedtls_gost89_crypt_cbc( &gost89, MBEDTLS_GOST89_ENCRYPT, BUFSIZE,
+                    tmp, buf, buf ) );
+
+        mbedtls_gost89_free( &gost89 );
+    }
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    if( todo.gost89 )
+    {
+        unsigned char iv[8];
+        unsigned char stream_block[8];
+        size_t iv_offset = 0;
+
+        mbedtls_gost89_context gost89;
+        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_A,
+                             MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
+
+        mbedtls_snprintf( title, sizeof( title ), "GOST89-A-CNT" );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+        memset( iv, 0, sizeof( iv ) );
+        memset( stream_block, 0, sizeof( stream_block ) );
+        mbedtls_gost89_setkey( &gost89, tmp );
+
+        TIME_AND_TSC( title,
+                mbedtls_gost89_crypt_cnt( &gost89, BUFSIZE, &iv_offset, iv,
+                    stream_block, buf, buf ) );
+
+        mbedtls_gost89_free( &gost89 );
+    }
+#endif
+    if( todo.gost89 )
+    {
+        unsigned char key[32];
+
+        memset( key, 0, sizeof( key ) );
+
+        TIME_AND_TSC( "GOST89-A-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, key,
+                                                          buf, BUFSIZE, tmp ) );
     }
 #endif
 

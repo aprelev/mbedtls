@@ -53,6 +53,7 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_cipher.aes$(EXEXT)					\
 	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
 	test_suite_cipher.gcm$(EXEXT)					\
+	test_suite_cipher.gost89$(EXEXT)				\
 	test_suite_cipher.blowfish$(EXEXT)				\
 	test_suite_cipher.camellia$(EXEXT)				\
 	test_suite_cipher.des$(EXEXT)	test_suite_cipher.null$(EXEXT)	\
@@ -69,6 +70,10 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_gcm.aes192_en$(EXEXT)				\
 	test_suite_gcm.aes256_en$(EXEXT)				\
 	test_suite_gcm.camellia$(EXEXT)					\
+	test_suite_gost89.ecb$(EXEXT)					\
+	test_suite_gost89.cbc$(EXEXT)					\
+	test_suite_gost89.cnt$(EXEXT)					\
+	test_suite_gost89_mac$(EXEXT)					\
 	test_suite_hmac_drbg.misc$(EXEXT)				\
 	test_suite_hmac_drbg.no_reseed$(EXEXT)				\
 	test_suite_hmac_drbg.nopr$(EXEXT)				\
@@ -128,6 +133,10 @@ test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_ci
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gcm
 
+test_suite_cipher.gost89.c : suites/test_suite_cipher.function suites/test_suite_cipher.gost89.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gost89
+
 test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.blowfish
@@ -175,6 +184,22 @@ test_suite_gcm.aes256_en.c : suites/test_suite_gcm.function suites/test_suite_gc
 test_suite_gcm.camellia.c : suites/test_suite_gcm.function suites/test_suite_gcm.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.camellia
+
+test_suite_gost89.ecb.c : suites/test_suite_gost89.function suites/test_suite_gost89.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89.ecb
+
+test_suite_gost89.cbc.c : suites/test_suite_gost89.function suites/test_suite_gost89.cbc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89.cbc
+
+test_suite_gost89.cnt.c : suites/test_suite_gost89.function suites/test_suite_gost89.cnt.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89.cnt
+
+test_suite_gost89_mac.c : suites/test_suite_gost89.function suites/test_suite_gost89_mac.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89_mac
 
 test_suite_hmac_drbg.misc.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -249,6 +274,10 @@ test_suite_cipher.ccm$(EXEXT): test_suite_cipher.ccm.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.gcm$(EXEXT): test_suite_cipher.gcm.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_cipher.gost89$(EXEXT): test_suite_cipher.gost89.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -333,6 +362,22 @@ test_suite_gcm.aes256_en$(EXEXT): test_suite_gcm.aes256_en.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_gcm.camellia$(EXEXT): test_suite_gcm.camellia.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_gost89.ecb$(EXEXT): test_suite_gost89.ecb.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_gost89.cbc$(EXEXT): test_suite_gost89.cbc.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_gost89.cnt$(EXEXT): test_suite_gost89.cnt.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_gost89_mac$(EXEXT): test_suite_gost89_mac.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

@@ -74,6 +74,7 @@ typedef enum {
     MBEDTLS_CIPHER_ID_CAMELLIA,
     MBEDTLS_CIPHER_ID_BLOWFISH,
     MBEDTLS_CIPHER_ID_ARC4,
+    MBEDTLS_CIPHER_ID_GOST89,
 } mbedtls_cipher_id_t;
 
 typedef enum {
@@ -126,6 +127,15 @@ typedef enum {
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,
+    MBEDTLS_CIPHER_GOST89_TEST_ECB,
+    MBEDTLS_CIPHER_GOST89_TEST_CBC,
+    MBEDTLS_CIPHER_GOST89_TEST_CNT,
+    MBEDTLS_CIPHER_GOST89_A_ECB,
+    MBEDTLS_CIPHER_GOST89_A_CBC,
+    MBEDTLS_CIPHER_GOST89_A_CNT,
+    MBEDTLS_CIPHER_GOST89_Z_ECB,
+    MBEDTLS_CIPHER_GOST89_Z_CBC,
+    MBEDTLS_CIPHER_GOST89_Z_CNT,
 } mbedtls_cipher_type_t;
 
 typedef enum {
@@ -163,6 +173,8 @@ enum {
     MBEDTLS_KEY_LENGTH_DES_EDE = 128,
     /** Key length, in bits (including parity), for DES in three-key EDE */
     MBEDTLS_KEY_LENGTH_DES_EDE3 = 192,
+    /** Key length, in bits, for GOST89 keys */
+    MBEDTLS_KEY_LENGTH_GOST89 = 256
 };
 
 /** Maximum length of any IV, in bytes */

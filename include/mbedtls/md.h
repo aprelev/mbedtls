@@ -47,6 +47,9 @@ typedef enum {
     MBEDTLS_MD_SHA384,
     MBEDTLS_MD_SHA512,
     MBEDTLS_MD_RIPEMD160,
+    MBEDTLS_MD_GOST89_TEST_MAC,
+    MBEDTLS_MD_GOST89_A_MAC,
+    MBEDTLS_MD_GOST89_Z_MAC,
 } mbedtls_md_type_t;
 
 #if defined(MBEDTLS_SHA512_C)

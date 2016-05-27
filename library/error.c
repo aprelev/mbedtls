@@ -92,6 +92,10 @@
 #include "mbedtls/gcm.h"
 #endif
 
+#if defined(MBEDTLS_GOST89_C)
+#include "mbedtls/gost89.h"
+#endif
+
 #if defined(MBEDTLS_HMAC_DRBG_C)
 #include "mbedtls/hmac_drbg.h"
 #endif
@@ -610,6 +614,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_GCM_BAD_INPUT) )
         mbedtls_snprintf( buf, buflen, "GCM - Bad input parameters to function" );
 #endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_GOST89_C)
+    if( use_ret == -(MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "GOST89 - Invalid data input length" );
+#endif /* MBEDTLS_GOST89_C */
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
     if( use_ret == -(MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG) )

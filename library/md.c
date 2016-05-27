@@ -88,6 +88,12 @@ static const int supported_digests[] = {
         MBEDTLS_MD_MD2,
 #endif
 
+#if defined(MBEDTLS_GOST89_C)
+        MBEDTLS_MD_GOST89_TEST_MAC,
+        MBEDTLS_MD_GOST89_A_MAC,
+        MBEDTLS_MD_GOST89_Z_MAC,
+#endif
+
         MBEDTLS_MD_NONE
 };
 
@@ -134,6 +140,14 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name )
     if( !strcmp( "SHA512", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_SHA512 );
 #endif
+#if defined(MBEDTLS_GOST89_C)
+    if( !strcmp( "GOST89-TEST-MAC", md_name ) )
+        return mbedtls_md_info_from_type( MBEDTLS_MD_GOST89_TEST_MAC );
+    if( !strcmp( "GOST89-A-MAC", md_name ) )
+        return mbedtls_md_info_from_type( MBEDTLS_MD_GOST89_A_MAC );
+    if( !strcmp( "GOST89-Z-MAC", md_name ) )
+        return mbedtls_md_info_from_type( MBEDTLS_MD_GOST89_Z_MAC );
+#endif
     return( NULL );
 }
 
@@ -172,6 +186,14 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
             return( &mbedtls_sha384_info );
         case MBEDTLS_MD_SHA512:
             return( &mbedtls_sha512_info );
+#endif
+#if defined(MBEDTLS_GOST89_C)
+        case MBEDTLS_MD_GOST89_TEST_MAC:
+            return( &mbedtls_gost89_test_mac_info );
+        case MBEDTLS_MD_GOST89_A_MAC:
+            return( &mbedtls_gost89_a_mac_info );
+        case MBEDTLS_MD_GOST89_Z_MAC:
+            return( &mbedtls_gost89_z_mac_info );
 #endif
         default:
             return( NULL );
