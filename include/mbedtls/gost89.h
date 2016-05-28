@@ -18,10 +18,9 @@
 #define MBEDTLS_GOST89_ENCRYPT     1
 #define MBEDTLS_GOST89_DECRYPT     0
 #define MBEDTLS_GOST89_BLOCKSIZE   8
+#define MBEDTLS_GOST89_KEY_SIZE    32
 
 #define MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH              -0x007E  /**< Invalid data input length. */
-
-#define MBEDTLS_GOST89_KEY_SIZE    32
 
 #if !defined(MBEDTLS_GOST89_ALT)
 // Regular implementation
@@ -95,7 +94,7 @@ void mbedtls_gost89_free( mbedtls_gost89_context *ctx );
  * \param ctx      GOST89 context to be initialized
  * \param key      32-byte secret key
  *
- * \return         0
+ * \return         0 if successful
  */
 int mbedtls_gost89_setkey( mbedtls_gost89_context *ctx,
                            const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] );
@@ -222,7 +221,7 @@ void mbedtls_gost89_mac_free( mbedtls_gost89_mac_context *ctx );
  * \param ctx      GOST89-MAC context to be initialized
  * \param key      32-byte secret key
  *
- * \return         0
+ * \return         0 if successful
  */
 int mbedtls_gost89_mac_setkey( mbedtls_gost89_mac_context *ctx,
                                const unsigned char key[MBEDTLS_GOST89_KEY_SIZE] );
