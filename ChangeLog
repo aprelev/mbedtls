@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x branch
 
+Features
+   * Support for platform abstraction of the standard C library time()
+     function.
+
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
      arguments where the same (in-place doubling). Found and fixed by Janos
@@ -21,12 +25,19 @@ Bugfix
      dereference possible.
    * Fix issue that caused a crash if invalid curves were passed to
      mbedtls_ssl_conf_curves. #373
+   * Fix issue in ssl_fork_server which was preventing it from functioning. #429
+   * Fix memory leaks in test framework
+   * Fix test in ssl-opt.sh that does not run properly with valgrind
 
 Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,
      don't use the optimized assembly for bignum multiplication. This removes
      the need to pass -fomit-frame-pointer to avoid a build error with -O0.
-   * Disabled SSLv3 in the default configuration. 
+   * Disabled SSLv3 in the default configuration.
+   * Optimized mbedtls_mpi_zeroize() for MPI integer size. (Fix by Alexey
+     Skalozub).
+   * Fix non-compliance server extension handling. Extensions for SSLv3 are now
+     ignored, as required by RFC6101.
 
 = mbed TLS 2.2.1 released 2016-01-05
 

@@ -1182,13 +1182,13 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     int ret;
     size_t siglen;
     unsigned char *p;
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char result[MBEDTLS_MD_MAX_SIZE];
     unsigned char zeros[8];
     unsigned int hlen;
     size_t slen, msb;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
+    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1327,10 +1327,10 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     int ret;
     size_t len, siglen, asn1_len;
     unsigned char *p, *end;
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     mbedtls_md_type_t msg_md_alg;
     const mbedtls_md_info_t *md_info;
     mbedtls_asn1_buf oid;
+    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1673,7 +1673,7 @@ int mbedtls_rsa_self_test( int verbose )
 
 #if defined(MBEDTLS_SHA1_C)
     if( verbose != 0 )
-        mbedtls_printf( "PKCS#1 data sign  : " );
+        mbedtls_printf( "  PKCS#1 data sign  : " );
 
     mbedtls_sha1( rsa_plaintext, PT_LEN, sha1sum );
 
