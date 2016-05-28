@@ -1,3 +1,4 @@
+#line 1 "main_test.function"
 SUITE_PRE_DEP
 #define TEST_SUITE_ACTIVE
 
@@ -70,6 +71,8 @@ MAPPING_CODE
 FUNCTION_CODE
 SUITE_POST_DEP
 
+#line !LINE_NO! "main_test.function"
+
 
 /*----------------------------------------------------------------------------*/
 /* Test dispatch code */
@@ -80,6 +83,7 @@ int dep_check( char *str )
         return( 1 );
 
 DEP_CHECK_CODE
+#line !LINE_NO! "main_test.function"
 
     return( DEPENDENCY_NOT_SUPPORTED );
 }
@@ -93,8 +97,12 @@ int dispatch_test(int cnt, char *params[50])
 #if defined(TEST_SUITE_ACTIVE)
     ret = DISPATCH_TEST_SUCCESS;
 
+    // Cast to void to avoid compiler warnings
+    (void)ret;
+
 DISPATCH_FUNCTION
     {
+#line !LINE_NO! "main_test.function"
         mbedtls_fprintf( stdout,
                          "FAILED\nSkipping unknown test function '%s'\n",
                          params[0] );
@@ -111,6 +119,8 @@ DISPATCH_FUNCTION
 /*----------------------------------------------------------------------------*/
 /* Main Test code */
 
+#line !LINE_NO! "main_test.function"
+
 #define USAGE \
     "Usage: %s [OPTIONS] files...\n\n" \
     "   Command line arguments:\n" \
@@ -121,7 +131,7 @@ DISPATCH_FUNCTION
     "     -v | --verbose    Display full information about each test\n" \
     "     -h | --help       Display this information\n\n", \
     argv[0], \
-    "TEST_FILENAME"
+    "TESTCASE_FILENAME"
 
 
 int get_line( FILE *f, char *buf, size_t len )
@@ -234,7 +244,7 @@ static int run_test_snprintf( void )
 int main(int argc, const char *argv[])
 {
     /* Local Configurations and options */
-    const char *default_filename = "TEST_FILENAME";
+    const char *default_filename = "TESTCASE_FILENAME";
     const char *test_filename = NULL;
     const char **test_files = NULL;
     int testfile_count = 0;
@@ -316,6 +326,9 @@ int main(int argc, const char *argv[])
           testfile_index < testfile_count;
           testfile_index++ )
     {
+        int unmet_dep_count = 0;
+        char *unmet_dependencies[20];
+
         test_filename = test_files[ testfile_index ];
 
         file = fopen( test_filename, "r" );
@@ -328,8 +341,12 @@ int main(int argc, const char *argv[])
 
         while( !feof( file ) )
         {
-            int unmet_dep_count = 0;
-            char *unmet_dependencies[20];
+            if( unmet_dep_count > 0 )
+            {
+                mbedtls_printf("FATAL: Dep count larger than zero at start of loop\n");
+                mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+            }
+            unmet_dep_count = 0;
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
@@ -352,8 +369,15 @@ int main(int argc, const char *argv[])
                 {
                     if( dep_check( params[i] ) != DEPENDENCY_SUPPORTED )
                     {
-                        unmet_dependencies[ i-1 ] = strdup(params[i]);
-                        if(  unmet_dependencies[ i-1 ] == NULL )
+                        if( 0 == option_verbose )
+                        {
+                            /* Only one count is needed if not verbose */
+                            unmet_dep_count++;
+                            break;
+                        }
+
+                        unmet_dependencies[ unmet_dep_count ] = strdup(params[i]);
+                        if(  unmet_dependencies[ unmet_dep_count ] == NULL )
                         {
                             mbedtls_printf("FATAL: Out of memory\n");
                             mbedtls_exit( MBEDTLS_EXIT_FAILURE );
@@ -387,16 +411,17 @@ int main(int argc, const char *argv[])
                 if( 1 == option_verbose && unmet_dep_count > 0 )
                 {
                     mbedtls_fprintf( stdout, "   Unmet dependencies: " );
-                    while( unmet_dep_count > 0)
+                    for( i = 0; i < unmet_dep_count; i++ )
                     {
                         mbedtls_fprintf(stdout, "%s  ",
-                                        unmet_dependencies[unmet_dep_count - 1]);
-                        free(unmet_dependencies[unmet_dep_count - 1]);
-                        unmet_dep_count--;
+                                        unmet_dependencies[i]);
+                        free(unmet_dependencies[i]);
                     }
                     mbedtls_fprintf( stdout, "\n" );
                 }
                 fflush( stdout );
+
+                unmet_dep_count = 0;
             }
             else if( ret == DISPATCH_TEST_SUCCESS && test_errors == 0 )
             {
@@ -422,6 +447,10 @@ int main(int argc, const char *argv[])
             }
         }
         fclose(file);
+
+        /* In case we encounter early end of file */
+        for( i = 0; i < unmet_dep_count; i++ )
+            free( unmet_dependencies[i] );
     }
 
     mbedtls_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");
