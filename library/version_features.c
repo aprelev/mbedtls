@@ -492,6 +492,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_GOST89_C)
     "MBEDTLS_GOST89_C",
 #endif /* MBEDTLS_GOST89_C */
+#if defined(MBEDTLS_GOST94_C)
+    "MBEDTLS_GOST94_C",
+#endif /* MBEDTLS_GOST94_C */
 #if defined(MBEDTLS_HAVEGE_C)
     "MBEDTLS_HAVEGE_C",
 #endif /* MBEDTLS_HAVEGE_C */
