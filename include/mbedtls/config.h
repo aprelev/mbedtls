@@ -1802,6 +1802,19 @@
 #define MBEDTLS_GOST89_C
 
 /**
+ * \def MBEDTLS_GOST94_C
+ *
+ * Enable the GOST R 34.11-94 cryptographic hash function.
+ *
+ * Module:  library/gost94.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_GOST89_C
+ *
+ */
+#define MBEDTLS_GOST94_C
+
+/**
  * \def MBEDTLS_HAVEGE_C
  *
  * Enable the HAVEGE random generator.

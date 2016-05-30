@@ -28,6 +28,7 @@ set(src_crypto
     error.c
     gcm.c
     gost89.c
+    gost94.c
     havege.c
     hmac_drbg.c
     md.c
