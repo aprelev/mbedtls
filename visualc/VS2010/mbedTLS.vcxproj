@@ -172,6 +172,7 @@
     <ClInclude Include="..\..\include\mbedtls\error.h" />
     <ClInclude Include="..\..\include\mbedtls\gcm.h" />
     <ClInclude Include="..\..\include\mbedtls\gost89.h" />
+    <ClInclude Include="..\..\include\mbedtls\gost94.h" />
     <ClInclude Include="..\..\include\mbedtls\havege.h" />
     <ClInclude Include="..\..\include\mbedtls\hmac_drbg.h" />
     <ClInclude Include="..\..\include\mbedtls\md.h" />
@@ -238,6 +239,7 @@
     <ClCompile Include="..\..\library\error.c" />
     <ClCompile Include="..\..\library\gcm.c" />
     <ClCompile Include="..\..\library\gost89.c" />
+    <ClCompile Include="..\..\library\gost94.c" />
     <ClCompile Include="..\..\library\havege.c" />
     <ClCompile Include="..\..\library\hmac_drbg.c" />
     <ClCompile Include="..\..\library\md.c" />

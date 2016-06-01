@@ -73,7 +73,9 @@ APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_gost89.ecb$(EXEXT)					\
 	test_suite_gost89.cbc$(EXEXT)					\
 	test_suite_gost89.cnt$(EXEXT)					\
+	test_suite_gost89.rest$(EXEXT)					\
 	test_suite_gost89_mac$(EXEXT)					\
+	test_suite_gost94$(EXEXT)					\
 	test_suite_hmac_drbg.misc$(EXEXT)				\
 	test_suite_hmac_drbg.no_reseed$(EXEXT)				\
 	test_suite_hmac_drbg.nopr$(EXEXT)				\
@@ -197,9 +199,17 @@ test_suite_gost89.cnt.c : suites/test_suite_gost89.function suites/test_suite_go
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89.cnt
 
+test_suite_gost89.rest.c : suites/test_suite_gost89.function suites/test_suite_gost89.rest.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89.rest
+
 test_suite_gost89_mac.c : suites/test_suite_gost89.function suites/test_suite_gost89_mac.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_gost89 test_suite_gost89_mac
+
+test_suite_gost94.c : suites/test_suite_gost94.function suites/test_suite_gost94.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_gost94 test_suite_gost94
 
 test_suite_hmac_drbg.misc.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -377,7 +387,15 @@ test_suite_gost89.cnt$(EXEXT): test_suite_gost89.cnt.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+test_suite_gost89.rest$(EXEXT): test_suite_gost89.rest.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 test_suite_gost89_mac$(EXEXT): test_suite_gost89_mac.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_gost94$(EXEXT): test_suite_gost94.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

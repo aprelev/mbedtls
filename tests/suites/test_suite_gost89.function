@@ -206,3 +206,10 @@ void mbedtls_gost89_mac( char *hex_key_string, char *hex_src_string, char *hex_h
     TEST_ASSERT( strcasecmp( (char *) hash_str, hex_hash_string ) == 0 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+void gost89_selftest()
+{
+    TEST_ASSERT( mbedtls_gost89_self_test( 0 ) == 0 );
+}
+/* END_CASE */

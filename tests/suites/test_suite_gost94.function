@@ -1,0 +1,31 @@
+/* BEGIN_HEADER */
+#include "mbedtls/gost94.h"
+/* END_HEADER */
+
+/* BEGIN_CASE depends_on:MBEDTLS_GOST94_C */
+void mbedtls_gost94( char *hex_src_string, char *hex_hash_string, int sbox_id )
+{
+    unsigned char src_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[65];
+    int src_len;
+
+    memset(src_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 65);
+
+    src_len = unhexify( src_str, hex_src_string );
+
+    mbedtls_gost94( sbox_id, src_str, src_len, output );
+    hexify( hash_str, output, 32 );
+
+    TEST_ASSERT( strcasecmp( (char *) hash_str, hex_hash_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_GOST94_C:MBEDTLS_SELF_TEST */
+void gost94_selftest()
+{
+    TEST_ASSERT( mbedtls_gost94_self_test( 0 ) == 0 );
+}
+/* END_CASE */

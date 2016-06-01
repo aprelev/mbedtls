@@ -35,9 +35,12 @@ extern "C" {
  */
 typedef enum
 {
-    MBEDTLS_GOST89_SBOX_TEST = 0, /**< 1.2.643.2.2.31.0    */
-    MBEDTLS_GOST89_SBOX_A,        /**< 1.2.643.2.2.31.1    */
-    MBEDTLS_GOST89_SBOX_Z,        /**< 1.2.643.7.1.2.5.1.1 */
+    MBEDTLS_GOST89_SBOX_TEST = 0,  /**< id-Gost28147-89-TestParamSet (1.2.643.2.2.31.0)         */
+    MBEDTLS_GOST89_SBOX_A,         /**< id-Gost28147-89-CryptoPro-A-ParamSet (1.2.643.2.2.31.1) */
+    MBEDTLS_GOST89_SBOX_Z,         /**< id-tc26-gost-28147-param-Z (1.2.643.7.1.2.5.1.1)        */
+
+    MBEDTLS_GOST94_SBOX_TEST,      /**< id-GostR3411-94-TestParamSet (1.2.643.2.2.30.0)         */
+    MBEDTLS_GOST94_SBOX_CRYPTOPRO, /**< id-GostR3411-94-CryptoProParamSet (1.2.643.2.2.30.1)    */
 } mbedtls_gost89_sbox_id_t;
 
 typedef enum
