@@ -16,11 +16,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if !defined(MBEDTLS_GOST94_ALT) && defined(MBEDTLS_GOST89_C)
+#include "gost89.h"
+
+#if !defined(MBEDTLS_GOST94_ALT)
 // Regular implementation
 //
-
-#include "gost89.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -128,4 +128,4 @@ int mbedtls_gost94_self_test( int verbose );
 }
 #endif
 
-#endif /* mbedtls_gost94.h */
+#endif /* gost94.h */

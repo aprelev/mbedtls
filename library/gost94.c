@@ -25,7 +25,7 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#if !defined(MBEDTLS_GOST94_ALT) && defined(MBEDTLS_GOST89_C)
+#if !defined(MBEDTLS_GOST94_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
@@ -36,92 +36,24 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * 32-bit integer manipulation macros (little endian)
  */
 #ifndef GET_UINT32_LE
-#define GET_UINT32_LE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ]       )             \
-        | ( (uint32_t) (b)[(i) + 1] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 2] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 3] << 24 );            \
+#define GET_UINT32_LE(n,b,i)                         \
+{                                                    \
+    (n) = ( (uint32_t) (b)[(i)    ]       )          \
+        | ( (uint32_t) (b)[(i) + 1] <<  8 )          \
+        | ( (uint32_t) (b)[(i) + 2] << 16 )          \
+        | ( (uint32_t) (b)[(i) + 3] << 24 );         \
 }
 #endif
 
 #ifndef PUT_UINT32_LE
-#define PUT_UINT32_LE(n,b,i)                                    \
-{                                                               \
-    (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
-    (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
-    (b)[(i) + 2] = (unsigned char) ( ( (n) >> 16 ) & 0xFF );    \
-    (b)[(i) + 3] = (unsigned char) ( ( (n) >> 24 ) & 0xFF );    \
+#define PUT_UINT32_LE(n,b,i)                         \
+{                                                    \
+    (b)[(i)    ] = (unsigned char) ( (n)       );    \
+    (b)[(i) + 1] = (unsigned char) ( (n) >>  8 );    \
+    (b)[(i) + 2] = (unsigned char) ( (n) >> 16 );    \
+    (b)[(i) + 3] = (unsigned char) ( (n) >> 24 );    \
 }
 #endif
-
-#define XOR(w,u,v)         \
-    w[0] = u[0] ^ v[0];    \
-    w[1] = u[1] ^ v[1];    \
-    w[2] = u[2] ^ v[2];    \
-    w[3] = u[3] ^ v[3];    \
-    w[4] = u[4] ^ v[4];    \
-    w[5] = u[5] ^ v[5];    \
-    w[6] = u[6] ^ v[6];    \
-    w[7] = u[7] ^ v[7];    \
-
-#define A(y,tmp1,tmp2)       \
-    tmp1 = y[6];             \
-    tmp2 = y[7];             \
-      y[6] = y[0] ^ y[2];    \
-      y[7] = y[1] ^ y[3];    \
-      y[0] = y[2];           \
-      y[1] = y[3];           \
-      y[2] = y[4];           \
-      y[3] = y[5];           \
-      y[4] = tmp1;           \
-      y[5] = tmp2;           \
-
-#define P(k,w)                                                                                                                               \
-    k[0] = ( (w[0] & 0x000000ff)       ) | ( (w[2] & 0x000000ff) <<  8 ) | ( (w[4] & 0x000000ff) << 16 ) | ( (w[6] & 0x000000ff) << 24 );    \
-    k[1] = ( (w[0] & 0x0000ff00) >> 8  ) | ( (w[2] & 0x0000ff00)       ) | ( (w[4] & 0x0000ff00) <<  8 ) | ( (w[6] & 0x0000ff00) << 16 );    \
-    k[2] = ( (w[0] & 0x00ff0000) >> 16 ) | ( (w[2] & 0x00ff0000) >>  8 ) | ( (w[4] & 0x00ff0000)       ) | ( (w[6] & 0x00ff0000) <<  8 );    \
-    k[3] = ( (w[0] & 0xff000000) >> 24 ) | ( (w[2] & 0xff000000) >> 16 ) | ( (w[4] & 0xff000000) >>  8 ) | ( (w[6] & 0xff000000)       );    \
-    k[4] = ( (w[1] & 0x000000ff)       ) | ( (w[3] & 0x000000ff) <<  8 ) | ( (w[5] & 0x000000ff) << 16 ) | ( (w[7] & 0x000000ff) << 24 );    \
-    k[5] = ( (w[1] & 0x0000ff00) >> 8  ) | ( (w[3] & 0x0000ff00)       ) | ( (w[5] & 0x0000ff00) <<  8 ) | ( (w[7] & 0x0000ff00) << 16 );    \
-    k[6] = ( (w[1] & 0x00ff0000) >> 16 ) | ( (w[3] & 0x00ff0000) >>  8 ) | ( (w[5] & 0x00ff0000)       ) | ( (w[7] & 0x00ff0000) <<  8 );    \
-    k[7] = ( (w[1] & 0xff000000) >> 24 ) | ( (w[3] & 0xff000000) >> 16 ) | ( (w[5] & 0xff000000) >>  8 ) | ( (w[7] & 0xff000000)       );    \
-
-#define Psi(s,tmp)                                        \
-    tmp = ( (uint32_t) s[31] << 8 ) | s[30];              \
-    s[30] = s[0] ^ s[2] ^ s[4] ^ s[6] ^ s[24] ^ s[30];    \
-    s[31] = s[1] ^ s[3] ^ s[5] ^ s[7] ^ s[25] ^ s[31];    \
-    s[0] = s[2];                                          \
-    s[1] = s[3];                                          \
-    s[2] = s[4];                                          \
-    s[3] = s[5];                                          \
-    s[4] = s[6];                                          \
-    s[5] = s[7];                                          \
-    s[6] = s[8];                                          \
-    s[7] = s[9];                                          \
-    s[8] = s[10];                                         \
-    s[9] = s[11];                                         \
-    s[10] = s[12];                                        \
-    s[11] = s[13];                                        \
-    s[12] = s[14];                                        \
-    s[13] = s[15];                                        \
-    s[14] = s[16];                                        \
-    s[15] = s[17];                                        \
-    s[16] = s[18];                                        \
-    s[17] = s[19];                                        \
-    s[18] = s[20];                                        \
-    s[19] = s[21];                                        \
-    s[20] = s[22];                                        \
-    s[21] = s[23];                                        \
-    s[22] = s[24];                                        \
-    s[23] = s[25];                                        \
-    s[24] = s[26];                                        \
-    s[25] = s[27];                                        \
-    s[26] = s[28];                                        \
-    s[27] = s[29];                                        \
-    s[28] = (unsigned char) tmp;                          \
-    s[29] = (unsigned char) ( tmp >> 8 );                 \
-
 
 void mbedtls_gost94_init( mbedtls_gost94_context *ctx,
                           mbedtls_gost89_sbox_id_t sbox_id )
@@ -173,6 +105,81 @@ static const uint32_t C3[8] =
     0x000000ff,
     0xff00ffff
 };
+
+#define XOR(w,u,v)         \
+{                          \
+    w[0] = u[0] ^ v[0];    \
+    w[1] = u[1] ^ v[1];    \
+    w[2] = u[2] ^ v[2];    \
+    w[3] = u[3] ^ v[3];    \
+    w[4] = u[4] ^ v[4];    \
+    w[5] = u[5] ^ v[5];    \
+    w[6] = u[6] ^ v[6];    \
+    w[7] = u[7] ^ v[7];    \
+}
+
+#define A(y,tmp1,tmp2)       \
+{                            \
+    tmp1 = y[6];             \
+    tmp2 = y[7];             \
+      y[6] = y[0] ^ y[2];    \
+      y[7] = y[1] ^ y[3];    \
+      y[0] = y[2];           \
+      y[1] = y[3];           \
+      y[2] = y[4];           \
+      y[3] = y[5];           \
+      y[4] = tmp1;           \
+      y[5] = tmp2;           \
+}
+
+#define P(k,w)                                                                                                                               \
+{                                                                                                                                            \
+    k[0] = ( (w[0] & 0x000000ff)       ) | ( (w[2] & 0x000000ff) <<  8 ) | ( (w[4] & 0x000000ff) << 16 ) | ( (w[6] & 0x000000ff) << 24 );    \
+    k[1] = ( (w[0] & 0x0000ff00) >> 8  ) | ( (w[2] & 0x0000ff00)       ) | ( (w[4] & 0x0000ff00) <<  8 ) | ( (w[6] & 0x0000ff00) << 16 );    \
+    k[2] = ( (w[0] & 0x00ff0000) >> 16 ) | ( (w[2] & 0x00ff0000) >>  8 ) | ( (w[4] & 0x00ff0000)       ) | ( (w[6] & 0x00ff0000) <<  8 );    \
+    k[3] = ( (w[0] & 0xff000000) >> 24 ) | ( (w[2] & 0xff000000) >> 16 ) | ( (w[4] & 0xff000000) >>  8 ) | ( (w[6] & 0xff000000)       );    \
+    k[4] = ( (w[1] & 0x000000ff)       ) | ( (w[3] & 0x000000ff) <<  8 ) | ( (w[5] & 0x000000ff) << 16 ) | ( (w[7] & 0x000000ff) << 24 );    \
+    k[5] = ( (w[1] & 0x0000ff00) >> 8  ) | ( (w[3] & 0x0000ff00)       ) | ( (w[5] & 0x0000ff00) <<  8 ) | ( (w[7] & 0x0000ff00) << 16 );    \
+    k[6] = ( (w[1] & 0x00ff0000) >> 16 ) | ( (w[3] & 0x00ff0000) >>  8 ) | ( (w[5] & 0x00ff0000)       ) | ( (w[7] & 0x00ff0000) <<  8 );    \
+    k[7] = ( (w[1] & 0xff000000) >> 24 ) | ( (w[3] & 0xff000000) >> 16 ) | ( (w[5] & 0xff000000) >>  8 ) | ( (w[7] & 0xff000000)       );    \
+}
+
+#define Psi(s,tmp)                                        \
+{                                                         \
+    tmp = ( (uint32_t) s[31] << 8 ) | s[30];              \
+    s[30] = s[0] ^ s[2] ^ s[4] ^ s[6] ^ s[24] ^ s[30];    \
+    s[31] = s[1] ^ s[3] ^ s[5] ^ s[7] ^ s[25] ^ s[31];    \
+    s[0] = s[2];                                          \
+    s[1] = s[3];                                          \
+    s[2] = s[4];                                          \
+    s[3] = s[5];                                          \
+    s[4] = s[6];                                          \
+    s[5] = s[7];                                          \
+    s[6] = s[8];                                          \
+    s[7] = s[9];                                          \
+    s[8] = s[10];                                         \
+    s[9] = s[11];                                         \
+    s[10] = s[12];                                        \
+    s[11] = s[13];                                        \
+    s[12] = s[14];                                        \
+    s[13] = s[15];                                        \
+    s[14] = s[16];                                        \
+    s[15] = s[17];                                        \
+    s[16] = s[18];                                        \
+    s[17] = s[19];                                        \
+    s[18] = s[20];                                        \
+    s[19] = s[21];                                        \
+    s[20] = s[22];                                        \
+    s[21] = s[23];                                        \
+    s[22] = s[24];                                        \
+    s[23] = s[25];                                        \
+    s[24] = s[26];                                        \
+    s[25] = s[27];                                        \
+    s[26] = s[28];                                        \
+    s[27] = s[29];                                        \
+    s[28] = (unsigned char) tmp;                          \
+    s[29] = (unsigned char) ( tmp >> 8 );                 \
+}
 
 void mbedtls_gost94_process( mbedtls_gost94_context *ctx, const unsigned char data[32] )
 {
