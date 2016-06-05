@@ -224,9 +224,7 @@ void mbedtls_gost94_process( mbedtls_gost94_context *ctx, const unsigned char da
     {
         A( u, tmp1, tmp2 );
         if( i == 2 )
-        {
             XOR( u, u, C3 );
-        }
 
         A( v, tmp1, tmp2 );
         A( v, tmp1, tmp2 );
@@ -242,24 +240,16 @@ void mbedtls_gost94_process( mbedtls_gost94_context *ctx, const unsigned char da
      * Final step
      */
     for( i = 0; i < 12; i++ )
-    {
         Psi( s, tmp1 );
-    }
 
     for( i = 0; i < 32; i++ )
-    {
         s[i] ^= data[i];
-    }
     Psi( s, tmp1 );
 
     for( i = 0; i < 32; i++ )
-    {
         ctx->h[i] ^= s[i];
-    }
     for( i = 0; i < 61; i++ )
-    {
         Psi( ctx->h, tmp1 );
-    }
 
     /*
      * Update control sum
