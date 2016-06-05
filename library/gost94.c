@@ -367,7 +367,7 @@ void mbedtls_gost94( mbedtls_gost89_sbox_id_t sbox_id,
  *
  * http://gosthash.chat.ru
  */
-static const unsigned char gost94_testbuf[10][80] =
+static const unsigned char gost94_testbuf[10][81] =
 {
     { "" },
     { "a" },
@@ -386,7 +386,7 @@ static const int gost94_test_buflen[10] =
     0, 1, 3, 14, 62, 80, 32, 50, 43, 43
 };
 
-static const unsigned char gost94_test_testsum[10][32] =
+static const unsigned char gost94_test_test_sum[10][32] =
 {
     /*
      * id-GostR3411-94-TestParamSet test vectors
@@ -433,7 +433,7 @@ static const unsigned char gost94_test_testsum[10][32] =
       0x91, 0x50, 0xd2, 0xe1, 0x4e, 0xee, 0xc4, 0x45 }
 };
 
-static const unsigned char gost94_cryptopro_testsum[9][32] =
+static const unsigned char gost94_cryptopro_test_sum[9][32] =
 {
     /*
      * id-GostR3411-94-CryptoProParamSet test vectors
@@ -487,7 +487,7 @@ static const int gost94_special_buflen[2] =
     128, 1000000
 };
 
-static const unsigned char gost94_test_special_testsum[2][32] =
+static const unsigned char gost94_test_special_test_sum[2][32] =
 {
     { 0x53, 0xa3, 0xa3, 0xed, 0x25, 0x18, 0x0c, 0xef,
       0x0c, 0x1d, 0x85, 0xa0, 0x74, 0x27, 0x3e, 0x55,
@@ -499,7 +499,7 @@ static const unsigned char gost94_test_special_testsum[2][32] =
       0xa6, 0x02, 0x41, 0x3c, 0x90, 0xa1, 0x29, 0xfa }
 };
 
-static const unsigned char gost94_cryptopro_special_testsum[2][32] =
+static const unsigned char gost94_cryptopro_special_test_sum[2][32] =
 {
     { 0x1c, 0x4a, 0xc7, 0x61, 0x46, 0x91, 0xbb, 0xf4,
       0x27, 0xfa, 0x23, 0x16, 0x21, 0x6b, 0xe8, 0xf1,
@@ -533,7 +533,7 @@ int mbedtls_gost94_self_test( int verbose )
 
         mbedtls_gost94_finish( &ctx, gost94sum );
 
-        if( memcmp( gost94sum, gost94_test_testsum[i], 32 ) != 0 )
+        if( memcmp( gost94sum, gost94_test_test_sum[i], 32 ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -559,7 +559,7 @@ int mbedtls_gost94_self_test( int verbose )
 
         mbedtls_gost94_finish( &ctx, gost94sum );
 
-        if( memcmp( gost94sum, gost94_cryptopro_testsum[i], 32 ) != 0 )
+        if( memcmp( gost94sum, gost94_cryptopro_test_sum[i], 32 ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -585,7 +585,7 @@ int mbedtls_gost94_self_test( int verbose )
 
         mbedtls_gost94_finish( &ctx, gost94sum );
 
-        if( memcmp( gost94sum, gost94_test_special_testsum[i], 32 ) != 0 )
+        if( memcmp( gost94sum, gost94_test_special_test_sum[i], 32 ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -611,7 +611,7 @@ int mbedtls_gost94_self_test( int verbose )
 
         mbedtls_gost94_finish( &ctx, gost94sum );
 
-        if( memcmp( gost94sum, gost94_cryptopro_special_testsum[i], 32 ) != 0 )
+        if( memcmp( gost94sum, gost94_cryptopro_special_test_sum[i], 32 ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
