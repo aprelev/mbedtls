@@ -209,10 +209,8 @@ void mbedtls_gost89_decrypt( mbedtls_gost89_context *ctx,
  * \brief          Initialize GOST89-MAC context
  *
  * \param ctx      GOST89-MAC context to be initialized
- * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx,
-                              mbedtls_gost89_sbox_id_t sbox_id );
+void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx );
 
 /**
  * \brief          Clear GOST89-MAC context
@@ -245,8 +243,10 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
  * \brief          GOST89-MAC context setup
  *
  * \param ctx      context to be initialized
+ * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx );
+void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
+                                mbedtls_gost89_sbox_id_t sbox_id );
 
 /**
  * \brief          GOST89-MAC process buffer

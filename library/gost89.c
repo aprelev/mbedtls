@@ -476,11 +476,9 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
 #undef C1
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx,
-                              mbedtls_gost89_sbox_id_t sbox_id )
+void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_gost89_mac_context ) );
-    ctx->sbox_id = sbox_id;
 }
 
 void mbedtls_gost89_mac_free( mbedtls_gost89_mac_context *ctx )
@@ -516,7 +514,8 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
 /*
  * GOST89-MAC context setup
  */
-void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx )
+void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
+                                mbedtls_gost89_sbox_id_t sbox_id )
 {
     int i;
 
@@ -527,6 +526,8 @@ void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx )
     }
 
     ctx->processed_len = 0;
+
+    ctx->sbox_id = sbox_id;
 }
 
 #if !defined(MBEDTLS_GOST89_MAC_PROCESS_ALT)
@@ -635,9 +636,9 @@ void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
 {
     mbedtls_gost89_mac_context ctx;
 
-    mbedtls_gost89_mac_init( &ctx, sbox_id );
+    mbedtls_gost89_mac_init( &ctx );
     mbedtls_gost89_mac_setkey( &ctx, key );
-    mbedtls_gost89_mac_starts( &ctx );
+    mbedtls_gost89_mac_starts( &ctx, sbox_id );
     mbedtls_gost89_mac_update( &ctx, input, ilen );
     mbedtls_gost89_mac_finish( &ctx, output );
     mbedtls_gost89_mac_free( &ctx );

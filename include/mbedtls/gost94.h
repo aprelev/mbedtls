@@ -43,10 +43,8 @@ mbedtls_gost94_context;
  * \brief          Initialize GOST94 context
  *
  * \param ctx      GOST94 context to be initialized
- * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost94_init( mbedtls_gost94_context *ctx,
-                          mbedtls_gost89_sbox_id_t sbox_id );
+void mbedtls_gost94_init( mbedtls_gost94_context *ctx );
 
 /**
  * \brief          Clear GOST94 context
@@ -68,9 +66,10 @@ void mbedtls_gost94_clone( mbedtls_gost94_context *dst,
  * \brief          GOST94 context setup
  *
  * \param ctx      context to be initialized
- * \param iv       hash initial value
+ * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost94_starts( mbedtls_gost94_context *ctx );
+void mbedtls_gost94_starts( mbedtls_gost94_context *ctx,
+                            mbedtls_gost89_sbox_id_t sbox_id );
 
 /**
  * \brief          GOST94 process buffer
