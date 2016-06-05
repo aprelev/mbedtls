@@ -355,7 +355,7 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_GOST94_C)
     if( todo.gost94 )
-        TIME_AND_TSC( "GOST94-CRYPTOPRO", mbedtls_gost94( MBEDTLS_GOST94_SBOX_CRYPTOPRO, buf, BUFSIZE, tmp ) );
+        TIME_AND_TSC( "GOST94-TEST", mbedtls_gost94( MBEDTLS_GOST94_SBOX_TEST, buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
@@ -511,10 +511,10 @@ int main( int argc, char *argv[] )
     if( todo.gost89 )
     {
         mbedtls_gost89_context gost89;
-        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_A,
-                             MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
+        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_TEST,
+                             MBEDTLS_GOST89_KEY_MESHING_NONE );
 
-        mbedtls_snprintf( title, sizeof( title ), "GOST89-A-CBC" );
+        mbedtls_snprintf( title, sizeof( title ), "GOST89-TEST-CBC" );
 
         memset( buf, 0, sizeof( buf ) );
         memset( tmp, 0, sizeof( tmp ) );
@@ -535,10 +535,10 @@ int main( int argc, char *argv[] )
         size_t iv_offset = 0;
 
         mbedtls_gost89_context gost89;
-        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_A,
+        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_TEST,
                              MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 
-        mbedtls_snprintf( title, sizeof( title ), "GOST89-A-CNT" );
+        mbedtls_snprintf( title, sizeof( title ), "GOST89-TEST-CNT" );
 
         memset( buf, 0, sizeof( buf ) );
         memset( tmp, 0, sizeof( tmp ) );
@@ -559,7 +559,7 @@ int main( int argc, char *argv[] )
 
         memset( key, 0, sizeof( key ) );
 
-        TIME_AND_TSC( "GOST89-A-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, key,
+        TIME_AND_TSC( "GOST89-TEST-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, key,
                                                           buf, BUFSIZE, tmp ) );
     }
 #endif
