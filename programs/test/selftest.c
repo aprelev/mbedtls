@@ -39,6 +39,7 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/gost94.h"
+#include "mbedtls/gost12.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
@@ -204,6 +205,22 @@ int main( int argc, char *argv[] )
     suites_tested++;
 #endif
 
+#if defined(MBEDTLS_GOST94_C)
+    if( mbedtls_gost94_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
+#if defined(MBEDTLS_GOST12_C)
+    if( mbedtls_gost12_self_test( v ) != 0 )
+    {
+        suites_failed++;
+    }
+    suites_tested++;
+#endif
+
 #if defined(MBEDTLS_ARC4_C)
     if( mbedtls_arc4_self_test( v ) != 0 )
     {
@@ -294,14 +311,6 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_GOST89_C)
     if( mbedtls_gost89_self_test( v ) != 0 )
-    {
-        suites_failed++;
-    }
-    suites_tested++;
-#endif
-
-#if defined(MBEDTLS_GOST94_C)
-    if( mbedtls_gost94_self_test( v ) != 0 )
     {
         suites_failed++;
     }

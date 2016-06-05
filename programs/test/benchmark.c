@@ -55,6 +55,7 @@ int main( void )
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/gost94.h"
+#include "mbedtls/gost12.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
@@ -93,7 +94,7 @@ int main( void )
 #define TITLE_LEN       25
 
 #define OPTIONS                                                                 \
-    "md4, md5, ripemd160, sha1, sha256, sha512, gost94\n"                              \
+    "md4, md5, ripemd160, sha1, sha256, sha512, gost94, gost12,\n"              \
     "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,\n" \
     "havege, ctr_drbg, hmac_drbg\n"                                             \
     "rsa, dhm, ecdsa, ecdh.\n"
@@ -235,7 +236,7 @@ void ecp_clear_precomputed( mbedtls_ecp_group *grp )
 unsigned char buf[BUFSIZE];
 
 typedef struct {
-    char md4, md5, ripemd160, sha1, sha256, sha512, gost94,
+    char md4, md5, ripemd160, sha1, sha256, sha512, gost94, gost12,
          arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
@@ -275,6 +276,8 @@ int main( int argc, char *argv[] )
                 todo.sha512 = 1;
             else if( strcmp( argv[i], "gost94" ) == 0 )
                 todo.gost94 = 1;
+            else if( strcmp( argv[i], "gost12" ) == 0 )
+                todo.gost12 = 1;
             else if( strcmp( argv[i], "arc4" ) == 0 )
                 todo.arc4 = 1;
             else if( strcmp( argv[i], "des3" ) == 0 )
@@ -356,6 +359,11 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_GOST94_C)
     if( todo.gost94 )
         TIME_AND_TSC( "GOST94-TEST", mbedtls_gost94( MBEDTLS_GOST94_SBOX_TEST, buf, BUFSIZE, tmp ) );
+#endif
+
+#if defined(MBEDTLS_GOST12_C)
+    if( todo.gost12 )
+        TIME_AND_TSC( "GOST12", mbedtls_gost12( buf, BUFSIZE, tmp, 0 ) );
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
