@@ -1604,6 +1604,54 @@ generic SHA-512 Hash file #4
 depends_on:MBEDTLS_SHA512_C
 mbedtls_md_file:"SHA512":"data_files/hash_file_4":"cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
 
+generic GOST89-TEST-MAC Hash file #1
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-TEST-MAC":"data_files/hash_file_1":"a2e5a85d"
+
+generic GOST89-TEST-MAC Hash file #2
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-TEST-MAC":"data_files/hash_file_2":"709b009b"
+
+generic GOST89-TEST-MAC Hash file #3
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-TEST-MAC":"data_files/hash_file_3":"a2329b2c"
+
+generic GOST89-TEST-MAC Hash file #4
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-TEST-MAC":"data_files/hash_file_4":"8cdefeca"
+
+generic GOST89-A-MAC Hash file #1
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-A-MAC":"data_files/hash_file_1":"4d1cfb86"
+
+generic GOST89-A-MAC Hash file #2
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-A-MAC":"data_files/hash_file_2":"a2329c43"
+
+generic GOST89-A-MAC Hash file #3
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-A-MAC":"data_files/hash_file_3":"fd174b4e"
+
+generic GOST89-A-MAC Hash file #4
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-A-MAC":"data_files/hash_file_4":"d9c17d6b"
+
+generic GOST89-Z-MAC Hash file #1
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-Z-MAC":"data_files/hash_file_1":"99a72c6d"
+
+generic GOST89-Z-MAC Hash file #2
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-Z-MAC":"data_files/hash_file_2":"acb1ee6c"
+
+generic GOST89-Z-MAC Hash file #3
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-Z-MAC":"data_files/hash_file_3":"7ef26bad"
+
+generic GOST89-Z-MAC Hash file #4
+depends_on:MBEDTLS_GOST89_C
+mbedtls_md_file:"GOST89-Z-MAC":"data_files/hash_file_4":"4abdb678"
+
 generic GOST94-TEST Hash file #1
 depends_on:MBEDTLS_GOST94_C
 mbedtls_md_file:"GOST94-TEST":"data_files/hash_file_1":"3da1a40cd7da63e4ed411df3d3e853dbb48c843611137bb2695c0717931c2e3a"
