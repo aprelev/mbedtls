@@ -407,7 +407,7 @@ void mbedtls_gost12_finish( mbedtls_gost12_context *ctx, unsigned char output[64
     PUT_UINT64_LE( high, msglen, 8 );
 
     last = (size_t)( ctx->total[0] & 0x3F );
-    padn = ( last != 0 ) ? ( 64 - last ) : ( 0 );
+    padn = 64 - last;
 
     mbedtls_gost12_update( ctx, gost12_padding, padn );
 
