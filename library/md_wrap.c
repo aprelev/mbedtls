@@ -69,6 +69,10 @@
 #include "mbedtls/gost94.h"
 #endif
 
+#if defined(MBEDTLS_GOST12_C)
+#include "mbedtls/gost12.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -802,5 +806,99 @@ const mbedtls_md_info_t mbedtls_gost94_cryptopro_info = {
 };
 
 #endif /* MBEDTLS_GOST94_C */
+
+#if defined(MBEDTLS_GOST12_C)
+
+static void gost12_256_starts_wrap( void *ctx )
+{
+    mbedtls_gost12_starts( (mbedtls_gost12_context *) ctx, 1 );
+}
+
+static void gost12_512_starts_wrap( void *ctx )
+{
+    mbedtls_gost12_starts( (mbedtls_gost12_context *) ctx, 0 );
+}
+
+static void gost12_update_wrap( void *ctx, const unsigned char *input,
+                                size_t ilen )
+{
+    mbedtls_gost12_update( (mbedtls_gost12_context *) ctx, input, ilen );
+}
+
+static void gost12_finish_wrap( void *ctx, unsigned char *output )
+{
+    mbedtls_gost12_finish( (mbedtls_gost12_context *) ctx, output );
+}
+
+static void gost12_256_wrap( const unsigned char *input, size_t ilen,
+                    unsigned char *output )
+{
+    mbedtls_gost12( input, ilen, output, 1 );
+}
+
+static void gost12_512_wrap( const unsigned char *input, size_t ilen,
+                    unsigned char *output )
+{
+    mbedtls_gost12( input, ilen, output, 0 );
+}
+
+static void *gost12_ctx_alloc( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost12_context ) );
+
+    if( ctx != NULL )
+        mbedtls_gost12_init( (mbedtls_gost12_context *) ctx );
+
+    return( ctx );
+}
+
+static void gost12_ctx_free( void *ctx )
+{
+    mbedtls_gost12_free( (mbedtls_gost12_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static void gost12_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_gost12_clone( (mbedtls_gost12_context *) dst,
+                    (const mbedtls_gost12_context *) src );
+}
+
+static void gost12_process_wrap( void *ctx, const unsigned char *data )
+{
+    mbedtls_gost12_process( (mbedtls_gost12_context *) ctx, data );
+}
+
+const mbedtls_md_info_t mbedtls_gost12_256_info = {
+    MBEDTLS_MD_GOST12_256,
+    "GOST12-256",
+    32,
+    64,
+    gost12_256_starts_wrap,
+    gost12_update_wrap,
+    gost12_finish_wrap,
+    gost12_256_wrap,
+    gost12_ctx_alloc,
+    gost12_ctx_free,
+    gost12_clone_wrap,
+    gost12_process_wrap,
+};
+
+const mbedtls_md_info_t mbedtls_gost12_512_info = {
+    MBEDTLS_MD_GOST12_512,
+    "GOST12-512",
+    64,
+    64,
+    gost12_512_starts_wrap,
+    gost12_update_wrap,
+    gost12_finish_wrap,
+    gost12_512_wrap,
+    gost12_ctx_alloc,
+    gost12_ctx_free,
+    gost12_clone_wrap,
+    gost12_process_wrap,
+};
+
+#endif /* MBEDTLS_GOST12_C */
 
 #endif /* MBEDTLS_MD_C */

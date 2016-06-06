@@ -115,6 +115,10 @@ extern const mbedtls_md_info_t mbedtls_gost89_z_mac_info;
 extern const mbedtls_md_info_t mbedtls_gost94_test_info;
 extern const mbedtls_md_info_t mbedtls_gost94_cryptopro_info;
 #endif
+#if defined(MBEDTLS_GOST12_C)
+extern const mbedtls_md_info_t mbedtls_gost12_256_info;
+extern const mbedtls_md_info_t mbedtls_gost12_512_info;
+#endif
 
 #ifdef __cplusplus
 }

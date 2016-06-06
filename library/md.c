@@ -99,6 +99,11 @@ static const int supported_digests[] = {
         MBEDTLS_MD_GOST94_CRYPTOPRO,
 #endif
 
+#if defined(MBEDTLS_GOST12_C)
+        MBEDTLS_MD_GOST12_256,
+        MBEDTLS_MD_GOST12_512,
+#endif
+
         MBEDTLS_MD_NONE
 };
 
@@ -159,6 +164,12 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name )
     if( !strcmp( "GOST94-CRYPTOPRO", md_name ) )
         return mbedtls_md_info_from_type( MBEDTLS_MD_GOST94_CRYPTOPRO );
 #endif
+#if defined(MBEDTLS_GOST12_C)
+    if( !strcmp( "GOST12-256", md_name ) )
+        return mbedtls_md_info_from_type( MBEDTLS_MD_GOST12_256 );
+    if( !strcmp( "GOST12-512", md_name ) )
+        return mbedtls_md_info_from_type( MBEDTLS_MD_GOST12_512 );
+#endif
     return( NULL );
 }
 
@@ -211,6 +222,12 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
             return( &mbedtls_gost94_test_info );
         case MBEDTLS_MD_GOST94_CRYPTOPRO:
             return( &mbedtls_gost94_cryptopro_info );
+#endif
+#if defined(MBEDTLS_GOST12_C)
+        case MBEDTLS_MD_GOST12_256:
+            return( &mbedtls_gost12_256_info );
+        case MBEDTLS_MD_GOST12_512:
+            return( &mbedtls_gost12_512_info );
 #endif
         default:
             return( NULL );
