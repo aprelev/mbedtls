@@ -337,7 +337,12 @@ void mbedtls_gost94_finish( mbedtls_gost94_context *ctx, unsigned char output[32
     padn = ( last != 0 ) ? ( 32 - last ) : ( 0 );
 
     mbedtls_gost94_update( ctx, gost94_padding, padn );
+
+    /*
+     * Save current control sum, cause it will be updated by msglen
+     */
     memcpy( sum, ctx->sum, 32 );
+
     mbedtls_gost94_process( ctx, msglen );
     mbedtls_gost94_process( ctx, sum );
 

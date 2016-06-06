@@ -410,7 +410,12 @@ void mbedtls_gost12_finish( mbedtls_gost12_context *ctx, unsigned char output[64
     padn = ( last != 0 ) ? ( 64 - last ) : ( 0 );
 
     mbedtls_gost12_update( ctx, gost12_padding, padn );
+
+    /*
+     * Save current control sum, cause it will be updated by msglen
+     */
     memcpy( sum, ctx->sum, 64 );
+
     ctx->N = 0;
     mbedtls_gost12_process( ctx, msglen );
     ctx->N = 0;
