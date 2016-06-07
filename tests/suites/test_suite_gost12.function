@@ -1,0 +1,52 @@
+/* BEGIN_HEADER */
+#include "mbedtls/gost12.h"
+/* END_HEADER */
+
+/* BEGIN_CASE depends_on:MBEDTLS_GOST12_C */
+void gost12_256(char *hex_src_string, char *hex_hash_string )
+{
+    unsigned char src_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[65];
+    int src_len;
+
+    memset(src_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 65);
+
+    src_len = unhexify( src_str, hex_src_string );
+
+    mbedtls_gost12( src_str, src_len, output, 1 );
+    hexify( hash_str, output, 32 );
+
+    TEST_ASSERT( strcasecmp( (char *) hash_str, hex_hash_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_GOST12_C */
+void mbedtls_gost12(char *hex_src_string, char *hex_hash_string )
+{
+    unsigned char src_str[10000];
+    unsigned char hash_str[10000];
+    unsigned char output[129];
+    int src_len;
+
+    memset(src_str, 0x00, 10000);
+    memset(hash_str, 0x00, 10000);
+    memset(output, 0x00, 129);
+
+    src_len = unhexify( src_str, hex_src_string );
+
+    mbedtls_gost12( src_str, src_len, output, 0);
+    hexify( hash_str, output, 64 );
+
+    TEST_ASSERT( strcasecmp( (char *) hash_str, hex_hash_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_GOST12_C:MBEDTLS_SELF_TEST */
+void gost12_selftest()
+{
+    TEST_ASSERT( mbedtls_gost12_self_test( 0 ) == 0 );
+}
+/* END_CASE */

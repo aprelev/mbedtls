@@ -27,6 +27,7 @@ set(src_crypto
     entropy_poll.c
     error.c
     gcm.c
+    gost12.c
     gost89.c
     gost94.c
     havege.c

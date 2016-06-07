@@ -52,10 +52,12 @@ typedef enum {
     MBEDTLS_MD_GOST89_Z_MAC,
     MBEDTLS_MD_GOST94_TEST,
     MBEDTLS_MD_GOST94_CRYPTOPRO,
+    MBEDTLS_MD_GOST12_256,
+    MBEDTLS_MD_GOST12_512,
 } mbedtls_md_type_t;
 
-#if defined(MBEDTLS_SHA512_C)
-#define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 */
+#if defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_GOST12_C)
+#define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 or GOST12-512 */
 #else
 #define MBEDTLS_MD_MAX_SIZE         32  /* longest known is SHA256 or less */
 #endif

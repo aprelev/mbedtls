@@ -22,14 +22,6 @@
 
 #define MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH              -0x007E  /**< Invalid data input length. */
 
-#if !defined(MBEDTLS_GOST89_ALT)
-// Regular implementation
-//
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * \brief          Available S-Boxes
  */
@@ -43,11 +35,22 @@ typedef enum
     MBEDTLS_GOST94_SBOX_CRYPTOPRO, /**< id-GostR3411-94-CryptoProParamSet (1.2.643.2.2.30.1)    */
 } mbedtls_gost89_sbox_id_t;
 
+/**
+ * \brief          Available key meshing algorithms
+ */
 typedef enum
 {
     MBEDTLS_GOST89_KEY_MESHING_NONE = 0,  /**< not use key meshing                  */
     MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO, /**< CryptoPro Key Meshing (see RFC 4357) */
 } mbedtls_gost89_key_meshing_t;
+
+#if !defined(MBEDTLS_GOST89_ALT)
+// Regular implementation
+//
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          GOST89 context structure
@@ -206,10 +209,8 @@ void mbedtls_gost89_decrypt( mbedtls_gost89_context *ctx,
  * \brief          Initialize GOST89-MAC context
  *
  * \param ctx      GOST89-MAC context to be initialized
- * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx,
-                              mbedtls_gost89_sbox_id_t sbox_id );
+void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx );
 
 /**
  * \brief          Clear GOST89-MAC context
@@ -242,8 +243,10 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
  * \brief          GOST89-MAC context setup
  *
  * \param ctx      context to be initialized
+ * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx );
+void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
+                                mbedtls_gost89_sbox_id_t sbox_id );
 
 /**
  * \brief          GOST89-MAC process buffer

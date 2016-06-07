@@ -1792,6 +1792,16 @@
 #define MBEDTLS_GCM_C
 
 /**
+ * \def MBEDTLS_GOST12_C
+ *
+ * Enable the GOST R 34.11-2012 (256 and 512 bit) cryptographic hash function.
+ *
+ * Module:  library/gost12.c
+ * Caller:
+ */
+#define MBEDTLS_GOST12_C
+
+/**
  * \def MBEDTLS_GOST89_C
  *
  * Enable the GOST 28147-89 block cipher.
@@ -1810,7 +1820,6 @@
  * Caller:
  *
  * Requires: MBEDTLS_GOST89_C
- *
  */
 #define MBEDTLS_GOST94_C
 

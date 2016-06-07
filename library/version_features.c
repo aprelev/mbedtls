@@ -489,6 +489,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_GCM_C)
     "MBEDTLS_GCM_C",
 #endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_GOST12_C)
+    "MBEDTLS_GOST12_C",
+#endif /* MBEDTLS_GOST12_C */
 #if defined(MBEDTLS_GOST89_C)
     "MBEDTLS_GOST89_C",
 #endif /* MBEDTLS_GOST89_C */

@@ -16,11 +16,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if !defined(MBEDTLS_GOST94_ALT) && defined(MBEDTLS_GOST89_C)
+#include "gost89.h"
+
+#if !defined(MBEDTLS_GOST94_ALT)
 // Regular implementation
 //
-
-#include "gost89.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,10 +43,8 @@ mbedtls_gost94_context;
  * \brief          Initialize GOST94 context
  *
  * \param ctx      GOST94 context to be initialized
- * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost94_init( mbedtls_gost94_context *ctx,
-                          mbedtls_gost89_sbox_id_t sbox_id );
+void mbedtls_gost94_init( mbedtls_gost94_context *ctx );
 
 /**
  * \brief          Clear GOST94 context
@@ -68,9 +66,10 @@ void mbedtls_gost94_clone( mbedtls_gost94_context *dst,
  * \brief          GOST94 context setup
  *
  * \param ctx      context to be initialized
- * \param iv       hash initial value
+ * \param sbox_id  S-Box identifier
  */
-void mbedtls_gost94_starts( mbedtls_gost94_context *ctx );
+void mbedtls_gost94_starts( mbedtls_gost94_context *ctx,
+                            mbedtls_gost89_sbox_id_t sbox_id );
 
 /**
  * \brief          GOST94 process buffer
@@ -128,4 +127,4 @@ int mbedtls_gost94_self_test( int verbose );
 }
 #endif
 
-#endif /* mbedtls_gost94.h */
+#endif /* gost94.h */

@@ -36,22 +36,22 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * 32-bit integer manipulation macros (little endian)
  */
 #ifndef GET_UINT32_LE
-#define GET_UINT32_LE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ]       )             \
-        | ( (uint32_t) (b)[(i) + 1] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 2] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 3] << 24 );            \
+#define GET_UINT32_LE(n,b,i)                         \
+{                                                    \
+    (n) = ( (uint32_t) (b)[(i)    ]       )          \
+        | ( (uint32_t) (b)[(i) + 1] <<  8 )          \
+        | ( (uint32_t) (b)[(i) + 2] << 16 )          \
+        | ( (uint32_t) (b)[(i) + 3] << 24 );         \
 }
 #endif
 
 #ifndef PUT_UINT32_LE
-#define PUT_UINT32_LE(n,b,i)                                    \
-{                                                               \
-    (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
-    (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
-    (b)[(i) + 2] = (unsigned char) ( ( (n) >> 16 ) & 0xFF );    \
-    (b)[(i) + 3] = (unsigned char) ( ( (n) >> 24 ) & 0xFF );    \
+#define PUT_UINT32_LE(n,b,i)                         \
+{                                                    \
+    (b)[(i)    ] = (unsigned char) ( (n)       );    \
+    (b)[(i) + 1] = (unsigned char) ( (n) >>  8 );    \
+    (b)[(i) + 2] = (unsigned char) ( (n) >> 16 );    \
+    (b)[(i) + 3] = (unsigned char) ( (n) >> 24 );    \
 }
 #endif
 
@@ -217,7 +217,8 @@ static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
 static int mbedtls_gost89_is_meshing_needed( const mbedtls_gost89_context *ctx )
 {
     return( ( ctx->key_meshing == MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO ) &&
-            ( ctx->processed_len == 1024 ) );
+            ( ctx->processed_len != 0 ) &&
+            ( ( ctx->processed_len % 1024 ) == 0 ) );
 }
 
 void mbedtls_gost89_init( mbedtls_gost89_context *ctx,
@@ -476,11 +477,9 @@ int mbedtls_gost89_crypt_cnt( mbedtls_gost89_context *ctx,
 #undef C1
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx,
-                              mbedtls_gost89_sbox_id_t sbox_id )
+void mbedtls_gost89_mac_init( mbedtls_gost89_mac_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_gost89_mac_context ) );
-    ctx->sbox_id = sbox_id;
 }
 
 void mbedtls_gost89_mac_free( mbedtls_gost89_mac_context *ctx )
@@ -516,7 +515,8 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
 /*
  * GOST89-MAC context setup
  */
-void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx )
+void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
+                                mbedtls_gost89_sbox_id_t sbox_id )
 {
     int i;
 
@@ -527,6 +527,8 @@ void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx )
     }
 
     ctx->processed_len = 0;
+
+    ctx->sbox_id = sbox_id;
 }
 
 #if !defined(MBEDTLS_GOST89_MAC_PROCESS_ALT)
@@ -635,9 +637,9 @@ void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
 {
     mbedtls_gost89_mac_context ctx;
 
-    mbedtls_gost89_mac_init( &ctx, sbox_id );
+    mbedtls_gost89_mac_init( &ctx );
     mbedtls_gost89_mac_setkey( &ctx, key );
-    mbedtls_gost89_mac_starts( &ctx );
+    mbedtls_gost89_mac_starts( &ctx, sbox_id );
     mbedtls_gost89_mac_update( &ctx, input, ilen );
     mbedtls_gost89_mac_finish( &ctx, output );
     mbedtls_gost89_mac_free( &ctx );

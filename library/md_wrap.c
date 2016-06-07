@@ -69,6 +69,10 @@
 #include "mbedtls/gost94.h"
 #endif
 
+#if defined(MBEDTLS_GOST12_C)
+#include "mbedtls/gost12.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -582,9 +586,19 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 
 #if defined(MBEDTLS_GOST89_C)
 
-static void gost89_mac_starts_wrap( void *ctx )
+static void gost89_test_mac_starts_wrap( void *ctx )
 {
-    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx );
+    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_TEST );
+}
+
+static void gost89_a_mac_starts_wrap( void *ctx )
+{
+    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_A );
+}
+
+static void gost89_z_mac_starts_wrap( void *ctx )
+{
+    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_Z );
 }
 
 static void gost89_mac_update_wrap( void *ctx, const unsigned char *input,
@@ -625,32 +639,12 @@ static void gost89_z_mac_wrap( const unsigned char *input, size_t ilen,
     mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_Z, gost89_mac_zero_key, input, ilen, output );
 }
 
-static void *gost89_test_mac_ctx_alloc( void )
+static void *gost89_mac_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost89_mac_context ) );
 
     if( ctx != NULL )
-        mbedtls_gost89_mac_init( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_TEST );
-
-    return( ctx );
-}
-
-static void *gost89_a_mac_ctx_alloc( void )
-{
-    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost89_mac_context ) );
-
-    if( ctx != NULL )
-        mbedtls_gost89_mac_init( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_A );
-
-    return( ctx );
-}
-
-static void *gost89_z_mac_ctx_alloc( void )
-{
-    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost89_mac_context ) );
-
-    if( ctx != NULL )
-        mbedtls_gost89_mac_init( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_Z );
+        mbedtls_gost89_mac_init( (mbedtls_gost89_mac_context *) ctx );
 
     return( ctx );
 }
@@ -677,11 +671,11 @@ const mbedtls_md_info_t mbedtls_gost89_test_mac_info = {
     "GOST89-TEST-MAC",
     4,
     8,
-    gost89_mac_starts_wrap,
+    gost89_test_mac_starts_wrap,
     gost89_mac_update_wrap,
     gost89_mac_finish_wrap,
     gost89_test_mac_wrap,
-    gost89_test_mac_ctx_alloc,
+    gost89_mac_ctx_alloc,
     gost89_mac_ctx_free,
     gost89_mac_clone_wrap,
     gost89_mac_process_wrap,
@@ -692,11 +686,11 @@ const mbedtls_md_info_t mbedtls_gost89_a_mac_info = {
     "GOST89-A-MAC",
     4,
     8,
-    gost89_mac_starts_wrap,
+    gost89_a_mac_starts_wrap,
     gost89_mac_update_wrap,
     gost89_mac_finish_wrap,
     gost89_a_mac_wrap,
-    gost89_a_mac_ctx_alloc,
+    gost89_mac_ctx_alloc,
     gost89_mac_ctx_free,
     gost89_mac_clone_wrap,
     gost89_mac_process_wrap,
@@ -707,11 +701,11 @@ const mbedtls_md_info_t mbedtls_gost89_z_mac_info = {
     "GOST89-Z-MAC",
     4,
     8,
-    gost89_mac_starts_wrap,
+    gost89_z_mac_starts_wrap,
     gost89_mac_update_wrap,
     gost89_mac_finish_wrap,
     gost89_z_mac_wrap,
-    gost89_z_mac_ctx_alloc,
+    gost89_mac_ctx_alloc,
     gost89_mac_ctx_free,
     gost89_mac_clone_wrap,
     gost89_mac_process_wrap,
@@ -721,9 +715,14 @@ const mbedtls_md_info_t mbedtls_gost89_z_mac_info = {
 
 #if defined(MBEDTLS_GOST94_C)
 
-static void gost94_starts_wrap( void *ctx )
+static void gost94_test_starts_wrap( void *ctx )
 {
-    mbedtls_gost94_starts( (mbedtls_gost94_context *) ctx );
+    mbedtls_gost94_starts( (mbedtls_gost94_context *) ctx, MBEDTLS_GOST94_SBOX_TEST );
+}
+
+static void gost94_cryptopro_starts_wrap( void *ctx )
+{
+    mbedtls_gost94_starts( (mbedtls_gost94_context *) ctx, MBEDTLS_GOST94_SBOX_CRYPTOPRO );
 }
 
 static void gost94_update_wrap( void *ctx, const unsigned char *input,
@@ -749,22 +748,12 @@ static void gost94_cryptopro_wrap( const unsigned char *input, size_t ilen,
     mbedtls_gost94( MBEDTLS_GOST94_SBOX_CRYPTOPRO, input, ilen, output );
 }
 
-static void *gost94_test_ctx_alloc( void )
+static void *gost94_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost94_context ) );
 
     if( ctx != NULL )
-        mbedtls_gost94_init( (mbedtls_gost94_context *) ctx, MBEDTLS_GOST94_SBOX_TEST );
-
-    return( ctx );
-}
-
-static void *gost94_cryptopro_ctx_alloc( void )
-{
-    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost94_context ) );
-
-    if( ctx != NULL )
-        mbedtls_gost94_init( (mbedtls_gost94_context *) ctx, MBEDTLS_GOST94_SBOX_CRYPTOPRO );
+        mbedtls_gost94_init( (mbedtls_gost94_context *) ctx );
 
     return( ctx );
 }
@@ -791,11 +780,11 @@ const mbedtls_md_info_t mbedtls_gost94_test_info = {
     "GOST94-TEST",
     32,
     32,
-    gost94_starts_wrap,
+    gost94_test_starts_wrap,
     gost94_update_wrap,
     gost94_finish_wrap,
     gost94_test_wrap,
-    gost94_test_ctx_alloc,
+    gost94_ctx_alloc,
     gost94_ctx_free,
     gost94_clone_wrap,
     gost94_process_wrap,
@@ -806,16 +795,110 @@ const mbedtls_md_info_t mbedtls_gost94_cryptopro_info = {
     "GOST94-CRYPTOPRO",
     32,
     32,
-    gost94_starts_wrap,
+    gost94_cryptopro_starts_wrap,
     gost94_update_wrap,
     gost94_finish_wrap,
     gost94_cryptopro_wrap,
-    gost94_cryptopro_ctx_alloc,
+    gost94_ctx_alloc,
     gost94_ctx_free,
     gost94_clone_wrap,
     gost94_process_wrap,
 };
 
 #endif /* MBEDTLS_GOST94_C */
+
+#if defined(MBEDTLS_GOST12_C)
+
+static void gost12_256_starts_wrap( void *ctx )
+{
+    mbedtls_gost12_starts( (mbedtls_gost12_context *) ctx, 1 );
+}
+
+static void gost12_512_starts_wrap( void *ctx )
+{
+    mbedtls_gost12_starts( (mbedtls_gost12_context *) ctx, 0 );
+}
+
+static void gost12_update_wrap( void *ctx, const unsigned char *input,
+                                size_t ilen )
+{
+    mbedtls_gost12_update( (mbedtls_gost12_context *) ctx, input, ilen );
+}
+
+static void gost12_finish_wrap( void *ctx, unsigned char *output )
+{
+    mbedtls_gost12_finish( (mbedtls_gost12_context *) ctx, output );
+}
+
+static void gost12_256_wrap( const unsigned char *input, size_t ilen,
+                    unsigned char *output )
+{
+    mbedtls_gost12( input, ilen, output, 1 );
+}
+
+static void gost12_512_wrap( const unsigned char *input, size_t ilen,
+                    unsigned char *output )
+{
+    mbedtls_gost12( input, ilen, output, 0 );
+}
+
+static void *gost12_ctx_alloc( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_gost12_context ) );
+
+    if( ctx != NULL )
+        mbedtls_gost12_init( (mbedtls_gost12_context *) ctx );
+
+    return( ctx );
+}
+
+static void gost12_ctx_free( void *ctx )
+{
+    mbedtls_gost12_free( (mbedtls_gost12_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static void gost12_clone_wrap( void *dst, const void *src )
+{
+    mbedtls_gost12_clone( (mbedtls_gost12_context *) dst,
+                    (const mbedtls_gost12_context *) src );
+}
+
+static void gost12_process_wrap( void *ctx, const unsigned char *data )
+{
+    mbedtls_gost12_process( (mbedtls_gost12_context *) ctx, data );
+}
+
+const mbedtls_md_info_t mbedtls_gost12_256_info = {
+    MBEDTLS_MD_GOST12_256,
+    "GOST12-256",
+    32,
+    64,
+    gost12_256_starts_wrap,
+    gost12_update_wrap,
+    gost12_finish_wrap,
+    gost12_256_wrap,
+    gost12_ctx_alloc,
+    gost12_ctx_free,
+    gost12_clone_wrap,
+    gost12_process_wrap,
+};
+
+const mbedtls_md_info_t mbedtls_gost12_512_info = {
+    MBEDTLS_MD_GOST12_512,
+    "GOST12-512",
+    64,
+    64,
+    gost12_512_starts_wrap,
+    gost12_update_wrap,
+    gost12_finish_wrap,
+    gost12_512_wrap,
+    gost12_ctx_alloc,
+    gost12_ctx_free,
+    gost12_clone_wrap,
+    gost12_process_wrap,
+};
+
+#endif /* MBEDTLS_GOST12_C */
 
 #endif /* MBEDTLS_MD_C */
