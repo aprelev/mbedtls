@@ -1,6 +1,11 @@
 README for mbed TLS
 ===================
 
+Disclaimer
+----------
+
+Implementation of cryptographic tools and protocols provided here is a subject to restrictions imposed by Russian national laws and thus shall be used in __research purposes only__, and __no other purposes__, such as ensuring privacy, authenticity or integrity of any information, especially that of any market value.
+
 Configuration
 -------------
 
