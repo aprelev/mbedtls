@@ -155,6 +155,9 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
     { MBEDTLS_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
 #endif
+#if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
+    { MBEDTLS_ECP_DP_GOST256_TEST,  0,     256,    "id-GostR3410-2001-TestParamSet" },
+#endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };
 
