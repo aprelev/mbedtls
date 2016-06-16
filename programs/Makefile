@@ -50,7 +50,8 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 					pkey/dh_client$(EXEXT)		\
 	pkey/dh_genprime$(EXEXT)	pkey/dh_server$(EXEXT)		\
 	pkey/ecdh_curve25519$(EXEXT)					\
-	pkey/ecdsa$(EXEXT)		pkey/gen_key$(EXEXT)		\
+	pkey/ecdsa$(EXEXT)		pkey/ecgost$(EXEXT)	\
+	pkey/gen_key$(EXEXT)		\
 	pkey/key_app$(EXEXT)		pkey/key_app_writer$(EXEXT)	\
 	pkey/mpi_demo$(EXEXT)		pkey/pk_decrypt$(EXEXT)		\
 	pkey/pk_encrypt$(EXEXT)		pkey/pk_sign$(EXEXT)		\
@@ -120,6 +121,10 @@ pkey/ecdh_curve25519$(EXEXT): pkey/ecdh_curve25519.c $(DEP)
 pkey/ecdsa$(EXEXT): pkey/ecdsa.c $(DEP)
 	echo "  CC    pkey/ecdsa.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecdsa.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+pkey/ecgost$(EXEXT): pkey/ecgost.c $(DEP)
+	echo "  CC    pkey/ecgost.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecgost.c      $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/gen_key$(EXEXT): pkey/gen_key.c $(DEP)
 	echo "  CC    pkey/gen_key.c"

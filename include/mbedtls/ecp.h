@@ -65,7 +65,7 @@ typedef enum
     MBEDTLS_ECP_DP_SECP192K1,      /*!< 192-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< 224-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< 256-bits "Koblitz" curve */
-    MBEDTLS_ECP_DP_GOST256_TEST,   /*!< 256-bits id-GostR3410-2001-TestParamSet curve */
+    MBEDTLS_ECP_DP_GOST256TEST,    /*!< 256-bits id-GostR3410-2001-TestParamSet curve */
 } mbedtls_ecp_group_id;
 
 /**

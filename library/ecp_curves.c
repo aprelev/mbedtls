@@ -551,31 +551,31 @@ static const mbedtls_mpi_uint brainpoolP512r1_n[] = {
  * Domain parameters for GOST R 34.10-2001 or GOST R 34.10-2012 (256 bit) (RFC 4357 11.4)
  */
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
-static const mbedtls_mpi_uint gost256_test_p[] = {
+static const mbedtls_mpi_uint gost256test_p[] = {
     BYTES_TO_T_UINT_8( 0x31, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ),
     BYTES_TO_T_UINT_8( 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ),
     BYTES_TO_T_UINT_8( 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ),
     BYTES_TO_T_UINT_8( 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08 ),
 };
-static const mbedtls_mpi_uint gost256_test_a[] = {
+static const mbedtls_mpi_uint gost256test_a[] = {
     BYTES_TO_T_UINT_2( 0x07, 0x00 ),
 };
-static const mbedtls_mpi_uint gost256_test_b[] = {
+static const mbedtls_mpi_uint gost256test_b[] = {
     BYTES_TO_T_UINT_8( 0x7E, 0x3B, 0xE2, 0xDA, 0xE9, 0x0C, 0x4C, 0x51 ),
     BYTES_TO_T_UINT_8( 0x2A, 0xFC, 0x72, 0x34, 0x6A, 0x6E, 0x3F, 0x56 ),
     BYTES_TO_T_UINT_8( 0x40, 0xEF, 0xAF, 0xFB, 0x22, 0xE0, 0xB8, 0x39 ),
     BYTES_TO_T_UINT_8( 0xE7, 0x8C, 0x93, 0xAA, 0x98, 0xF4, 0xBF, 0x5F ),
 };
-static const mbedtls_mpi_uint gost256_test_gx[] = {
+static const mbedtls_mpi_uint gost256test_gx[] = {
     BYTES_TO_T_UINT_2( 0x02, 0x00 ),
 };
-static const mbedtls_mpi_uint gost256_test_gy[] = {
+static const mbedtls_mpi_uint gost256test_gy[] = {
     BYTES_TO_T_UINT_8( 0xC8, 0x8F, 0x7E, 0xEA, 0xBC, 0xAB, 0x96, 0x2B ),
     BYTES_TO_T_UINT_8( 0x12, 0x67, 0xA2, 0x9C, 0x0A, 0x7F, 0xC9, 0x85 ),
     BYTES_TO_T_UINT_8( 0x9C, 0xD1, 0x16, 0x0E, 0x03, 0x16, 0x63, 0xBD ),
     BYTES_TO_T_UINT_8( 0xD4, 0x47, 0x51, 0xE6, 0xA0, 0xA8, 0xE2, 0x08 ),
 };
-static const mbedtls_mpi_uint gost256_test_n[] = {
+static const mbedtls_mpi_uint gost256test_n[] = {
     BYTES_TO_T_UINT_8( 0xB3, 0xF5, 0xCC, 0x3A, 0x19, 0xFC, 0x9C, 0xC5 ),
     BYTES_TO_T_UINT_8( 0x54, 0x61, 0x97, 0x92, 0x18, 0x8A, 0xFE, 0x50 ),
     BYTES_TO_T_UINT_8( 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ),
@@ -800,6 +800,11 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
             grp->modp = ecp_mod_p255;
             return( ecp_use_curve25519( grp ) );
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
+        case MBEDTLS_ECP_DP_GOST256TEST:
+            return( LOAD_GROUP_A( gost256test ) );
+#endif /* MBEDTLS_ECP_DP_GOST256TEST_ENABLED */
 
         default:
             mbedtls_ecp_group_free( grp );

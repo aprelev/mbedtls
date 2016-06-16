@@ -1720,6 +1720,18 @@
 #define MBEDTLS_ECDSA_C
 
 /**
+ * \def MBEDTLS_ECGOST_C
+ *
+ * Enable the elliptic curve GOST library.
+ *
+ * Module:  library/ecgost.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_ECP_C, MBEDTLS_ASN1_WRITE_C, MBEDTLS_ASN1_PARSE_C
+ */
+#define MBEDTLS_ECGOST_C
+
+/**
  * \def MBEDTLS_ECJPAKE_C
  *
  * Enable the elliptic curve J-PAKE library.
