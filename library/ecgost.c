@@ -206,10 +206,17 @@ static int gost_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
     int ret;
     unsigned char buf[MBEDTLS_ECGOST_MAX_LEN];
     unsigned char *p = buf + sizeof( buf );
-    size_t len = 0;
+    size_t len = mbedtls_mpi_size( s );
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, s ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, r ) );
+    p -= len;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( s, p, len ) );
+
+    /* sizes of s and r are equal */
+    p -= len;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( r, p, len ) );
+
+    /* s and r are written */
+    len <<= 1;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_OCTET_STRING ) );
@@ -217,7 +224,10 @@ static int gost_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
     memcpy( sig, p, len );
     *slen = len;
 
-    return( 0 );
+    ret = 0;
+
+cleanup:
+    return( ret );
 }
 
 /*
@@ -258,6 +268,7 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
     unsigned char *p = (unsigned char *) sig;
     const unsigned char *end = sig + slen;
     size_t len;
+    size_t n_size = ( ctx->grp.nbits + 7 ) / 8;
     mbedtls_mpi r, s;
 
     mbedtls_mpi_init( &r );
@@ -276,8 +287,18 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
         goto cleanup;
     }
 
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &r ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &s ) ) != 0 )
+    if( len != n_size << 1 )
+        ret = MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH;
+
+    if( ( ret = mbedtls_mpi_read_binary( &r, p, n_size ) ) != 0 )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    p += len;
+
+    if( ( ret = mbedtls_mpi_read_binary( &s, p, n_size ) ) != 0 )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
@@ -286,9 +307,6 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
     if( ( ret = mbedtls_ecgost_verify( &ctx->grp, hash, hlen,
                               &ctx->Q, &r, &s ) ) != 0 )
         goto cleanup;
-
-    if( p != end )
-        ret = MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH;
 
 cleanup:
     mbedtls_mpi_free( &r );
