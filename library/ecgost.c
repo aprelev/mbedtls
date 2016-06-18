@@ -296,7 +296,7 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
         goto cleanup;
     }
 
-    p += len;
+    p += n_size;
 
     if( ( ret = mbedtls_mpi_read_binary( &s, p, n_size ) ) != 0 )
     {
