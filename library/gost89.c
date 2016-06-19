@@ -12,9 +12,14 @@
 
 #if defined(MBEDTLS_GOST89_C)
 
+#include "mbedtls/gost89.h"
+
 #include <string.h>
 
-#include "mbedtls/gost89.h"
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
 
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
@@ -148,7 +153,7 @@ static const mbedtls_gost89_sbox_t Sb94CryptoPro =
     }
 };
 
-static const mbedtls_gost89_sbox_t *mbedtls_gost89_sbox_from_id( mbedtls_gost89_sbox_id_t sbox_id )
+static inline const mbedtls_gost89_sbox_t *mbedtls_gost89_sbox_from_id( mbedtls_gost89_sbox_id_t sbox_id )
 {
     switch( sbox_id )
     {
@@ -156,16 +161,15 @@ static const mbedtls_gost89_sbox_t *mbedtls_gost89_sbox_from_id( mbedtls_gost89_
             return &Sb89Test;
         case MBEDTLS_GOST89_SBOX_A:
             return &Sb89A;
-        case MBEDTLS_GOST89_SBOX_Z:
-            return &Sb89Z;
 
         case MBEDTLS_GOST94_SBOX_TEST:
             return &Sb94Test;
         case MBEDTLS_GOST94_SBOX_CRYPTOPRO:
             return &Sb94CryptoPro;
 
+        case MBEDTLS_GOST89_SBOX_Z:
         default:
-            return &Sb89A;
+            return &Sb89Z;
     }
 }
 
