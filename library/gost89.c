@@ -218,7 +218,7 @@ static void mbedtls_gost89_key_meshing( mbedtls_gost89_context *ctx,
     mbedtls_gost89_free( &mesh );
 }
 
-static int mbedtls_gost89_is_meshing_needed( const mbedtls_gost89_context *ctx )
+static inline int mbedtls_gost89_is_meshing_needed( const mbedtls_gost89_context *ctx )
 {
     return( ( ctx->key_meshing == MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO ) &&
             ( ctx->processed_len != 0 ) &&
