@@ -65,7 +65,7 @@ void mbedtls_gost12_clone( mbedtls_gost12_context *dst,
  * \brief          GOST12 context setup
  *
  * \param ctx      context to be initialized
- * \param is224    0 = use GOST12-512, 1 = use GOST12-256
+ * \param is256    0 = use GOST12-512, 1 = use GOST12-256
  */
 void mbedtls_gost12_starts( mbedtls_gost12_context *ctx, int is256 );
 
@@ -89,7 +89,6 @@ void mbedtls_gost12_finish( mbedtls_gost12_context *ctx, unsigned char output[64
 
 /* Internal use */
 void mbedtls_gost12_process( mbedtls_gost12_context *ctx, const unsigned char data[64] );
-
 
 #ifdef __cplusplus
 }
