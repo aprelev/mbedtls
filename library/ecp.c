@@ -90,7 +90,11 @@ static unsigned long add_count, dbl_count, mul_count;
     defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)   ||   \
     defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+    defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) ||   \
+    defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)  ||   \
+    defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)  ||   \
+    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
 #define ECP_SHORTWEIERSTRASS
 #endif
 
@@ -156,7 +160,16 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
     { MBEDTLS_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
-    { MBEDTLS_ECP_DP_GOST256TEST,   0,     256,    "id-GostR3410-2001-TestParamSet" },
+    { MBEDTLS_ECP_DP_GOST256TEST,  -1,     256,    "id-GostR3410-2001-TestParamSet" },
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
+    { MBEDTLS_ECP_DP_GOST256A,     -2,     256,    "id-GostR3410-2001-CryptoPro-A-ParamSet" },
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
+    { MBEDTLS_ECP_DP_GOST256B,     -3,     256,    "id-GostR3410-2001-CryptoPro-B-ParamSet" },
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
+    { MBEDTLS_ECP_DP_GOST256C,     -4,     256,    "id-GostR3410-2001-CryptoPro-C-ParamSet" },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };

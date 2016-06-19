@@ -17,6 +17,11 @@
 
 #include <string.h>
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  */
@@ -39,9 +44,12 @@ cleanup:
     return( ret );
 }
 
-static int is_gost_ecp_group( const mbedtls_ecp_group *grp )
+static inline int is_gost_ecp_group( const mbedtls_ecp_group *grp )
 {
-    return( grp->id == MBEDTLS_ECP_DP_GOST256TEST );
+    return( ( grp->id == MBEDTLS_ECP_DP_GOST256TEST ) ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST256A ) ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST256B ) ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST256C ) );
 }
 
 /*
