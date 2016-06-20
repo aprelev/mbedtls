@@ -379,19 +379,6 @@ int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
                            const char *x, const char *y );
 
 /**
- * \brief           Import a non-zero point from two ASCII strings, little endian
- *
- * \param P         Destination point
- * \param radix     Input numeric base
- * \param x         First affine coordinate as a null-terminated string
- * \param y         Second affine coordinate as a null-terminated string
- *
- * \return          0 if successful, or a MBEDTLS_ERR_MPI_XXX error code
- */
-int mbedtls_ecp_point_read_string_le( mbedtls_ecp_point *P, int radix,
-                           const char *x, const char *y );
-
-/**
  * \brief           Export a point into unsigned binary data
  *
  * \param grp       Group to which the point should belong

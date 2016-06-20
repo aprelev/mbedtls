@@ -59,10 +59,10 @@ void ecgost_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
     memset( rnd_buf, 0, sizeof( rnd_buf ) );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
-    TEST_ASSERT( mbedtls_ecp_point_read_string_le( &Q, 16, xQ_str, yQ_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string_le( &d, 16, d_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string_le( &r_check, 16, r_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_string_le( &s_check, 16, s_str ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
     hlen = unhexify(hash, hash_str);
     rnd_info.buf = rnd_buf;
     rnd_info.length = unhexify( rnd_buf, k_str );
