@@ -320,6 +320,17 @@ size_t mbedtls_mpi_size( const mbedtls_mpi *X );
 int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s );
 
 /**
+ * \brief          Import from an ASCII string, little endian
+ *
+ * \param X        Destination MPI
+ * \param radix    Input numeric base
+ * \param s        Null-terminated string buffer
+ *
+ * \return         0 if successful, or a MBEDTLS_ERR_MPI_XXX error code
+ */
+int mbedtls_mpi_read_string_le( mbedtls_mpi *X, int radix, const char *s );
+
+/**
  * \brief          Export into an ASCII string
  *
  * \param X        Source MPI

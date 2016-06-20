@@ -491,6 +491,81 @@ cleanup:
 }
 
 /*
+ * Import from an ASCII string, little endian
+ */
+int mbedtls_mpi_read_string_le( mbedtls_mpi *X, int radix, const char *s )
+{
+    int ret;
+    size_t i, j, slen, n;
+    mbedtls_mpi_uint d;
+    mbedtls_mpi T;
+
+    if( radix < 2 || radix > 16 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    mbedtls_mpi_init( &T );
+
+    slen = strlen( s );
+
+    if( radix == 16 )
+    {
+        if( slen > MPI_SIZE_T_MAX >> 2 )
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+        n = BITS_TO_LIMBS( slen << 2 );
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+
+        for( i = 0, j = 0; i < slen; i++, j++ )
+        {
+            if( i == slen - 1 && s[i] == '-' )
+            {
+                X->s = -1;
+                break;
+            }
+
+            MBEDTLS_MPI_CHK( mpi_get_digit( &d, radix, s[i] ) );
+            if( j % 2 == 0 )
+                X->p[j / ( 2 * ciL )] |= d << ( ( ( j + 1 ) % ( 2 * ciL ) ) << 2 );
+            else
+                X->p[j / ( 2 * ciL )] |= d << ( ( ( j - 1 ) % ( 2 * ciL ) ) << 2 );
+        }
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+
+        for( i = slen - 1; i != 0; i-- )
+        {
+            if( i == slen - 1 && s[i] == '-' )
+            {
+                X->s = -1;
+                continue;
+            }
+
+            MBEDTLS_MPI_CHK( mpi_get_digit( &d, radix, s[i] ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &T, X, radix ) );
+
+            if( X->s == 1 )
+            {
+                MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( X, &T, d ) );
+            }
+            else
+            {
+                MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( X, &T, d ) );
+            }
+        }
+    }
+
+cleanup:
+
+    mbedtls_mpi_free( &T );
+
+    return( ret );
+}
+
+/*
  * Helper to write the digits high-order first
  */
 static int mpi_write_hlp( mbedtls_mpi *X, int radix, char **p )

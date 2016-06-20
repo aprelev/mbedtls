@@ -452,6 +452,22 @@ cleanup:
 }
 
 /*
+ * Import a non-zero point from ASCII strings, little endian
+ */
+int mbedtls_ecp_point_read_string_le( mbedtls_ecp_point *P, int radix,
+                           const char *x, const char *y )
+{
+    int ret;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string_le( &P->X, radix, x ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string_le( &P->Y, radix, y ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &P->Z, 1 ) );
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Export a point into unsigned binary data (SEC1 2.3.3)
  */
 int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *P,
