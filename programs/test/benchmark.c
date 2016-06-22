@@ -70,6 +70,7 @@ int main( void )
 #include "mbedtls/rsa.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/ecdsa.h"
+#include "mbedtls/ecgost.h"
 #include "mbedtls/ecdh.h"
 #include "mbedtls/error.h"
 
@@ -91,13 +92,13 @@ int main( void )
 
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
-#define TITLE_LEN       25
+#define TITLE_LEN       50
 
 #define OPTIONS                                                                 \
     "md4, md5, ripemd160, sha1, sha256, sha512, gost94, gost12,\n"              \
     "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,\n" \
     "havege, ctr_drbg, hmac_drbg\n"                                             \
-    "rsa, dhm, ecdsa, ecdh.\n"
+    "rsa, dhm, ecdsa, ecgost, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
@@ -239,7 +240,7 @@ typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512, gost94, gost12,
          arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,
          havege, ctr_drbg, hmac_drbg,
-         rsa, dhm, ecdsa, ecdh;
+         rsa, dhm, ecdsa, ecgost, ecdh;
 } todo_list;
 
 int main( int argc, char *argv[] )
@@ -308,6 +309,8 @@ int main( int argc, char *argv[] )
                 todo.dhm = 1;
             else if( strcmp( argv[i], "ecdsa" ) == 0 )
                 todo.ecdsa = 1;
+            else if( strcmp( argv[i], "ecgost" ) == 0 )
+                todo.ecgost = 1;
             else if( strcmp( argv[i], "ecdh" ) == 0 )
                 todo.ecdh = 1;
             else
@@ -776,6 +779,61 @@ int main( int argc, char *argv[] )
                                                 tmp, sig_len ) );
 
             mbedtls_ecdsa_free( &ecdsa );
+        }
+    }
+#endif
+
+#if defined(MBEDTLS_ECGOST_C)
+    if( todo.ecgost )
+    {
+        mbedtls_ecgost_context ecgost;
+        const mbedtls_ecp_curve_info *curve_info;
+        size_t sig_len;
+
+        memset( buf, 0x2A, sizeof( buf ) );
+
+        curve_info = mbedtls_ecp_curve_list();
+        while(curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST)
+            curve_info++;
+        for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
+        {
+            mbedtls_ecgost_init( &ecgost );
+
+            if( mbedtls_ecgost_genkey( &ecgost, curve_info->grp_id, myrand, NULL ) != 0 )
+                mbedtls_exit( 1 );
+            ecp_clear_precomputed( &ecgost.grp );
+
+            mbedtls_snprintf( title, sizeof( title ), "ECGOST-%s",
+                                              curve_info->name );
+            TIME_PUBLIC( title, "sign",
+                    ret = mbedtls_ecgost_write_signature( &ecgost, buf, curve_info->bit_size >> 3,
+                                                tmp, &sig_len, myrand, NULL ) );
+
+            mbedtls_ecgost_free( &ecgost );
+        }
+
+        curve_info = mbedtls_ecp_curve_list();
+        while(curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST)
+            curve_info++;
+        for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
+        {
+            mbedtls_ecgost_init( &ecgost );
+
+            if( mbedtls_ecgost_genkey( &ecgost, curve_info->grp_id, myrand, NULL ) != 0 ||
+                mbedtls_ecgost_write_signature( &ecgost, buf, curve_info->bit_size >> 3,
+                                               tmp, &sig_len, myrand, NULL ) != 0 )
+            {
+                mbedtls_exit( 1 );
+            }
+            ecp_clear_precomputed( &ecgost.grp );
+
+            mbedtls_snprintf( title, sizeof( title ), "ECGOST-%s",
+                                              curve_info->name );
+            TIME_PUBLIC( title, "verify",
+                    ret = mbedtls_ecgost_read_signature( &ecgost, buf, curve_info->bit_size >> 3,
+                                                tmp, sig_len ) );
+
+            mbedtls_ecdsa_free( &ecgost );
         }
     }
 #endif

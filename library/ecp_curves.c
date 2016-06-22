@@ -763,6 +763,15 @@ static int ecp_mod_p224k1( mbedtls_mpi * );
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 static int ecp_mod_p256k1( mbedtls_mpi * );
 #endif
+#if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
+static int ecp_mod_gost256test( mbedtls_mpi * );
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
+static int ecp_mod_gost256a( mbedtls_mpi * );
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
+static int ecp_mod_gost256b( mbedtls_mpi * );
+#endif
 
 #define LOAD_GROUP_A( G )   ecp_group_load( grp,            \
                             G ## _p,  sizeof( G ## _p  ),   \
@@ -896,16 +905,19 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
         case MBEDTLS_ECP_DP_GOST256TEST:
+            //grp->modp = ecp_mod_gost256test;
             return( LOAD_GROUP_A( gost256test ) );
 #endif /* MBEDTLS_ECP_DP_GOST256TEST_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
         case MBEDTLS_ECP_DP_GOST256A:
+            //grp->modp = ecp_mod_gost256a;
             return( LOAD_GROUP( gost256a ) );
 #endif /* MBEDTLS_ECP_DP_GOST256A_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
         case MBEDTLS_ECP_DP_GOST256B:
+            //grp->modp = ecp_mod_gost256b;
             return( LOAD_GROUP( gost256b ) );
 #endif /* MBEDTLS_ECP_DP_GOST256B_ENABLED */
 
@@ -1470,5 +1482,100 @@ static int ecp_mod_p256k1( mbedtls_mpi *N )
     return( ecp_mod_koblitz( N, Rp, 256 / 8 / sizeof( mbedtls_mpi_uint ), 0, 0, 0 ) );
 }
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED) ||   \
+    defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)    ||   \
+    defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)    ||   \
+    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
+/*
+ * Fast quasi-reduction modulo P = 2^s - R (or P = 2^(s - 1) + R),
+ * with small R, used by the GOST curves.
+ *
+ * Write N as A0 + 2^s A1, return A0 + R * A1 (or A0 - 2 * R * A1).
+ */
+#define P_GOST_MAX   ( 512 / 8 / sizeof( mbedtls_mpi_uint ) + 1 )  // Max limbs in P
+static inline int ecp_mod_gost( mbedtls_mpi *N, mbedtls_mpi_sint R, size_t p_limbs )
+{
+    int ret;
+    size_t i;
+    mbedtls_mpi M;
+    mbedtls_mpi_uint Mp[P_GOST_MAX + 1];
+
+    if( N->n < p_limbs )
+        return( 0 );
+
+    /* M = A1 */
+    M.s = 1;
+    M.n = N->n - p_limbs;
+    if( M.n > p_limbs )
+        M.n = p_limbs;
+    M.p = Mp;
+    memset( Mp, 0, sizeof Mp );
+    memcpy( Mp, N->p + p_limbs, M.n * sizeof( mbedtls_mpi_uint ) );
+    M.n++; /* Make room for multiplication by R */
+
+    /* N = A0 */
+    for( i = p_limbs; i < N->n; i++ )
+        N->p[i] = 0;
+
+    if( R < 0 )
+    {
+        /* N = A0 + R * A1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M, &M, -R ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_abs( N, N, &M ) );
+    }
+    else
+    {
+        /* N = A0 - 2 * R * A1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M, &M, R << 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( N, N, &M ) );
+    }
+
+cleanup:
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_DP_GOST256TEST_ENABLED) ||
+          MBEDTLS_ECP_DP_GOST256A_ENABLED)    ||
+          MBEDTLS_ECP_DP_GOST256B_ENABLED)    ||
+          MBEDTLS_ECP_DP_GOST256C_ENABLED) */
+
+#if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
+/*
+ * Fast quasi-reduction modulo P = 2^255 + R,
+ * with R = 1073
+ */
+static int ecp_mod_gost256test( mbedtls_mpi *N )
+{
+    static mbedtls_mpi_sint R = 1073;
+
+    return( ecp_mod_gost( N, R, 256 / 8 / sizeof( mbedtls_mpi_uint ) ) );
+}
+#endif /* MBEDTLS_ECP_DP_GOST256TEST_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
+/*
+ * Fast quasi-reduction modulo P = 2^256 - R,
+ * with R = 617
+ */
+static int ecp_mod_gost256a( mbedtls_mpi *N )
+{
+    static mbedtls_mpi_sint R = -617;
+
+    return( ecp_mod_gost( N, R, 256 / 8 / sizeof( mbedtls_mpi_uint ) ) );
+}
+#endif /* MBEDTLS_ECP_DP_GOST256A_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
+/*
+ * Fast quasi-reduction modulo P = 2^255 + R,
+ * with R = 3225
+ */
+static int ecp_mod_gost256b( mbedtls_mpi *N )
+{
+    static mbedtls_mpi_sint R = 3225;
+
+    return( ecp_mod_gost( N, R, 256 / 8 / sizeof( mbedtls_mpi_uint ) ) );
+}
+#endif /* MBEDTLS_ECP_DP_GOST256B_ENABLED */
 
 #endif /* MBEDTLS_ECP_C */
