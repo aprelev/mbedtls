@@ -905,19 +905,19 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
         case MBEDTLS_ECP_DP_GOST256TEST:
-            //grp->modp = ecp_mod_gost256test;
+            grp->modp = ecp_mod_gost256test;
             return( LOAD_GROUP_A( gost256test ) );
 #endif /* MBEDTLS_ECP_DP_GOST256TEST_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
         case MBEDTLS_ECP_DP_GOST256A:
-            //grp->modp = ecp_mod_gost256a;
+            grp->modp = ecp_mod_gost256a;
             return( LOAD_GROUP( gost256a ) );
 #endif /* MBEDTLS_ECP_DP_GOST256A_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
         case MBEDTLS_ECP_DP_GOST256B:
-            //grp->modp = ecp_mod_gost256b;
+            grp->modp = ecp_mod_gost256b;
             return( LOAD_GROUP( gost256b ) );
 #endif /* MBEDTLS_ECP_DP_GOST256B_ENABLED */
 
@@ -1489,9 +1489,10 @@ static int ecp_mod_p256k1( mbedtls_mpi *N )
     defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
 /*
  * Fast quasi-reduction modulo P = 2^s - R (or P = 2^(s - 1) + R),
- * with small R, used by the GOST curves.
+ * with R in one limb, used by the GOST curves.
  *
  * Write N as A0 + 2^s A1, return A0 + R * A1 (or A0 - 2 * R * A1).
+ * Actually do two passes, since R is big.
  */
 #define P_GOST_MAX   ( 512 / 8 / sizeof( mbedtls_mpi_uint ) + 1 )  // Max limbs in P
 static inline int ecp_mod_gost( mbedtls_mpi *N, mbedtls_mpi_sint R, size_t p_limbs )
@@ -1504,12 +1505,14 @@ static inline int ecp_mod_gost( mbedtls_mpi *N, mbedtls_mpi_sint R, size_t p_lim
     if( N->n < p_limbs )
         return( 0 );
 
-    /* M = A1 */
+    /* Common setup for M */
     M.s = 1;
+    M.p = Mp;
+
+    /* M = A1 */
     M.n = N->n - p_limbs;
     if( M.n > p_limbs )
         M.n = p_limbs;
-    M.p = Mp;
     memset( Mp, 0, sizeof Mp );
     memcpy( Mp, N->p + p_limbs, M.n * sizeof( mbedtls_mpi_uint ) );
     M.n++; /* Make room for multiplication by R */
@@ -1529,6 +1532,33 @@ static inline int ecp_mod_gost( mbedtls_mpi *N, mbedtls_mpi_sint R, size_t p_lim
         /* N = A0 - 2 * R * A1 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M, &M, R << 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( N, N, &M ) );
+    }
+
+    /* Second pass */
+
+    /* M = A1 */
+    M.n = N->n - p_limbs;
+    if( M.n > p_limbs )
+        M.n = p_limbs;
+    memset( Mp, 0, sizeof Mp );
+    memcpy( Mp, N->p + p_limbs, M.n * sizeof( mbedtls_mpi_uint ) );
+    M.n++; /* Make room for multiplication by R */
+
+    /* N = A0 */
+    for( i = p_limbs; i < N->n; i++ )
+        N->p[i] = 0;
+
+    if( R < 0 )
+    {
+        /* N = A0 + R * A1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M, &M, -R ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_abs( N, N, &M ) );
+    }
+    else
+    {
+        /* N = A0 + 2 * R * A1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M, &M, R << 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( N, N, &M ) );
     }
 
 cleanup:
