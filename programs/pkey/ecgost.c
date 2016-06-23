@@ -143,7 +143,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     if( ( ret = mbedtls_ecgost_write_signature( &ctx_sign,
-                                       hash, sizeof( hash ),
+                                       hash, sizeof hash,
                                        sig, &sig_len,
                                        mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
