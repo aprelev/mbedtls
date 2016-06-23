@@ -933,6 +933,12 @@ static int ecp_mod_gost256a( mbedtls_mpi * );
 #if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
 static int ecp_mod_gost256b( mbedtls_mpi * );
 #endif
+#if defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)
+static int ecp_mod_gost512a( mbedtls_mpi * );
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
+static int ecp_mod_gost512b( mbedtls_mpi * );
+#endif
 
 #define LOAD_GROUP_A( G )   ecp_group_load( grp,            \
                             G ## _p,  sizeof( G ## _p  ),   \
@@ -1094,11 +1100,13 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 
 #if defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)
         case MBEDTLS_ECP_DP_GOST512A:
+            grp->modp = ecp_mod_gost512a;
             return( LOAD_GROUP( gost512a ) );
 #endif /* MBEDTLS_ECP_DP_GOST512A_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
         case MBEDTLS_ECP_DP_GOST512B:
+            grp->modp = ecp_mod_gost512b;
             return( LOAD_GROUP( gost512b ) );
 #endif /* MBEDTLS_ECP_DP_GOST512B_ENABLED */
 
@@ -1670,7 +1678,7 @@ static int ecp_mod_p256k1( mbedtls_mpi *N )
  * Write N as A0 + 2^s A1, return A0 + R * A1 (or A0 - 2 * R * A1).
  * Actually do two passes, since R is big.
  */
-#define P_GOST_MAX   ( 512 / 8 / sizeof( mbedtls_mpi_uint ) + 1 )  // Max limbs in P
+#define P_GOST_MAX   ( 512 / 8 / sizeof( mbedtls_mpi_uint ) )  // Max limbs in P
 static inline int ecp_mod_gost( mbedtls_mpi *N, mbedtls_mpi_sint R, size_t p_limbs )
 {
     int ret;
@@ -1783,5 +1791,31 @@ static int ecp_mod_gost256b( mbedtls_mpi *N )
     return( ecp_mod_gost( N, R, 256 / 8 / sizeof( mbedtls_mpi_uint ) ) );
 }
 #endif /* MBEDTLS_ECP_DP_GOST256B_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)
+/*
+ * Fast quasi-reduction modulo P = 2^512 - R,
+ * with R = 569
+ */
+static int ecp_mod_gost512a( mbedtls_mpi *N )
+{
+    static mbedtls_mpi_sint R = -569;
+
+    return( ecp_mod_gost( N, R, 512 / 8 / sizeof( mbedtls_mpi_uint ) ) );
+}
+#endif /* MBEDTLS_ECP_DP_GOST512A_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
+/*
+ * Fast quasi-reduction modulo P = 2^511 + R,
+ * with R = 111
+ */
+static int ecp_mod_gost512b( mbedtls_mpi *N )
+{
+    static mbedtls_mpi_sint R = 111;
+
+    return( ecp_mod_gost( N, R, 512 / 8 / sizeof( mbedtls_mpi_uint ) ) );
+}
+#endif /* MBEDTLS_ECP_DP_GOST512B_ENABLED */
 
 #endif /* MBEDTLS_ECP_C */
