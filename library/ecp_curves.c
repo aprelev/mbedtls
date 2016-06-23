@@ -1740,7 +1740,7 @@ static inline int ecp_mod_gost( mbedtls_mpi *N, mbedtls_mpi_sint R, size_t p_lim
     }
     else
     {
-        /* N = A0 + 2 * R * A1 */
+        /* N = A0 - (-2 * R * A1) = A0 + 2 * R * A1) */
         MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M, &M, R << 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( N, N, &M ) );
     }
