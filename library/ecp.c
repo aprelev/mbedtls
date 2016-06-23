@@ -160,7 +160,7 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
     { MBEDTLS_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
-    { MBEDTLS_ECP_DP_GOST256TEST,  -1,     256,    "id-GostR3410-2001-TestParamSet" },
+    { MBEDTLS_ECP_DP_GOST256TEST,  -1,     256,    "id-GostR3410-2001-TestParamSet"         },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
     { MBEDTLS_ECP_DP_GOST256A,     -2,     256,    "id-GostR3410-2001-CryptoPro-A-ParamSet" },
@@ -170,6 +170,15 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
     { MBEDTLS_ECP_DP_GOST256C,     -4,     256,    "id-GostR3410-2001-CryptoPro-C-ParamSet" },
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST512TEST_ENABLED)
+    { MBEDTLS_ECP_DP_GOST512TEST,  -5,     512,    "id-tc26-gost-3410-12-512-paramSetTest"  },
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)
+    { MBEDTLS_ECP_DP_GOST512A,     -6,     512,    "id-tc26-gost-3410-12-512-paramSetA"     },
+#endif
+#if defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
+    { MBEDTLS_ECP_DP_GOST512B,     -7,     512,    "id-tc26-gost-3410-12-512-paramSetB"     },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };

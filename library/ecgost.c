@@ -47,9 +47,12 @@ cleanup:
 static inline int is_gost_ecp_group( const mbedtls_ecp_group *grp )
 {
     return( ( grp->id == MBEDTLS_ECP_DP_GOST256TEST ) ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST256A ) ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST256B ) ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST256C ) );
+            ( grp->id == MBEDTLS_ECP_DP_GOST256A )    ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST256B )    ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST256C )    ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST512TEST ) ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST512A )    ||
+            ( grp->id == MBEDTLS_ECP_DP_GOST512B ) );
 }
 
 /*
