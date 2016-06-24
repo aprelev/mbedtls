@@ -96,11 +96,71 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecgost_write_read_random( int id )
+void ecgost256_write_read_random( int id )
 {
     mbedtls_ecgost_context ctx;
     rnd_pseudo_info rnd_info;
     unsigned char hash[32];
+    unsigned char sig[200];
+    size_t sig_len, i;
+
+    mbedtls_ecgost_init( &ctx );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    memset( hash, 0, sizeof( hash ) );
+    memset( sig, 0x2a, sizeof( sig ) );
+
+    /* prepare material for signature */
+    TEST_ASSERT( rnd_pseudo_rand( &rnd_info, hash, sizeof( hash ) ) == 0 );
+
+    /* generate signing key */
+    TEST_ASSERT( mbedtls_ecgost_genkey( &ctx, id, &rnd_pseudo_rand, &rnd_info ) == 0 );
+
+    /* generate and write signature, then read and verify it */
+    TEST_ASSERT( mbedtls_ecgost_write_signature( &ctx,
+                 hash, sizeof( hash ),
+                 sig, &sig_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecgost_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) == 0 );
+
+    /* check we didn't write past the announced length */
+    for( i = sig_len; i < sizeof( sig ); i++ )
+        TEST_ASSERT( sig[i] == 0x2a );
+
+    /* try verification with invalid length */
+    TEST_ASSERT( mbedtls_ecgost_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len - 1 ) != 0 );
+    TEST_ASSERT( mbedtls_ecgost_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len + 1 ) != 0 );
+
+    /* try invalid sequence tag */
+    sig[0]++;
+    TEST_ASSERT( mbedtls_ecgost_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) != 0 );
+    sig[0]--;
+
+    /* try modifying r */
+    sig[10]++;
+    TEST_ASSERT( mbedtls_ecgost_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) != 0 );
+    sig[10]--;
+
+    /* try modifying s */
+    sig[sig_len - 1]++;
+    TEST_ASSERT( mbedtls_ecgost_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len ) != 0 );
+    sig[sig_len - 1]--;
+
+exit:
+    mbedtls_ecgost_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecgost512_write_read_random( int id )
+{
+    mbedtls_ecgost_context ctx;
+    rnd_pseudo_info rnd_info;
+    unsigned char hash[64];
     unsigned char sig[200];
     size_t sig_len, i;
 
