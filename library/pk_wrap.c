@@ -41,6 +41,10 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_ECGOST_C)
+#include "mbedtls/ecgost.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -491,5 +495,110 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 };
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+#if defined(MBEDTLS_ECGOST_C)
+static int ecgost01_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECGOST01 );
+}
+
+static int ecgost12_256_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECGOST12_256 );
+}
+
+static int ecgost12_512_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECGOST12_512 );
+}
+
+static int ecgost_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len )
+{
+    int ret;
+    ((void) md_alg);
+
+    ret = mbedtls_ecgost_read_signature( (mbedtls_ecgost_context *) ctx,
+                                hash, hash_len, sig, sig_len );
+
+    if( ret == MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH )
+        return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+
+    return( ret );
+}
+
+static int ecgost_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    ((void) md_alg);
+
+    return( mbedtls_ecgost_write_signature( (mbedtls_ecgost_context *) ctx,
+                hash, hash_len, sig, sig_len, f_rng, p_rng ) );
+}
+
+static void *ecgost_alloc_wrap( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecgost_context ) );
+
+    if( ctx != NULL )
+        mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx );
+
+    return( ctx );
+}
+
+static void ecgost_free_wrap( void *ctx )
+{
+    mbedtls_ecgost_free( (mbedtls_ecgost_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+const mbedtls_pk_info_t mbedtls_ecgost01_info = {
+    MBEDTLS_PK_ECGOST01,
+    "ECGOST01",
+    eckey_get_bitlen,     /* Compatible key structures */
+    ecgost01_can_do,
+    ecgost_verify_wrap,
+    ecgost_sign_wrap,
+    NULL,
+    NULL,
+    eckey_check_pair,   /* Compatible key structures */
+    ecgost_alloc_wrap,
+    ecgost_free_wrap,
+    eckey_debug,        /* Compatible key structures */
+};
+
+const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
+    MBEDTLS_PK_ECGOST12_256,
+    "ECGOST12_256",
+    eckey_get_bitlen,     /* Compatible key structures */
+    ecgost12_256_can_do,
+    ecgost_verify_wrap,
+    ecgost_sign_wrap,
+    NULL,
+    NULL,
+    eckey_check_pair,   /* Compatible key structures */
+    ecgost_alloc_wrap,
+    ecgost_free_wrap,
+    eckey_debug,        /* Compatible key structures */
+};
+
+const mbedtls_pk_info_t mbedtls_ecgost12_512_info = {
+    MBEDTLS_PK_ECGOST12_512,
+    "ECGOST12_512",
+    eckey_get_bitlen,     /* Compatible key structures */
+    ecgost12_512_can_do,
+    ecgost_verify_wrap,
+    ecgost_sign_wrap,
+    NULL,
+    NULL,
+    eckey_check_pair,   /* Compatible key structures */
+    ecgost_alloc_wrap,
+    ecgost_free_wrap,
+    eckey_debug,        /* Compatible key structures */
+};
+#endif /* MBEDTLS_ECGOST_C */
 
 #endif /* MBEDTLS_PK_C */

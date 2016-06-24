@@ -372,6 +372,21 @@
  *   ecdsa-with-SHA2(3) 4 } */
 #define MBEDTLS_OID_ECDSA_SHA512            MBEDTLS_OID_ANSI_X9_62_SIG_SHA2 "\x04"
 
+/*
+ * GOST identifiers, from RFC 4357
+ */
+#define MBEDTLS_OID_COUNTRY_RU                  "\x85\x03"      /* {ru(643)} */
+#define MBEDTLS_OID_RANS                        "\x02"          /* {rans(2)} */
+/*
+ * id-CryptoPro = id-CryptoPro-algorithms = OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) ru(643) rans(2) cryptopro(2) } */
+#define MBEDTLS_OID_CRYPTOPRO                   MBEDTLS_OID_ISO_MEMBER_BODIES \
+                                                MBEDTLS_OID_COUNTRY_RU MBEDTLS_OID_RANS "\x02"
+/*
+ * id-GostR3410-2001 OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms gostR3410-2001(19) } */
+#define MBEDTLS_OID_GOSTR3410_2001              MBEDTLS_OID_CRYPTOPRO "\x13"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

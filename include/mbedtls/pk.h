@@ -79,6 +79,9 @@ typedef enum {
     MBEDTLS_PK_ECDSA,
     MBEDTLS_PK_RSA_ALT,
     MBEDTLS_PK_RSASSA_PSS,
+    MBEDTLS_PK_ECGOST01,
+    MBEDTLS_PK_ECGOST12_256,
+    MBEDTLS_PK_ECGOST12_512,
 } mbedtls_pk_type_t;
 
 /**

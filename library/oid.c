@@ -409,6 +409,10 @@ static const oid_pk_alg_t oid_pk_alg[] =
         MBEDTLS_PK_ECKEY_DH,
     },
     {
+        { ADD_LEN( MBEDTLS_OID_GOSTR3410_2001 ),       "id-GostR3410-2001", "GOST R 34.10-2001 key" },
+        MBEDTLS_PK_ECGOST01,
+    },
+    {
         { NULL, 0, NULL, NULL },
         MBEDTLS_PK_NONE,
     },
