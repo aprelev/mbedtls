@@ -375,53 +375,70 @@
 /*
  * GOST identifiers, from RFC 4357
  */
-#define MBEDTLS_OID_COUNTRY_RU                  "\x85\x03"      /* {ru(643)} */
-#define MBEDTLS_OID_RANS                        "\x02"          /* {rans(2)} */
+#define MBEDTLS_OID_COUNTRY_RU                          "\x85\x03"      /* {ru(643)} */
+#define MBEDTLS_OID_RANS                                "\x02"          /* {rans(2)} */
 
 /*
  * id-CryptoPro-algorithms = OBJECT IDENTIFIER ::= {
  *   iso(1) member-body(2) ru(643) rans(2) cryptopro(2) } */
-#define MBEDTLS_OID_CRYPTOPRO                   MBEDTLS_OID_ISO_MEMBER_BODIES \
-                                                MBEDTLS_OID_COUNTRY_RU MBEDTLS_OID_RANS "\x02"
+#define MBEDTLS_OID_CRYPTOPRO                           MBEDTLS_OID_ISO_MEMBER_BODIES \
+                                                        MBEDTLS_OID_COUNTRY_RU MBEDTLS_OID_RANS "\x02"
 
 /*
  * id-CryptoPro-hashes OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms hashes(30) } */
-#define MBEDTLS_OID_CRYPTOPRO_HASHES            MBEDTLS_OID_CRYPTOPRO "\x1e"
+#define MBEDTLS_OID_CRYPTOPRO_HASHES                    MBEDTLS_OID_CRYPTOPRO "\x1e"
 /*
  * id-GostR3411-94-TestParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-hashes test(0) } */
-#define MBEDTLS_OID_DIGEST_ALG_GOST94_TEST      MBEDTLS_OID_CRYPTOPRO_HASHES "\x00"
+#define MBEDTLS_OID_DIGEST_ALG_GOST94_TEST              MBEDTLS_OID_CRYPTOPRO_HASHES "\x00"
 /*
  * id-GostR3411-94-CryptoProParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-hashes cryptopro(1) } */
-#define MBEDTLS_OID_DIGEST_ALG_GOST94_CRYPTOPRO MBEDTLS_OID_CRYPTOPRO_HASHES "\x01"
+#define MBEDTLS_OID_DIGEST_ALG_GOST94_CRYPTOPRO         MBEDTLS_OID_CRYPTOPRO_HASHES "\x01"
+
+/*
+ * id-CryptoPro-encrypts OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms encrypts(31) } */
+#define MBEDTLS_OID_CRYPTOPRO_ENCRYPTS                    MBEDTLS_OID_CRYPTOPRO "\x1f"
+/*
+ * id-Gost28147-89-TestParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-encrypts test(0) } */
+#define MBEDTLS_OID_GOST89_TEST                         MBEDTLS_OID_CRYPTOPRO_ENCRYPTS "\x00"
+/*
+ * id-Gost28147-89-CryptoPro-A-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-encrypts cryptopro-A(1) } */
+#define MBEDTLS_OID_GOST89_A                            MBEDTLS_OID_CRYPTOPRO_ENCRYPTS "\x01"
 
 /*
  * id-CryptoPro-ecc-signs OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms ecc-signs(35) } */
-#define MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS         MBEDTLS_OID_CRYPTOPRO "\x23"
+#define MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS                 MBEDTLS_OID_CRYPTOPRO "\x23"
 /*
  * id-GostR3410-2001-TestParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-ecc-signs test(0) } */
-#define MBEDTLS_OID_EC_GRP_GOST256TEST          MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x00"
+#define MBEDTLS_OID_EC_GRP_GOST256TEST                  MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x00"
 /*
  * id-GostR3410-2001-CryptoPro-A-ParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-ecc-signs cryptopro-A(1) } */
-#define MBEDTLS_OID_EC_GRP_GOST256A             MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x01"
+#define MBEDTLS_OID_EC_GRP_GOST256A                     MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x01"
 /*
  * id-GostR3410-2001-CryptoPro-B-ParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-ecc-signs cryptopro-B(2) } */
-#define MBEDTLS_OID_EC_GRP_GOST256B             MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x02"
+#define MBEDTLS_OID_EC_GRP_GOST256B                     MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x02"
 /*
  * id-GostR3410-2001-CryptoPro-C-ParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-ecc-signs cryptopro-C(3) } */
-#define MBEDTLS_OID_EC_GRP_GOST256C             MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x03"
+#define MBEDTLS_OID_EC_GRP_GOST256C                     MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x03"
 
 /*
  * id-GostR3410-2001 OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms gostR3410-2001(19) } */
-#define MBEDTLS_OID_GOSTR3410_2001              MBEDTLS_OID_CRYPTOPRO "\x13"
+#define MBEDTLS_OID_GOSTR3410_2001                      MBEDTLS_OID_CRYPTOPRO "\x13"
+/*
+ * id-GostR3411-94-with-GostR3410-2001 OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms gostR3411-94-with-gostR3410-2001(3) } */
+#define MBEDTLS_OID_GOSTR3411_94_WITH_GOSTR3410_2001    MBEDTLS_OID_CRYPTOPRO "\x03"
 
 #ifdef __cplusplus
 extern "C" {
@@ -613,6 +630,42 @@ int mbedtls_oid_get_cipher_alg( const mbedtls_asn1_buf *oid, mbedtls_cipher_type
 int mbedtls_oid_get_pkcs12_pbe_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_alg,
                             mbedtls_cipher_type_t *cipher_alg );
 #endif /* MBEDTLS_PKCS12_C */
+
+#if defined(MBEDTLS_ECGOST_C)
+/**
+ * \brief          Translate GOST curve OID into an EC group identifier
+ *
+ * \param oid      OID to use
+ * \param grp_id   place to store group id
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_ecgost_grp( const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *grp_id );
+#endif /* MBEDTLS_ECGOST_C */
+
+#if defined(MBEDTLS_GOST94_C)
+/**
+ * \brief          Translate GOST94 hash algorithm OID into md_type
+ *
+ * \param oid           OID to use
+ * \param gost94_alg    place to store message digest algorithm
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_gost94_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *gost94_alg );
+#endif /* MBEDTLS_GOST94_C */
+
+#if defined(MBEDTLS_GOST89_C)
+/**
+ * \brief          Translate GOST89 encryption algorithm OID into cipher_type
+ *
+ * \param oid           OID to use
+ * \param gost89_alg    place to store cipher algorithm
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_gost89_alg( const mbedtls_asn1_buf *oid, mbedtls_cipher_id_t *gost89_alg );
+#endif /* MBEDTLS_GOST89_C */
 
 #ifdef __cplusplus
 }

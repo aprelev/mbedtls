@@ -692,7 +692,7 @@ int mbedtls_mpi_read_binary_le( mbedtls_mpi *X, const unsigned char *buf, size_t
     int ret;
     size_t i, j, n;
 
-    for( n = buflen - 1; n != 0; n-- )
+    for( n = buflen - 1; n > 0; n-- )
         if( buf[n] != 0 )
             break;
 
@@ -722,6 +722,26 @@ int mbedtls_mpi_write_binary( const mbedtls_mpi *X, unsigned char *buf, size_t b
     memset( buf, 0, buflen );
 
     for( i = buflen - 1, j = 0; n > 0; i--, j++, n-- )
+        buf[i] = (unsigned char)( X->p[j / ciL] >> ((j % ciL) << 3) );
+
+    return( 0 );
+}
+
+/*
+ * Export X into unsigned binary data, little endian
+ */
+int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X, unsigned char *buf, size_t buflen )
+{
+    size_t i, j, n;
+
+    n = mbedtls_mpi_size( X );
+
+    if( buflen < n )
+        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+
+    memset( buf, 0, buflen );
+
+    for( i = 0, j = 0; n > 0; i++, j++, n-- )
         buf[i] = (unsigned char)( X->p[j / ciL] >> ((j % ciL) << 3) );
 
     return( 0 );

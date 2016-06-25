@@ -212,7 +212,7 @@ cleanup:
  * Convert a signature (given by context) to ASN.1
  */
 static int gost_signature_to_asn1( size_t n_size, const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                    unsigned char *sig, size_t *slen )
+                                   unsigned char *sig, size_t *slen )
 {
     int ret;
     unsigned char buf[MBEDTLS_ECGOST_MAX_LEN];
@@ -259,6 +259,7 @@ int mbedtls_ecgost_write_signature( mbedtls_ecgost_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_ecgost_sign( &ctx->key.grp, &r, &s, &ctx->key.d,
                          hash, hlen, f_rng, p_rng ) );
 
+    /* GOST algorithm can only sign fixed size hash, n_size = hlen */
     MBEDTLS_MPI_CHK( gost_signature_to_asn1( hlen, &r, &s, sig, slen ) );
 
 cleanup:
@@ -323,6 +324,88 @@ cleanup:
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
 
+    return( ret );
+}
+
+/*
+ * Export a point into unsigned binary data (RFC 4357)
+ */
+int mbedtls_ecgost_write_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *P,
+                            size_t *olen, unsigned char *buf, size_t buflen )
+{
+    int ret;
+    unsigned char buf1[MBEDTLS_ECGOST_MAX_LEN];
+    unsigned char *p = buf1 + sizeof( buf1 );
+    size_t n_size = ( grp->nbits + 7 ) / 8;
+    size_t len = n_size;
+
+    p -= n_size;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->X, p, len ) );
+
+    p -= n_size;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->Y, p, len ) );
+
+    len <<= 1;
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf1, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf1, MBEDTLS_ASN1_OCTET_STRING ) );
+
+    *olen = len;
+    if( buflen < *olen )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+    memcpy( buf, p, len );
+
+    ret = 0;
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Import a point from unsigned binary data (RFC 4357)
+ */
+int mbedtls_ecgost_read_pubkey( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
+                           const unsigned char *buf, size_t ilen )
+{
+    int ret;
+    unsigned char *p = (unsigned char *) buf;
+    const unsigned char *end = buf + ilen;
+    size_t len;
+    size_t n_size = ( grp->nbits + 7 ) / 8;
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    if( p + len != end )
+    {
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
+              MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        goto cleanup;
+    }
+
+    if( len != n_size << 1 )
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+
+    if( ( ret = mbedtls_mpi_read_binary_le( &pt->X, p, n_size ) ) != 0 )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    p += n_size;
+
+    if( ( ret = mbedtls_mpi_read_binary_le( &pt->Y, p, n_size ) ) != 0 )
+    {
+        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
+
+cleanup:
     return( ret );
 }
 

@@ -537,6 +537,110 @@ static int pk_get_rsapubkey( unsigned char **p,
 }
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_ECGOST_C)
+/*
+ * Setup params for ECGOST, GOST94 and GOST89 (RFC 4357)
+ */
+static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_context *ctx )
+{
+    int ret;
+    unsigned char *p = (unsigned char *) params->p;
+    unsigned char *end = params->p + params->len;
+    mbedtls_asn1_buf oid;
+    mbedtls_ecp_group_id ecgost_grp_id;
+    mbedtls_md_type_t gost94_alg;
+    mbedtls_cipher_id_t gost89_alg;
+
+    /*
+     * publicKeyParamSet
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    oid.p = p;
+    p += oid.len;
+
+    if( mbedtls_oid_get_ecgost_grp( &oid, &ecgost_grp_id ) != 0 )
+        return( MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE );
+
+    /*
+     * grp may already be initilialized; if so, make sure IDs match
+     */
+    if( ctx->key.grp.id != MBEDTLS_ECP_DP_NONE && ctx->key.grp.id != ecgost_grp_id )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+
+    if( ( ret = mbedtls_ecp_group_load( &ctx->key.grp, ecgost_grp_id ) ) != 0 )
+        return( ret );
+
+    /*
+     * digestParamSet
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    oid.p = p;
+    p += oid.len;
+
+    if( mbedtls_oid_get_gost94_alg( &oid, &gost94_alg ) != 0 )
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+
+    if( gost94_alg == MBEDTLS_MD_GOST94_TEST )
+        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_TEST;
+    else if( gost94_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
+        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_CRYPTOPRO;
+    else
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+
+    /*
+     * encryptionParamSet Gost28147-89-ParamSet OPTIONAL
+     */
+    if( p != end )
+    {
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+        oid.p = p;
+        p += oid.len;
+
+        if( mbedtls_oid_get_gost89_alg( &oid, &gost89_alg ) != 0 )
+            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+
+        if( gost89_alg == MBEDTLS_CIPHER_ID_GOST89_TEST )
+            ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_TEST;
+        else if( gost89_alg == MBEDTLS_CIPHER_ID_GOST89_A )
+            ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_A;
+        else if( gost89_alg == MBEDTLS_CIPHER_ID_GOST89_Z )
+            ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z;
+        else
+            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+    }
+
+    return( 0 );
+}
+
+/*
+ * EC public key is an GOST EC point
+ */
+static int pk_get_ecgost_pubkey( unsigned char **p, const unsigned char *end,
+                            mbedtls_ecp_keypair *key )
+{
+    int ret;
+
+    if( ( ret = mbedtls_ecgost_read_pubkey( &key->grp, &key->Q,
+                    (const unsigned char *) *p, end - *p ) ) == 0 )
+    {
+        ret = mbedtls_ecp_check_pubkey( &key->grp, &key->Q );
+    }
+
+    /*
+     * We know mbedtls_ecgost_read_pubkey consumed all bytes or failed
+     */
+    *p = (unsigned char *) end;
+
+    return( ret );
+}
+#endif /* MBEDTLS_ECGOST_C */
+
 /* Get a PK algorithm identifier
  *
  *  AlgorithmIdentifier  ::=  SEQUENCE  {
@@ -623,6 +727,14 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
             ret = pk_get_ecpubkey( p, end, mbedtls_pk_ec( *pk ) );
     } else
 #endif /* MBEDTLS_ECP_C */
+#if defined(MBEDTLS_ECGOST_C)
+    if( pk_alg == MBEDTLS_PK_ECGOST01 || pk_alg == MBEDTLS_PK_ECGOST12_256 || pk_alg == MBEDTLS_PK_ECGOST12_512 )
+    {
+        ret = pk_use_gost_params( &alg_params, mbedtls_pk_ecgost( *pk ) );
+        if( ret == 0 )
+            ret = pk_get_ecgost_pubkey( p, end, &mbedtls_pk_ecgost( *pk )->key );
+    } else
+#endif /* MBEDTLS_ECGOST_C */
         ret = MBEDTLS_ERR_PK_UNKNOWN_PK_ALG;
 
     if( ret == 0 && *p != end )
@@ -844,85 +956,9 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
 
 #if defined(MBEDTLS_ECGOST_C)
 /*
- * Setup params for ECGOST, GOST94 and GOST89 (RFC 4357)
- */
-static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_context *ctx )
-{
-    int ret;
-    unsigned char *p = (unsigned char *) params->p;
-    unsigned char *end = params->p + params->len;
-    mbedtls_asn1_buf oid;
-    mbedtls_ecp_group_id grp_id;
-    mbedtls_md_type_t md_alg;
-    mbedtls_cipher_type_t cipher_alg = MBEDTLS_CIPHER_NONE;
-
-    /* publicKeyParamSet */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
-        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
-
-    oid.p = p;
-    p += oid.len;
-
-    if( mbedtls_oid_get_ec_grp( &oid, &grp_id ) != 0 )
-        return( MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE );
-
-    /* digestParamSet */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
-        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
-
-    oid.p = p;
-    p += oid.len;
-
-    if( mbedtls_oid_get_md_alg( &oid, &md_alg ) != 0 )
-        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-
-    /* encryptionParamSet Gost28147-89-ParamSet OPTIONAL */
-    if( p != end )
-    {
-        if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
-            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
-
-        oid.p = p;
-        p += oid.len;
-
-        if( mbedtls_oid_get_cipher_alg( &oid, &cipher_alg ) != 0 )
-            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-    }
-
-    /*
-     * grp may already be initilialized; if so, make sure IDs match
-     */
-    if( ctx->key.grp.id != MBEDTLS_ECP_DP_NONE && ctx->key.grp.id != grp_id )
-        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
-
-    if( ( ret = mbedtls_ecp_group_load( &ctx->key.grp, grp_id ) ) != 0 )
-        return( ret );
-
-    if( md_alg == MBEDTLS_MD_GOST94_TEST )
-        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_TEST;
-    else if( md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
-        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_CRYPTOPRO;
-    else
-        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-
-    if( cipher_alg == MBEDTLS_CIPHER_NONE )
-        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z; /* default value */
-    else if( cipher_alg == MBEDTLS_CIPHER_GOST89_TEST_ECB )
-        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_TEST;
-    else if( cipher_alg == MBEDTLS_CIPHER_GOST89_A_ECB )
-        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_A;
-    else if( cipher_alg == MBEDTLS_CIPHER_GOST89_Z_ECB )
-        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z;
-    else
-        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-
-    return( 0 );
-}
-
-/*
  * Parse an encoded private GOST key (RFC 4357)
  */
-static int pk_parse_gost_key_der( mbedtls_ecgost_context *ctx,
+static int pk_parse_ecgost_key_der( mbedtls_ecgost_context *ctx,
                                   const unsigned char *key,
                                   size_t keylen )
 {
@@ -1044,7 +1080,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     if( pk_alg == MBEDTLS_PK_ECGOST01 || pk_alg == MBEDTLS_PK_ECGOST12_256 || pk_alg == MBEDTLS_PK_ECGOST12_512 )
     {
         if( ( ret = pk_use_gost_params( &params, mbedtls_pk_ecgost( *pk ) ) ) != 0 ||
-            ( ret = pk_parse_gost_key_der( mbedtls_pk_ecgost( *pk ), p, len )  ) != 0 )
+            ( ret = pk_parse_ecgost_key_der( mbedtls_pk_ecgost( *pk ), p, len )  ) != 0 )
         {
             mbedtls_pk_free( pk );
             return( ret );

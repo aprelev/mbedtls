@@ -375,6 +375,10 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_NONE,     MBEDTLS_PK_RSASSA_PSS,
     },
     {
+        { ADD_LEN( MBEDTLS_OID_GOSTR3411_94_WITH_GOSTR3410_2001 ), "id-GostR3411-94-with-GostR3410-2001", "GOST R 34.10-2001 with GOST R 34.11-94" },
+        MBEDTLS_MD_GOST94_CRYPTOPRO, MBEDTLS_PK_ECGOST01,
+    },
+    {
         { NULL, 0, NULL, NULL },
         MBEDTLS_MD_NONE, MBEDTLS_PK_NONE,
     },
@@ -478,22 +482,6 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         MBEDTLS_ECP_DP_BP512R1,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256TEST ), "id-GostR3410-2001-TestParamSet","id-GostR3410-2001-TestParamSet" },
-        MBEDTLS_ECP_DP_GOST256TEST,
-    },
-    {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A ), "id-GostR3410-2001-CryptoPro-A-ParamSet","id-GostR3410-2001-CryptoPro-A-ParamSet" },
-        MBEDTLS_ECP_DP_GOST256A,
-    },
-    {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256B ), "id-GostR3410-2001-CryptoPro-B-ParamSet","id-GostR3410-2001-CryptoPro-B-ParamSet" },
-        MBEDTLS_ECP_DP_GOST256B,
-    },
-    {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C ), "id-GostR3410-2001-CryptoPro-C-ParamSet","id-GostR3410-2001-CryptoPro-C-ParamSet" },
-        MBEDTLS_ECP_DP_GOST256C,
-    },
-    {
         { NULL, 0, NULL, NULL },
         MBEDTLS_ECP_DP_NONE,
     },
@@ -577,14 +565,6 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA512,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_GOST94_TEST ), "id-GostR3411-94-TestParamSet", "GOST94-TEST" },
-        MBEDTLS_MD_GOST94_TEST,
-    },
-    {
-        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_GOST94_CRYPTOPRO ), "id-GostR3411-94-CryptoProParamSet", "GOST94-CRYPTOPRO" },
-        MBEDTLS_MD_GOST94_CRYPTOPRO,
-    },
-    {
         { NULL, 0, NULL, NULL },
         MBEDTLS_MD_NONE,
     },
@@ -624,6 +604,101 @@ static const oid_pkcs12_pbe_alg_t oid_pkcs12_pbe_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, oid_pkcs12_pbe_alg)
 FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pbe_alg, mbedtls_md_type_t, md_alg, mbedtls_cipher_type_t, cipher_alg)
 #endif /* MBEDTLS_PKCS12_C */
+
+#if defined(MBEDTLS_ECGOST_C)
+/*
+ * For GostR3410-94-PublicKeyParameters publicKeyParamSet
+ */
+typedef struct {
+    mbedtls_oid_descriptor_t    descriptor;
+    mbedtls_ecp_group_id        ecgost_grp_id;
+} oid_ecgost_grp_t;
+
+static const oid_ecgost_grp_t oid_ecgost_grp[] =
+{
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256TEST ),    "id-GostR3410-2001-TestParamSet",           "id-GostR3410-2001-TestParamSet" },
+        MBEDTLS_ECP_DP_GOST256TEST,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A ),       "id-GostR3410-2001-CryptoPro-A-ParamSet",   "id-GostR3410-2001-CryptoPro-A-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256A,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256B ),       "id-GostR3410-2001-CryptoPro-B-ParamSet",   "id-GostR3410-2001-CryptoPro-B-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256B,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C ),       "id-GostR3410-2001-CryptoPro-C-ParamSet",   "id-GostR3410-2001-CryptoPro-C-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256C,
+    },
+    {
+        { NULL, 0, NULL, NULL },
+        MBEDTLS_ECP_DP_NONE,
+    },
+};
+
+FN_OID_TYPED_FROM_ASN1(oid_ecgost_grp_t, ecgost_grp_id, oid_ecgost_grp)
+FN_OID_GET_ATTR1(mbedtls_oid_get_ecgost_grp, oid_ecgost_grp_t, ecgost_grp_id, mbedtls_ecp_group_id, ecgost_grp_id)
+#endif /* MBEDTLS_ECGOST_C */
+
+#if defined(MBEDTLS_GOST94_C)
+/*
+ * For GostR3410-94-PublicKeyParameters digestParamSet
+ */
+typedef struct {
+    mbedtls_oid_descriptor_t    descriptor;
+    mbedtls_md_type_t           gost94_alg;
+} oid_gost94_alg_t;
+
+static const oid_gost94_alg_t oid_gost94_alg[] =
+{
+    {
+        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_GOST94_TEST ),        "id-GostR3411-94-TestParamSet",         "GOST94-TEST" },
+        MBEDTLS_MD_GOST94_TEST,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_GOST94_CRYPTOPRO ),   "id-GostR3411-94-CryptoProParamSet",    "GOST94-CRYPTOPRO" },
+        MBEDTLS_MD_GOST94_CRYPTOPRO,
+    },
+    {
+        { NULL, 0, NULL, NULL },
+        MBEDTLS_MD_NONE,
+    },
+};
+
+FN_OID_TYPED_FROM_ASN1(oid_gost94_alg_t, gost94_alg, oid_gost94_alg)
+FN_OID_GET_ATTR1(mbedtls_oid_get_gost94_alg, oid_gost94_alg_t, gost94_alg, mbedtls_md_type_t, gost94_alg)
+#endif /* MBEDTLS_GOST94_C */
+
+#if defined(MBEDTLS_GOST89_C)
+/*
+ * For GostR3410-94-PublicKeyParameters encryptionParamSet
+ */
+typedef struct {
+    mbedtls_oid_descriptor_t    descriptor;
+    mbedtls_cipher_id_t         gost89_alg;
+} oid_gost89_alg_t;
+
+static const oid_gost89_alg_t oid_gost89_alg[] =
+{
+    {
+        { ADD_LEN( MBEDTLS_OID_GOST89_TEST ),          "id-Gost28147-89-TestParamSet",          "GOST89-TEST" },
+        MBEDTLS_CIPHER_ID_GOST89_TEST,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_GOST89_A ),             "id-Gost28147-89-CryptoPro-A-ParamSet",  "GOST89-A" },
+        MBEDTLS_CIPHER_ID_GOST89_A,
+    },
+    {
+        { NULL, 0, NULL, NULL },
+        MBEDTLS_CIPHER_ID_NONE,
+    },
+};
+
+FN_OID_TYPED_FROM_ASN1(oid_gost89_alg_t, gost89_alg, oid_gost89_alg)
+FN_OID_GET_ATTR1(mbedtls_oid_get_gost89_alg, oid_gost89_alg_t, gost89_alg, mbedtls_cipher_id_t, gost89_alg)
+#endif /* MBEDTLS_GOST89_C */
 
 #define OID_SAFE_SNPRINTF                               \
     do {                                                \

@@ -512,6 +512,16 @@ static int ecgost12_512_can_do( mbedtls_pk_type_t type )
     return( type == MBEDTLS_PK_ECGOST12_512 );
 }
 
+static size_t ecgost_get_bitlen( const void *ctx )
+{
+    /*
+     * We can't use eckey_get_bitlen() because
+     * id-tc26-gost-3410-12-512-paramSetTest is exception,
+     * it is 512-bits curve, but has zero MSB.
+     */
+    return( ( ( ((mbedtls_ecgost_context *) ctx)->key.grp.nbits + 7 ) >> 3 ) << 3 );
+}
+
 static int ecgost_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
@@ -558,7 +568,7 @@ static void ecgost_free_wrap( void *ctx )
 const mbedtls_pk_info_t mbedtls_ecgost01_info = {
     MBEDTLS_PK_ECGOST01,
     "ECGOST01",
-    eckey_get_bitlen,     /* Compatible key structures */
+    ecgost_get_bitlen,     /* Compatible key structures */
     ecgost01_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
@@ -573,7 +583,7 @@ const mbedtls_pk_info_t mbedtls_ecgost01_info = {
 const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
     MBEDTLS_PK_ECGOST12_256,
     "ECGOST12_256",
-    eckey_get_bitlen,     /* Compatible key structures */
+    ecgost_get_bitlen,     /* Compatible key structures */
     ecgost12_256_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
@@ -588,7 +598,7 @@ const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
 const mbedtls_pk_info_t mbedtls_ecgost12_512_info = {
     MBEDTLS_PK_ECGOST12_512,
     "ECGOST12_512",
-    eckey_get_bitlen,     /* Compatible key structures */
+    ecgost_get_bitlen,     /* Compatible key structures */
     ecgost12_512_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,

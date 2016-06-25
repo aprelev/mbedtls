@@ -406,6 +406,20 @@ int mbedtls_mpi_read_binary_le( mbedtls_mpi *X, const unsigned char *buf, size_t
 int mbedtls_mpi_write_binary( const mbedtls_mpi *X, unsigned char *buf, size_t buflen );
 
 /**
+ * \brief          Export X into unsigned binary data, little endian.
+ *                 Always fills the whole buffer, which will end with zeros
+ *                 if the number is smaller.
+ *
+ * \param X        Source MPI
+ * \param buf      Output buffer
+ * \param buflen   Output buffer size
+ *
+ * \return         0 if successful,
+ *                 MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if buf isn't large enough
+ */
+int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X, unsigned char *buf, size_t buflen );
+
+/**
  * \brief          Left-shift: X <<= count
  *
  * \param X        MPI to shift

@@ -130,6 +130,40 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
                           const unsigned char *sig, size_t slen );
 
 /**
+ * \brief           Export a point into unsigned binary data
+ *
+ * \param grp       Group to which the point should belong
+ * \param P         Point to export
+ * \param olen      Length of the actual output
+ * \param buf       Output buffer
+ * \param buflen    Length of the output buffer
+ *
+ * \return          0 if successful,
+ *                  or MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL
+ */
+int mbedtls_ecgost_write_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *P,
+                            size_t *olen, unsigned char *buf, size_t buflen );
+
+/**
+ * \brief           Import a point from unsigned binary data
+ *
+ * \param grp       Group to which the point should belong
+ * \param P         Point to import
+ * \param buf       Input buffer
+ * \param ilen      Actual length of input
+ *
+ * \return          0 if successful,
+ *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid,
+ *                  MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
+ *
+ * \note            This function does NOT check that the point actually
+ *                  belongs to the given group, see mbedtls_ecp_check_pubkey() for
+ *                  that.
+ */
+int mbedtls_ecgost_read_pubkey( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P,
+                           const unsigned char *buf, size_t ilen );
+
+/**
  * \brief           Generate an GOST keypair on the given curve
  *
  * \param ctx       ECGOST context in which the keypair should be stored
