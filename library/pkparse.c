@@ -901,7 +901,7 @@ static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_co
     if( md_alg == MBEDTLS_MD_GOST94_TEST )
         ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_TEST;
     else if( md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
-        ctx->gost94_sbox_id = MBEDTLS_MD_GOST94_CRYPTOPRO;
+        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_CRYPTOPRO;
     else
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
