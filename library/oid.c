@@ -478,6 +478,22 @@ static const oid_ecp_grp_t oid_ecp_grp[] =
         MBEDTLS_ECP_DP_BP512R1,
     },
     {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256TEST ), "id-GostR3410-2001-TestParamSet","id-GostR3410-2001-TestParamSet" },
+        MBEDTLS_ECP_DP_GOST256TEST,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A ), "id-GostR3410-2001-CryptoPro-A-ParamSet","id-GostR3410-2001-CryptoPro-A-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256A,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256B ), "id-GostR3410-2001-CryptoPro-B-ParamSet","id-GostR3410-2001-CryptoPro-B-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256B,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C ), "id-GostR3410-2001-CryptoPro-C-ParamSet","id-GostR3410-2001-CryptoPro-C-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256C,
+    },
+    {
         { NULL, 0, NULL, NULL },
         MBEDTLS_ECP_DP_NONE,
     },
@@ -559,6 +575,14 @@ static const oid_md_alg_t oid_md_alg[] =
     {
         { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_SHA512 ),    "id-sha512",    "SHA-512" },
         MBEDTLS_MD_SHA512,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_GOST94_TEST ), "id-GostR3411-94-TestParamSet", "GOST94-TEST" },
+        MBEDTLS_MD_GOST94_TEST,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_GOST94_CRYPTOPRO ), "id-GostR3411-94-CryptoProParamSet", "GOST94-CRYPTOPRO" },
+        MBEDTLS_MD_GOST94_CRYPTOPRO,
     },
     {
         { NULL, 0, NULL, NULL },

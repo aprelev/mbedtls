@@ -1364,7 +1364,7 @@ static void gost89_ctx_free( void *ctx )
 }
 
 static const mbedtls_cipher_base_t gost89_test_info = {
-    MBEDTLS_CIPHER_ID_GOST89,
+    MBEDTLS_CIPHER_ID_GOST89_TEST,
     gost89_crypt_ecb_wrap,
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     gost89_crypt_cbc_wrap,
@@ -1422,7 +1422,7 @@ static const mbedtls_cipher_info_t gost89_test_cnt_info = {
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 static const mbedtls_cipher_base_t gost89_a_info = {
-    MBEDTLS_CIPHER_ID_GOST89,
+    MBEDTLS_CIPHER_ID_GOST89_A,
     gost89_crypt_ecb_wrap,
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     gost89_crypt_cbc_wrap,
@@ -1480,7 +1480,7 @@ static const mbedtls_cipher_info_t gost89_a_cnt_info = {
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 static const mbedtls_cipher_base_t gost89_z_info = {
-    MBEDTLS_CIPHER_ID_GOST89,
+    MBEDTLS_CIPHER_ID_GOST89_Z,
     gost89_crypt_ecb_wrap,
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     gost89_crypt_cbc_wrap,

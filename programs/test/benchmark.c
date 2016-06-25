@@ -801,7 +801,7 @@ int main( int argc, char *argv[] )
 
             if( mbedtls_ecgost_genkey( &ecgost, curve_info->grp_id, myrand, NULL ) != 0 )
                 mbedtls_exit( 1 );
-            ecp_clear_precomputed( &ecgost.grp );
+            ecp_clear_precomputed( &ecgost.key.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECGOST-%s",
                                               curve_info->name );
@@ -825,7 +825,7 @@ int main( int argc, char *argv[] )
             {
                 mbedtls_exit( 1 );
             }
-            ecp_clear_precomputed( &ecgost.grp );
+            ecp_clear_precomputed( &ecgost.key.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECGOST-%s",
                                               curve_info->name );
@@ -833,7 +833,7 @@ int main( int argc, char *argv[] )
                     ret = mbedtls_ecgost_read_signature( &ecgost, buf, curve_info->bit_size >> 3,
                                                 tmp, sig_len ) );
 
-            mbedtls_ecdsa_free( &ecgost );
+            mbedtls_ecgost_free( &ecgost );
         }
     }
 #endif

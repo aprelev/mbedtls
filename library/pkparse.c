@@ -842,6 +842,121 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
 }
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_ECGOST_C)
+/*
+ * Setup params for ECGOST, GOST94 and GOST89 (RFC 4357)
+ */
+static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_context *ctx )
+{
+    int ret;
+    unsigned char *p = (unsigned char *) params->p;
+    unsigned char *end = params->p + params->len;
+    mbedtls_asn1_buf oid;
+    mbedtls_ecp_group_id grp_id;
+    mbedtls_md_type_t md_alg;
+    mbedtls_cipher_type_t cipher_alg = MBEDTLS_CIPHER_NONE;
+
+    /* publicKeyParamSet */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    oid.p = p;
+    p += oid.len;
+
+    if( mbedtls_oid_get_ec_grp( &oid, &grp_id ) != 0 )
+        return( MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE );
+
+    /* digestParamSet */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    oid.p = p;
+    p += oid.len;
+
+    if( mbedtls_oid_get_md_alg( &oid, &md_alg ) != 0 )
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+
+    /* encryptionParamSet Gost28147-89-ParamSet OPTIONAL */
+    if( p != end )
+    {
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+        oid.p = p;
+        p += oid.len;
+
+        if( mbedtls_oid_get_cipher_alg( &oid, &cipher_alg ) != 0 )
+            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+    }
+
+    /*
+     * grp may already be initilialized; if so, make sure IDs match
+     */
+    if( ctx->key.grp.id != MBEDTLS_ECP_DP_NONE && ctx->key.grp.id != grp_id )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+
+    if( ( ret = mbedtls_ecp_group_load( &ctx->key.grp, grp_id ) ) != 0 )
+        return( ret );
+
+    if( md_alg == MBEDTLS_MD_GOST94_TEST )
+        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_TEST;
+    else if( md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
+        ctx->gost94_sbox_id = MBEDTLS_MD_GOST94_CRYPTOPRO;
+    else
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+
+    if( cipher_alg == MBEDTLS_CIPHER_NONE )
+        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z; /* default value */
+    else if( cipher_alg == MBEDTLS_CIPHER_GOST89_TEST_ECB )
+        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_TEST;
+    else if( cipher_alg == MBEDTLS_CIPHER_GOST89_A_ECB )
+        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_A;
+    else if( cipher_alg == MBEDTLS_CIPHER_GOST89_Z_ECB )
+        ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z;
+    else
+        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+
+    return( 0 );
+}
+
+/*
+ * Parse an encoded private GOST key (RFC 4357)
+ */
+static int pk_parse_gost_key_der( mbedtls_ecgost_context *ctx,
+                                  const unsigned char *key,
+                                  size_t keylen )
+{
+    int ret;
+    size_t len;
+    unsigned char *p = (unsigned char *) key;
+    unsigned char *end = p + keylen;
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    if( ( ret = mbedtls_mpi_read_binary_le( &ctx->key.d, p, len ) ) != 0 )
+    {
+        mbedtls_ecgost_free( ctx );
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
+
+    if( ( ret = mbedtls_ecp_mul( &ctx->key.grp, &ctx->key.Q, &ctx->key.d, &ctx->key.grp.G,
+                                                      NULL, NULL ) ) != 0 )
+    {
+        mbedtls_ecgost_free( ctx );
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
+
+    if( ( ret = mbedtls_ecp_check_privkey( &ctx->key.grp, &ctx->key.d ) ) != 0 )
+    {
+        mbedtls_ecgost_free( ctx );
+        return( ret );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_ECGOST_C */
+
 /*
  * Parse an unencrypted PKCS#8 encoded private key
  */
@@ -925,6 +1040,17 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         }
     } else
 #endif /* MBEDTLS_ECP_C */
+#if defined(MBEDTLS_ECGOST_C)
+    if( pk_alg == MBEDTLS_PK_ECGOST01 || pk_alg == MBEDTLS_PK_ECGOST12_256 || pk_alg == MBEDTLS_PK_ECGOST12_512 )
+    {
+        if( ( ret = pk_use_gost_params( &params, mbedtls_pk_ecgost( *pk ) ) ) != 0 ||
+            ( ret = pk_parse_gost_key_der( mbedtls_pk_ecgost( *pk ), p, len )  ) != 0 )
+        {
+            mbedtls_pk_free( pk );
+            return( ret );
+        }
+    } else
+#endif /* MBEDTLS_ECGOST_C */
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     return( 0 );

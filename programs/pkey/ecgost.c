@@ -56,12 +56,12 @@ static void dump_buf( const char *title, unsigned char *buf, size_t len )
     mbedtls_printf( "\n" );
 }
 
-static void dump_pubkey( const char *title, mbedtls_ecgost_context *key )
+static void dump_pubkey( const char *title, mbedtls_ecgost_context *ctx )
 {
     unsigned char buf[300];
     size_t len;
 
-    if( mbedtls_ecp_point_write_binary( &key->grp, &key->Q,
+    if( mbedtls_ecp_point_write_binary( &ctx->key.grp, &ctx->key.Q,
                 MBEDTLS_ECP_PF_UNCOMPRESSED, &len, buf, sizeof buf ) != 0 )
     {
         mbedtls_printf("internal error\n");
@@ -132,7 +132,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_printf( " ok (key size: %d bits)\n", (int) ctx_sign.grp.pbits );
+    mbedtls_printf( " ok (key size: %d bits)\n", (int) ctx_sign.key.grp.pbits );
 
     dump_pubkey( "  + Public key: ", &ctx_sign );
 
@@ -165,13 +165,13 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Preparing verification context..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ecp_group_copy( &ctx_verify.grp, &ctx_sign.grp ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_copy( &ctx_verify.key.grp, &ctx_sign.key.grp ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ecp_group_copy returned %d\n", ret );
         goto exit;
     }
 
-    if( ( ret = mbedtls_ecp_copy( &ctx_verify.Q, &ctx_sign.Q ) ) != 0 )
+    if( ( ret = mbedtls_ecp_copy( &ctx_verify.key.Q, &ctx_sign.key.Q ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ecp_copy returned %d\n", ret );
         goto exit;

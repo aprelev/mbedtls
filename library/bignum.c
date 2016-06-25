@@ -685,6 +685,29 @@ cleanup:
 }
 
 /*
+ * Import X from unsigned binary data, little endian
+ */
+int mbedtls_mpi_read_binary_le( mbedtls_mpi *X, const unsigned char *buf, size_t buflen )
+{
+    int ret;
+    size_t i, j, n;
+
+    for( n = buflen - 1; n != 0; n-- )
+        if( buf[n] != 0 )
+            break;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, CHARS_TO_LIMBS( n ) ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+
+    for( i = 0, j = 0; i <= n; i++, j++ )
+        X->p[j / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((j % ciL) << 3);
+
+cleanup:
+
+    return( ret );
+}
+
+/*
  * Export X into unsigned binary data, big endian
  */
 int mbedtls_mpi_write_binary( const mbedtls_mpi *X, unsigned char *buf, size_t buflen )

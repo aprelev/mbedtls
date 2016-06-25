@@ -256,7 +256,7 @@ int mbedtls_ecgost_write_signature( mbedtls_ecgost_context *ctx,
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecgost_sign( &ctx->grp, &r, &s, &ctx->d,
+    MBEDTLS_MPI_CHK( mbedtls_ecgost_sign( &ctx->key.grp, &r, &s, &ctx->key.d,
                          hash, hlen, f_rng, p_rng ) );
 
     MBEDTLS_MPI_CHK( gost_signature_to_asn1( hlen, &r, &s, sig, slen ) );
@@ -279,7 +279,7 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
     unsigned char *p = (unsigned char *) sig;
     const unsigned char *end = sig + slen;
     size_t len;
-    size_t n_size = ( ctx->grp.nbits + 7 ) / 8;
+    size_t n_size = ( ctx->key.grp.nbits + 7 ) / 8;
     mbedtls_mpi r, s;
 
     mbedtls_mpi_init( &r );
@@ -315,8 +315,8 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
         goto cleanup;
     }
 
-    if( ( ret = mbedtls_ecgost_verify( &ctx->grp, hash, hlen,
-                              &ctx->Q, &r, &s ) ) != 0 )
+    if( ( ret = mbedtls_ecgost_verify( &ctx->key.grp, hash, hlen,
+                              &ctx->key.Q, &r, &s ) ) != 0 )
         goto cleanup;
 
 cleanup:
@@ -332,8 +332,8 @@ cleanup:
 int mbedtls_ecgost_genkey( mbedtls_ecgost_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    return( mbedtls_ecp_group_load( &ctx->grp, gid ) ||
-            mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
+    return( mbedtls_ecp_group_load( &ctx->key.grp, gid ) ||
+            mbedtls_ecp_gen_keypair( &ctx->key.grp, &ctx->key.d, &ctx->key.Q, f_rng, p_rng ) );
 }
 
 /*
@@ -343,9 +343,9 @@ int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_
 {
     int ret;
 
-    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
-        ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||
-        ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->key.grp, &key->grp ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->key.d, &key->d ) ) != 0 ||
+        ( ret = mbedtls_ecp_copy( &ctx->key.Q, &key->Q ) ) != 0 )
     {
         mbedtls_ecgost_free( ctx );
     }
@@ -358,7 +358,10 @@ int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_
  */
 void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx )
 {
-    mbedtls_ecp_keypair_init( ctx );
+    mbedtls_ecp_keypair_init( &ctx->key );
+
+    ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_CRYPTOPRO;
+    ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z;
 }
 
 /*
@@ -366,7 +369,7 @@ void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx )
  */
 void mbedtls_ecgost_free( mbedtls_ecgost_context *ctx )
 {
-    mbedtls_ecp_keypair_free( ctx );
+    mbedtls_ecp_keypair_free( &ctx->key );
 }
 
 #endif /* MBEDTLS_ECGOST_C */

@@ -377,11 +377,47 @@
  */
 #define MBEDTLS_OID_COUNTRY_RU                  "\x85\x03"      /* {ru(643)} */
 #define MBEDTLS_OID_RANS                        "\x02"          /* {rans(2)} */
+
 /*
- * id-CryptoPro = id-CryptoPro-algorithms = OBJECT IDENTIFIER ::= {
+ * id-CryptoPro-algorithms = OBJECT IDENTIFIER ::= {
  *   iso(1) member-body(2) ru(643) rans(2) cryptopro(2) } */
 #define MBEDTLS_OID_CRYPTOPRO                   MBEDTLS_OID_ISO_MEMBER_BODIES \
                                                 MBEDTLS_OID_COUNTRY_RU MBEDTLS_OID_RANS "\x02"
+
+/*
+ * id-CryptoPro-hashes OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms hashes(30) } */
+#define MBEDTLS_OID_CRYPTOPRO_HASHES            MBEDTLS_OID_CRYPTOPRO "\x1e"
+/*
+ * id-GostR3411-94-TestParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-hashes test(0) } */
+#define MBEDTLS_OID_DIGEST_ALG_GOST94_TEST      MBEDTLS_OID_CRYPTOPRO_HASHES "\x00"
+/*
+ * id-GostR3411-94-CryptoProParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-hashes cryptopro(1) } */
+#define MBEDTLS_OID_DIGEST_ALG_GOST94_CRYPTOPRO MBEDTLS_OID_CRYPTOPRO_HASHES "\x01"
+
+/*
+ * id-CryptoPro-ecc-signs OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms ecc-signs(35) } */
+#define MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS         MBEDTLS_OID_CRYPTOPRO "\x23"
+/*
+ * id-GostR3410-2001-TestParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs test(0) } */
+#define MBEDTLS_OID_EC_GRP_GOST256TEST          MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x00"
+/*
+ * id-GostR3410-2001-CryptoPro-A-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs cryptopro-A(1) } */
+#define MBEDTLS_OID_EC_GRP_GOST256A             MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x01"
+/*
+ * id-GostR3410-2001-CryptoPro-B-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs cryptopro-B(2) } */
+#define MBEDTLS_OID_EC_GRP_GOST256B             MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x02"
+/*
+ * id-GostR3410-2001-CryptoPro-C-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs cryptopro-C(3) } */
+#define MBEDTLS_OID_EC_GRP_GOST256C             MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x03"
+
 /*
  * id-GostR3410-2001 OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms gostR3410-2001(19) } */

@@ -380,6 +380,18 @@ int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, FILE
 int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t buflen );
 
 /**
+ * \brief          Import X from unsigned binary data, little endian
+ *
+ * \param X        Destination MPI
+ * \param buf      Input buffer
+ * \param buflen   Input buffer size
+ *
+ * \return         0 if successful,
+ *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed
+ */
+int mbedtls_mpi_read_binary_le( mbedtls_mpi *X, const unsigned char *buf, size_t buflen );
+
+/**
  * \brief          Export X into unsigned binary data, big endian.
  *                 Always fills the whole buffer, which will start with zeros
  *                 if the number is smaller.

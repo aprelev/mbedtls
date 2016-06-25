@@ -44,6 +44,10 @@
 #include "ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_ECGOST_C)
+#include "ecgost.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -157,6 +161,19 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
     return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
 }
 #endif /* MBEDTLS_ECP_C */
+
+#if defined(MBEDTLS_ECGOST_C)
+/**
+ * Quick access to an ECGOST inside a PK context.
+ *
+ * \warning You must make sure the PK context actually holds an ECGOST context
+ * before using this function!
+ */
+static inline mbedtls_ecgost_context *mbedtls_pk_ecgost( const mbedtls_pk_context pk )
+{
+    return( (mbedtls_ecgost_context *) (pk).pk_ctx );
+}
+#endif /* MBEDTLS_ECGOST_C */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**

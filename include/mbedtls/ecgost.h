@@ -7,6 +7,7 @@
 #define MBEDTLS_ECGOST_H
 
 #include "ecp.h"
+#include "gost89.h"
 
 /*
  * http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26CMS.pdf page 6-7:
@@ -31,7 +32,13 @@
 /**
  * \brief           ECGOST context structure
  */
-typedef mbedtls_ecp_keypair mbedtls_ecgost_context;
+typedef struct
+{
+    mbedtls_ecp_keypair key;                  /*!<  Key pair          */
+    mbedtls_gost89_sbox_id_t gost94_sbox_id;  /*!<  S-Box for GOST94  */
+    mbedtls_gost89_sbox_id_t gost89_sbox_id;  /*!<  S-Box for GOST89  */
+}
+mbedtls_ecgost_context;
 
 #ifdef __cplusplus
 extern "C" {
