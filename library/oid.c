@@ -640,6 +640,7 @@ static const oid_ecgost_grp_t oid_ecgost_grp[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_ecgost_grp_t, ecgost_grp_id, oid_ecgost_grp)
 FN_OID_GET_ATTR1(mbedtls_oid_get_ecgost_grp, oid_ecgost_grp_t, ecgost_grp_id, mbedtls_ecp_group_id, ecgost_grp_id)
+FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ecgost_grp, oid_ecgost_grp_t, oid_ecgost_grp, mbedtls_ecp_group_id, ecgost_grp_id)
 #endif /* MBEDTLS_ECGOST_C */
 
 #if defined(MBEDTLS_GOST94_C)
@@ -669,6 +670,7 @@ static const oid_gost94_alg_t oid_gost94_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_gost94_alg_t, gost94_alg, oid_gost94_alg)
 FN_OID_GET_ATTR1(mbedtls_oid_get_gost94_alg, oid_gost94_alg_t, gost94_alg, mbedtls_md_type_t, gost94_alg)
+FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_gost94, oid_gost94_alg_t, oid_gost94_alg, mbedtls_md_type_t, gost94_alg)
 #endif /* MBEDTLS_GOST94_C */
 
 #if defined(MBEDTLS_GOST89_C)
@@ -698,6 +700,7 @@ static const oid_gost89_alg_t oid_gost89_alg[] =
 
 FN_OID_TYPED_FROM_ASN1(oid_gost89_alg_t, gost89_alg, oid_gost89_alg)
 FN_OID_GET_ATTR1(mbedtls_oid_get_gost89_alg, oid_gost89_alg_t, gost89_alg, mbedtls_cipher_id_t, gost89_alg)
+FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_gost89, oid_gost89_alg_t, oid_gost89_alg, mbedtls_cipher_id_t, gost89_alg)
 #endif /* MBEDTLS_GOST89_C */
 
 #define OID_SAFE_SNPRINTF                               \

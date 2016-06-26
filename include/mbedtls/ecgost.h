@@ -7,7 +7,8 @@
 #define MBEDTLS_ECGOST_H
 
 #include "ecp.h"
-#include "gost89.h"
+#include "md.h"
+#include "cipher.h"
 
 /*
  * http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26CMS.pdf page 6-7:
@@ -34,9 +35,9 @@
  */
 typedef struct
 {
-    mbedtls_ecp_keypair key;                  /*!<  Key pair          */
-    mbedtls_gost89_sbox_id_t gost94_sbox_id;  /*!<  S-Box for GOST94  */
-    mbedtls_gost89_sbox_id_t gost89_sbox_id;  /*!<  S-Box for GOST89  */
+    mbedtls_ecp_keypair key;         /*!<  Key pair          */
+    mbedtls_md_type_t   gost94_alg;  /*!<  GOST94 algorithm  */
+    mbedtls_cipher_id_t gost89_alg;  /*!<  GOST89 algorithm  */
 }
 mbedtls_ecgost_context;
 

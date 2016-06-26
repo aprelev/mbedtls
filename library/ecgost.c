@@ -44,15 +44,15 @@ cleanup:
     return( ret );
 }
 
-static inline int is_gost_ecp_group( const mbedtls_ecp_group *grp )
+static inline int is_gost_ecp_group( mbedtls_ecp_group_id gid )
 {
-    return( ( grp->id == MBEDTLS_ECP_DP_GOST256TEST ) ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST256A )    ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST256B )    ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST256C )    ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST512TEST ) ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST512A )    ||
-            ( grp->id == MBEDTLS_ECP_DP_GOST512B ) );
+    return( ( gid == MBEDTLS_ECP_DP_GOST256TEST ) ||
+            ( gid == MBEDTLS_ECP_DP_GOST256A )    ||
+            ( gid == MBEDTLS_ECP_DP_GOST256B )    ||
+            ( gid == MBEDTLS_ECP_DP_GOST256C )    ||
+            ( gid == MBEDTLS_ECP_DP_GOST512TEST ) ||
+            ( gid == MBEDTLS_ECP_DP_GOST512A )    ||
+            ( gid == MBEDTLS_ECP_DP_GOST512B ) );
 }
 
 /*
@@ -67,7 +67,7 @@ int mbedtls_ecgost_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
     mbedtls_mpi k, e;
 
     /* GOST algorithm can only work with GOST ECP groups */
-    if( !is_gost_ecp_group( grp ) )
+    if( !is_gost_ecp_group( grp->id ) )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_ecp_point_init( &C );
@@ -134,7 +134,7 @@ int mbedtls_ecgost_verify( mbedtls_ecp_group *grp,
     mbedtls_ecp_point R;
 
     /* GOST algorithm can only work with GOST ECP groups */
-    if( !is_gost_ecp_group( grp ) )
+    if( !is_gost_ecp_group( grp->id ) )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_ecp_point_init( &R );
@@ -339,11 +339,15 @@ int mbedtls_ecgost_write_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp
     size_t n_size = ( grp->nbits + 7 ) / 8;
     size_t len = n_size;
 
-    p -= n_size;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->X, p, len ) );
+    /* GOST algorithm can only work with GOST ECP groups */
+    if( !is_gost_ecp_group( grp->id ) )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     p -= n_size;
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->Y, p, len ) );
+
+    p -= n_size;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->X, p, len ) );
 
     len <<= 1;
 
@@ -372,6 +376,10 @@ int mbedtls_ecgost_read_pubkey( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
     const unsigned char *end = buf + ilen;
     size_t len;
     size_t n_size = ( grp->nbits + 7 ) / 8;
+
+    /* GOST algorithm can only work with GOST ECP groups */
+    if( !is_gost_ecp_group( grp->id ) )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
     {
@@ -415,6 +423,10 @@ cleanup:
 int mbedtls_ecgost_genkey( mbedtls_ecgost_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
+    /* GOST algorithm can only work with GOST ECP groups */
+    if( !is_gost_ecp_group( gid ) )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     return( mbedtls_ecp_group_load( &ctx->key.grp, gid ) ||
             mbedtls_ecp_gen_keypair( &ctx->key.grp, &ctx->key.d, &ctx->key.Q, f_rng, p_rng ) );
 }
@@ -425,6 +437,10 @@ int mbedtls_ecgost_genkey( mbedtls_ecgost_context *ctx, mbedtls_ecp_group_id gid
 int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_keypair *key )
 {
     int ret;
+
+    /* GOST algorithm can only work with GOST ECP groups */
+    if( !is_gost_ecp_group( key->grp.id ) )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_ecp_group_copy( &ctx->key.grp, &key->grp ) ) != 0 ||
         ( ret = mbedtls_mpi_copy( &ctx->key.d, &key->d ) ) != 0 ||
@@ -443,8 +459,12 @@ void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx )
 {
     mbedtls_ecp_keypair_init( &ctx->key );
 
-    ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_CRYPTOPRO;
-    ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z;
+    /* default values */
+    ctx->gost94_alg = MBEDTLS_MD_GOST94_CRYPTOPRO;
+    /*
+     * TODO: change to MBEDTLS_CIPHER_ID_GOST89_Z
+     */
+    ctx->gost89_alg = MBEDTLS_CIPHER_ID_GOST89_A;
 }
 
 /*

@@ -37,6 +37,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/ecdsa.h"
+#include "mbedtls/ecgost.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/error.h"
 #include "mbedtls/entropy.h"
@@ -110,14 +111,14 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
 #define DFL_USE_DEV_RANDOM      0
 
 #define USAGE \
-    "\n usage: gen_key param=<>...\n"                   \
-    "\n acceptable parameters:\n"                       \
-    "    type=rsa|ec           default: rsa\n"          \
-    "    rsa_keysize=%%d        default: 4096\n"        \
-    "    ec_curve=%%s           see below\n"            \
-    "    filename=%%s           default: keyfile.key\n" \
-    "    format=pem|der        default: pem\n"          \
-    USAGE_DEV_RANDOM                                    \
+    "\n usage: gen_key param=<>...\n"                                                      \
+    "\n acceptable parameters:\n"                                                          \
+    "    type=rsa|ec|ecgost01|ecgost12_256|ecgost12_512           default: rsa\n"          \
+    "    rsa_keysize=%%d                                           default: 4096\n"        \
+    "    ec_curve=%%s                                              see below\n"            \
+    "    filename=%%s                                              default: keyfile.key\n" \
+    "    format=pem|der                                           default: pem\n"          \
+    USAGE_DEV_RANDOM                                                                       \
     "\n"
 
 #if !defined(MBEDTLS_PK_WRITE_C) || !defined(MBEDTLS_FS_IO) ||    \
@@ -238,6 +239,12 @@ int main( int argc, char *argv[] )
                 opt.type = MBEDTLS_PK_RSA;
             else if( strcmp( q, "ec" ) == 0 )
                 opt.type = MBEDTLS_PK_ECKEY;
+            else if( strcmp( q, "ecgost01" ) == 0 )
+                opt.type = MBEDTLS_PK_ECGOST01;
+            else if( strcmp( q, "ecgost12_256" ) == 0 )
+                opt.type = MBEDTLS_PK_ECGOST12_256;
+            else if( strcmp( q, "ecgost12_512" ) == 0 )
+                opt.type = MBEDTLS_PK_ECGOST12_512;
             else
                 goto usage;
         }
@@ -343,6 +350,21 @@ int main( int argc, char *argv[] )
     }
     else
 #endif /* MBEDTLS_ECP_C */
+#if defined(MBEDTLS_ECGOST_C)
+    if( opt.type == MBEDTLS_PK_ECGOST01     ||
+        opt.type == MBEDTLS_PK_ECGOST12_256 ||
+        opt.type == MBEDTLS_PK_ECGOST12_512 )
+    {
+        ret = mbedtls_ecgost_genkey( mbedtls_pk_ecgost( key ), opt.ec_curve,
+                          mbedtls_ctr_drbg_random, &ctr_drbg );
+        if( ret != 0 )
+        {
+            mbedtls_printf( " failed\n  !  mbedtls_ecgost_genkey returned -0x%04x", -ret );
+            goto exit;
+        }
+    }
+    else
+#endif /* MBEDTLS_ECGOST_C */
     {
         mbedtls_printf( " failed\n  !  key type not supported\n" );
         goto exit;
@@ -377,6 +399,20 @@ int main( int argc, char *argv[] )
         mbedtls_mpi_write_file( "X_Q:   ", &ecp->Q.X, 16, NULL );
         mbedtls_mpi_write_file( "Y_Q:   ", &ecp->Q.Y, 16, NULL );
         mbedtls_mpi_write_file( "D:     ", &ecp->d  , 16, NULL );
+    }
+    else
+#endif
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECGOST01     ||
+        mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECGOST12_256 ||
+        mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECGOST12_512 )
+    {
+        mbedtls_ecgost_context *ctx = mbedtls_pk_ecgost( key );
+        mbedtls_printf( "curve: %s\n",
+                mbedtls_ecp_curve_info_from_grp_id( ctx->key.grp.id )->name );
+        mbedtls_mpi_write_file( "X_Q:   ", &ctx->key.Q.X, 16, NULL );
+        mbedtls_mpi_write_file( "Y_Q:   ", &ctx->key.Q.Y, 16, NULL );
+        mbedtls_mpi_write_file( "D:     ", &ctx->key.d  , 16, NULL );
     }
     else
 #endif

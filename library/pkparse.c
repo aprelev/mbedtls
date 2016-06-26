@@ -539,7 +539,7 @@ static int pk_get_rsapubkey( unsigned char **p,
 
 #if defined(MBEDTLS_ECGOST_C)
 /*
- * Setup params for ECGOST, GOST94 and GOST89 (RFC 4357)
+ * Setup parameters for ECGOST, GOST94 and GOST89 (RFC 4357)
  */
 static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_context *ctx )
 {
@@ -548,8 +548,6 @@ static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_co
     unsigned char *end = params->p + params->len;
     mbedtls_asn1_buf oid;
     mbedtls_ecp_group_id ecgost_grp_id;
-    mbedtls_md_type_t gost94_alg;
-    mbedtls_cipher_id_t gost89_alg;
 
     /*
      * publicKeyParamSet
@@ -581,14 +579,7 @@ static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_co
     oid.p = p;
     p += oid.len;
 
-    if( mbedtls_oid_get_gost94_alg( &oid, &gost94_alg ) != 0 )
-        return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-
-    if( gost94_alg == MBEDTLS_MD_GOST94_TEST )
-        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_TEST;
-    else if( gost94_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
-        ctx->gost94_sbox_id = MBEDTLS_GOST94_SBOX_CRYPTOPRO;
-    else
+    if( mbedtls_oid_get_gost94_alg( &oid, &ctx->gost94_alg ) != 0 )
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     /*
@@ -602,16 +593,7 @@ static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_co
         oid.p = p;
         p += oid.len;
 
-        if( mbedtls_oid_get_gost89_alg( &oid, &gost89_alg ) != 0 )
-            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
-
-        if( gost89_alg == MBEDTLS_CIPHER_ID_GOST89_TEST )
-            ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_TEST;
-        else if( gost89_alg == MBEDTLS_CIPHER_ID_GOST89_A )
-            ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_A;
-        else if( gost89_alg == MBEDTLS_CIPHER_ID_GOST89_Z )
-            ctx->gost89_sbox_id = MBEDTLS_GOST89_SBOX_Z;
-        else
+        if( mbedtls_oid_get_gost89_alg( &oid, &ctx->gost89_alg ) != 0 )
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
     }
 

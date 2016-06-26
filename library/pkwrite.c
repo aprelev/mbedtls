@@ -127,6 +127,75 @@ static int pk_write_ec_param( unsigned char **p, unsigned char *start,
 }
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_ECGOST_C)
+/*
+ * EC public key is an GOST EC point
+ */
+static int pk_write_ecgost_pubkey( unsigned char **p, unsigned char *start,
+                                 mbedtls_ecgost_context *ctx )
+{
+    int ret;
+    size_t len = 0;
+    unsigned char buf[MBEDTLS_ECP_MAX_PT_LEN];
+
+    if( ( ret = mbedtls_ecgost_write_pubkey( &ctx->key.grp, &ctx->key.Q,
+                                        &len, buf, sizeof( buf ) ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( *p < start || (size_t)( *p - start ) < len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    *p -= len;
+    memcpy( *p, buf, len );
+
+    return( (int) len );
+}
+
+/*
+ * Write parameters for ECGOST, GOST94 and GOST89 (RFC 4357)
+ */
+static int pk_write_gost_params( unsigned char **p, unsigned char *start,
+                                mbedtls_ecgost_context *ctx )
+{
+    int ret;
+    size_t len = 0;
+    const char *oid;
+    size_t oid_len;
+
+    /*
+     * encryptionParamSet Gost28147-89-ParamSet OPTIONAL
+     */
+    if( ( ret = mbedtls_oid_get_oid_by_gost89( ctx->gost89_alg, &oid, &oid_len ) ) != 0 )
+        return( ret );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
+
+    /*
+     * digestParamSet
+     */
+    if( ( ret = mbedtls_oid_get_oid_by_gost94( ctx->gost94_alg, &oid, &oid_len ) ) != 0 )
+        return( ret );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
+
+    /*
+     * publicKeyParamSet
+     */
+    if( ( ret = mbedtls_oid_get_oid_by_ecgost_grp( ctx->key.grp.id, &oid, &oid_len ) ) != 0 )
+        return( ret );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    return( (int) len );
+}
+#endif /* MBEDTLS_ECGOST_C */
+
 int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
                      const mbedtls_pk_context *key )
 {
@@ -141,6 +210,13 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
         MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_pubkey( p, start, mbedtls_pk_ec( *key ) ) );
+    else
+#endif
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ecgost_pubkey( p, start, mbedtls_pk_ecgost( *key ) ) );
     else
 #endif
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
@@ -183,6 +259,14 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
         MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, mbedtls_pk_ec( *key ) ) );
+    }
+#endif
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+    {
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_gost_params( &c, buf, mbedtls_pk_ecgost( *key ) ) );
     }
 #endif
 
@@ -277,6 +361,48 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
     }
     else
 #endif /* MBEDTLS_ECP_C */
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+    {
+        mbedtls_ecgost_context *ctx = mbedtls_pk_ecgost( *key );
+        size_t n_size = ( ctx->key.grp.nbits + 7 ) / 8;
+        size_t priv_len = n_size, par_len = 0, oid_len;
+        const char *oid;
+
+        if( ( ret = mbedtls_oid_get_oid_by_pk_alg( mbedtls_pk_get_type( key ),
+                                               &oid, &oid_len ) ) != 0 )
+        {
+            return( ret );
+        }
+
+        /* privateKey */
+        c -= priv_len;
+        if( ( ret = mbedtls_mpi_write_binary_le( &ctx->key.d, c, priv_len ) ) != 0 )
+            return( ret );
+        MBEDTLS_ASN1_CHK_ADD( priv_len, mbedtls_asn1_write_len( &c, buf, n_size ) );
+        MBEDTLS_ASN1_CHK_ADD( priv_len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OCTET_STRING ) );
+        len += priv_len;
+
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OCTET_STRING ) );
+
+        /* parameters */
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_gost_params( &c, buf, ctx ) );
+
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
+                                                                par_len ) );
+
+        /* version */
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_int( &c, buf, 0 ) );
+
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                    MBEDTLS_ASN1_SEQUENCE ) );
+    }
+    else
+#endif /* MBEDTLS_ECGOST_C */
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( (int) len );
@@ -291,6 +417,8 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 #define PEM_END_PRIVATE_KEY_RSA     "-----END RSA PRIVATE KEY-----\n"
 #define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
 #define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----\n"
+#define PEM_BEGIN_PRIVATE_KEY_GOST  "-----BEGIN PRIVATE KEY-----\n";
+#define PEM_END_PRIVATE_KEY_GOST    "-----END PRIVATE KEY-----\n";
 
 /*
  * Max sizes of key per types. Shown as tag + len (+ content).
@@ -420,6 +548,16 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_
     {
         begin = PEM_BEGIN_PRIVATE_KEY_EC;
         end = PEM_END_PRIVATE_KEY_EC;
+    }
+    else
+#endif
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+    {
+        begin = PEM_BEGIN_PRIVATE_KEY_GOST;
+        end = PEM_END_PRIVATE_KEY_GOST;
     }
     else
 #endif

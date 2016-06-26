@@ -641,6 +641,18 @@ int mbedtls_oid_get_pkcs12_pbe_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_ecgost_grp( const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *grp_id );
+
+/**
+ * \brief          Translate EC group identifier into GOST curve OID
+ *
+ * \param grp_id   EC group identifier
+ * \param oid      place to store ASN.1 OID string pointer
+ * \param olen     length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_oid_by_ecgost_grp( mbedtls_ecp_group_id grp_id,
+                           const char **oid, size_t *olen );
 #endif /* MBEDTLS_ECGOST_C */
 
 #if defined(MBEDTLS_GOST94_C)
@@ -653,11 +665,22 @@ int mbedtls_oid_get_ecgost_grp( const mbedtls_asn1_buf *oid, mbedtls_ecp_group_i
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_gost94_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *gost94_alg );
+
+/**
+ * \brief          Translate GOST94 md_type into hash algorithm OID
+ *
+ * \param gost94_alg   message digest algorithm
+ * \param oid          place to store ASN.1 OID string pointer
+ * \param olen         length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_oid_by_gost94( mbedtls_md_type_t gost94_alg, const char **oid, size_t *olen );
 #endif /* MBEDTLS_GOST94_C */
 
 #if defined(MBEDTLS_GOST89_C)
 /**
- * \brief          Translate GOST89 encryption algorithm OID into cipher_type
+ * \brief          Translate GOST89 encryption algorithm OID into cipher_id
  *
  * \param oid           OID to use
  * \param gost89_alg    place to store cipher algorithm
@@ -665,6 +688,17 @@ int mbedtls_oid_get_gost94_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_gost89_alg( const mbedtls_asn1_buf *oid, mbedtls_cipher_id_t *gost89_alg );
+
+/**
+ * \brief          Translate GOST89 cipher_id into encryption algorithm OID
+ *
+ * \param gost89_alg   cipher algorithm
+ * \param oid          place to store ASN.1 OID string pointer
+ * \param olen         length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_oid_by_gost89( mbedtls_cipher_id_t gost89_alg, const char **oid, size_t *olen );
 #endif /* MBEDTLS_GOST89_C */
 
 #ifdef __cplusplus
