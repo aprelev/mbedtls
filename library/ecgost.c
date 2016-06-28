@@ -275,11 +275,11 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
     size_t n_size = ( ctx->key.grp.nbits + 7 ) / 8;
     mbedtls_mpi r, s;
 
+    if( slen != n_size << 1 )
+        return( MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH );
+
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
-
-    if( slen != n_size << 1 )
-        ret = MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH;
 
     if( ( ret = mbedtls_mpi_read_binary( &s, p, n_size ) ) != 0 )
     {
