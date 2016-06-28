@@ -260,7 +260,8 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
      */
     mbedtls_md( mbedtls_md_info_from_type( csr->sig_md ), begin_hash, end_hash - begin_hash, hash );
 
-    if( ( ret = mbedtls_pk_verify( &csr->pk, csr->sig_md, hash, 0, csr->sig.p, csr->sig.len ) ) != 0 )
+    if( ( ret = mbedtls_pk_verify_ext( csr->sig_pk, csr->sig_opts, &csr->pk,
+                                  csr->sig_md, hash, 0, csr->sig.p, csr->sig.len ) ) != 0 )
     {
         return( ret );
     }
