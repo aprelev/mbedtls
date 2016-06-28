@@ -11,6 +11,13 @@
 #include "cipher.h"
 
 /*
+ * RFC 4357 page 28:
+ *
+ *     GostR3410-2001-PublicKey ::= OCTET STRING (SIZE (64)),
+ *
+ *     where first half of octet string is X_Q in little-endian format
+ *     and second half is Y_Q in little-endian format
+ *
  * http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26CMS.pdf page 6-7:
  *
  *     GostR3410-2012-256-Signature ::= OCTET STRING (SIZE (64)),
@@ -20,14 +27,14 @@
  *     and second half is r in big-endian format
  *
  * Size is at most
- *    ECP_MAX_BYTES for each of r and s,
+ *    ECP_MAX_BYTES for each of r (X_Q) and s (Y_Q),
  *    twice that + 1 (tag) + 2 (len) for the sequence
  * (assuming ECP_MAX_BYTES is less than 126 for r and s, total len <= 255 for the sequence)
  */
 #if MBEDTLS_ECP_MAX_BYTES > 126
 #error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECGOST_MAX_LEN"
 #endif
-/** Maximum size of an ECGOST signature in bytes */
+/** Maximum size of an ECGOST signature or public key in bytes */
 #define MBEDTLS_ECGOST_MAX_LEN  ( 3 + 2 * MBEDTLS_ECP_MAX_BYTES )
 
 /**
@@ -86,7 +93,9 @@ int mbedtls_ecgost_verify( mbedtls_ecp_group *grp,
 
 /**
  * \brief           Compute GOST signature and write it to buffer,
- *                  serialized as defined in http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26CMS.pdf page 6-7.
+ *                  serialized as defined in
+ *                  http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26CMS.pdf page 6-7
+ *                  without OCTET STRING tag and length.
  *                  (Not thread-safe to use same context in multiple threads)
  *
  * \param ctx       ECGOST context

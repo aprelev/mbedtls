@@ -30,11 +30,13 @@ static int derive_mpi( const mbedtls_ecp_group *grp, mbedtls_mpi *x,
 {
     int ret;
     size_t n_size = ( grp->nbits + 7 ) / 8;
+
     /* GOST algorithm can only sign fixed size hash */
     if( blen != n_size )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( x, buf, blen ) );
+    /* GOST hash is MPI in little-endian format */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( x, buf, blen ) );
 
     /* While at it, reduce modulo N */
     if( mbedtls_mpi_cmp_mpi( x, &grp->N ) >= 0 )
@@ -217,23 +219,15 @@ static int gost_signature_to_asn1( size_t n_size, const mbedtls_mpi *r, const mb
     int ret;
     unsigned char buf[MBEDTLS_ECGOST_MAX_LEN];
     unsigned char *p = buf + sizeof( buf );
-    size_t len = n_size;
 
     p -= n_size;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( s, p, len ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( r, p, n_size ) );
 
-    /* sizes of s and r are equal */
     p -= n_size;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( r, p, len ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( s, p, n_size ) );
 
-    /* s and r are written */
-    len <<= 1;
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_OCTET_STRING ) );
-
-    memcpy( sig, p, len );
-    *slen = len;
+    *slen = n_size << 1;
+    memcpy( sig, p, *slen );
 
     ret = 0;
 
@@ -278,31 +272,16 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
 {
     int ret;
     unsigned char *p = (unsigned char *) sig;
-    const unsigned char *end = sig + slen;
-    size_t len;
     size_t n_size = ( ctx->key.grp.nbits + 7 ) / 8;
     mbedtls_mpi r, s;
 
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
 
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
-    {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-
-    if( p + len != end )
-    {
-        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
-              MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
-        goto cleanup;
-    }
-
-    if( len != n_size << 1 )
+    if( slen != n_size << 1 )
         ret = MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH;
 
-    if( ( ret = mbedtls_mpi_read_binary( &r, p, n_size ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_binary( &s, p, n_size ) ) != 0 )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
@@ -310,7 +289,7 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
 
     p += n_size;
 
-    if( ( ret = mbedtls_mpi_read_binary( &s, p, n_size ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_binary( &r, p, n_size ) ) != 0 )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
@@ -334,8 +313,8 @@ int mbedtls_ecgost_write_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp
                             size_t *olen, unsigned char *buf, size_t buflen )
 {
     int ret;
-    unsigned char buf1[MBEDTLS_ECGOST_MAX_LEN];
-    unsigned char *p = buf1 + sizeof( buf1 );
+    unsigned char pubkey[MBEDTLS_ECGOST_MAX_LEN];
+    unsigned char *p = pubkey + sizeof( pubkey );
     size_t n_size = ( grp->nbits + 7 ) / 8;
     size_t len = n_size;
 
@@ -351,12 +330,14 @@ int mbedtls_ecgost_write_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp
 
     len <<= 1;
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf1, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf1, MBEDTLS_ASN1_OCTET_STRING ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, pubkey, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, pubkey, MBEDTLS_ASN1_OCTET_STRING ) );
 
     *olen = len;
+
     if( buflen < *olen )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
     memcpy( buf, p, len );
 
     ret = 0;
