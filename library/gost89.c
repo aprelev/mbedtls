@@ -412,6 +412,54 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+/*
+ * GOST89 CFB buffer encryption/decryption
+ */
+int mbedtls_gost89_crypt_cfb64( mbedtls_gost89_context *ctx,
+                                int mode,
+                                size_t length,
+                                size_t *iv_off,
+                                unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
+                                const unsigned char *input,
+                                unsigned char *output )
+{
+    int c;
+    size_t n = *iv_off;
+
+    if( mode == MBEDTLS_GOST89_DECRYPT )
+    {
+        while( length-- )
+        {
+            if( n == 0 )
+                mbedtls_gost89_crypt_ecb( ctx, MBEDTLS_GOST89_ENCRYPT, iv, iv );
+
+            c = *input++;
+            *output++ = (unsigned char)( c ^ iv[n] );
+            iv[n] = (unsigned char) c;
+
+            n = ( n + 1 ) % MBEDTLS_GOST89_BLOCKSIZE;
+        }
+    }
+    else
+    {
+        while( length-- )
+        {
+            if( n == 0 )
+                mbedtls_gost89_crypt_ecb( ctx, MBEDTLS_GOST89_ENCRYPT, iv, iv );
+
+            iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
+
+            n = ( n + 1 ) % MBEDTLS_GOST89_BLOCKSIZE;
+        }
+    }
+
+    *iv_off = n;
+
+    return( 0 );
+}
+#endif /*MBEDTLS_CIPHER_MODE_CFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 #define C1 0x1010104
 #define C2 0x1010101

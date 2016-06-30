@@ -151,6 +151,37 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
                               unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+/**
+ * \brief          GOST89 CFB buffer encryption/decryption.
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
+ * \param ctx      GOST89 context
+ * \param mode     MBEDTLS_GOST89_ENCRYPT or MBEDTLS_GOST89_DECRYPT
+ * \param length   length of the input data
+ * \param iv_off   offset in IV (updated after use)
+ * \param iv       initialization vector (updated after use)
+ * \param input    buffer holding the input data
+ * \param output   buffer holding the output data
+ *
+ * \return         0 if successful
+ */
+int mbedtls_gost89_crypt_cfb64( mbedtls_gost89_context *ctx,
+                                int mode,
+                                size_t length,
+                                size_t *iv_off,
+                                unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
+                                const unsigned char *input,
+                                unsigned char *output );
+#endif /*MBEDTLS_CIPHER_MODE_CFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
  * \brief               GOST89-CNT buffer encryption/decryption
