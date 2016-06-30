@@ -18,6 +18,13 @@
  *     where first half of octet string is X_Q in little-endian format
  *     and second half is Y_Q in little-endian format
  *
+ * RFC 4490 page 5:
+ *
+ *     GostR3410-2001-Signature ::= OCTET STRING (SIZE (64))
+ *
+ *     where first half of octet string is s in big-endian format
+ *     and second half is r in big-endian format
+ *
  * http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26CMS.pdf page 6-7:
  *
  *     GostR3410-2012-256-Signature ::= OCTET STRING (SIZE (64)),
