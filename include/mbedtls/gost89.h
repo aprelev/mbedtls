@@ -21,7 +21,7 @@
 #define MBEDTLS_GOST89_KEY_SIZE    32
 
 #define MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH              -0x007E  /**< Invalid data input length. */
-#define MBEDTLS_ERR_GOST89_KEY_UNWRAP_INVALID_MAC            -0x007F  /**< Verification of the unwrapped key MAC failed. */
+#define MBEDTLS_ERR_GOST89_KEY_UNWRAP_INVALID_MAC            -0x007D  /**< Verification of the unwrapped key MAC failed. */
 
 /**
  * \brief          Available S-Boxes
