@@ -621,6 +621,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_GOST89_C)
     if( use_ret == -(MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "GOST89 - Invalid data input length" );
+    if( use_ret == -(MBEDTLS_ERR_GOST89_KEY_UNWRAP_INVALID_MAC) )
+        mbedtls_snprintf( buf, buflen, "GOST89 - Verification of the unwrapped key MAC failed" );
 #endif /* MBEDTLS_GOST89_C */
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
