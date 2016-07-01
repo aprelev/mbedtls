@@ -624,7 +624,6 @@ int mbedtls_gost89_mac_setkey( mbedtls_gost89_mac_context *ctx,
     return( 0 );
 }
 
-
 void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
                                const mbedtls_gost89_mac_context *src )
 {
@@ -635,6 +634,7 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
  * GOST89-MAC context setup
  */
 void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
+                                const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
                                 mbedtls_gost89_sbox_id_t sbox_id )
 {
     int i;
@@ -642,7 +642,7 @@ void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
     for( i = 0; i < MBEDTLS_GOST89_BLOCKSIZE; i++ )
     {
         ctx->buffer[i] = 0;
-        ctx->encrypted_block[i] = 0;
+        ctx->encrypted_block[i] = iv[i];
     }
 
     ctx->processed_len = 0;
@@ -751,6 +751,7 @@ void mbedtls_gost89_mac_finish( mbedtls_gost89_mac_context *ctx, unsigned char o
  */
 void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
                          const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
+                         const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
                          const unsigned char *input, size_t ilen,
                          unsigned char output[4] )
 {
@@ -758,7 +759,7 @@ void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
 
     mbedtls_gost89_mac_init( &ctx );
     mbedtls_gost89_mac_setkey( &ctx, key );
-    mbedtls_gost89_mac_starts( &ctx, sbox_id );
+    mbedtls_gost89_mac_starts( &ctx, iv, sbox_id );
     mbedtls_gost89_mac_update( &ctx, input, ilen );
     mbedtls_gost89_mac_finish( &ctx, output );
     mbedtls_gost89_mac_free( &ctx );

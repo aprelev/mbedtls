@@ -274,9 +274,11 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
  * \brief          GOST89-MAC context setup
  *
  * \param ctx      context to be initialized
+ * \param iv       8-byte IV
  * \param sbox_id  S-Box identifier
  */
 void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
+                                const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
                                 mbedtls_gost89_sbox_id_t sbox_id );
 
 /**
@@ -318,12 +320,14 @@ extern "C" {
  *
  * \param sbox_id  S-Box identifier
  * \param key      32-byte secret key
+ * \param iv       8-byte IV
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   GOST89-MAC checksum result
  */
 void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
                          const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
+                         const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
                          const unsigned char *input, size_t ilen,
                          unsigned char output[4] );
 

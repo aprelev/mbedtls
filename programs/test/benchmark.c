@@ -571,7 +571,7 @@ int main( int argc, char *argv[] )
         memset( key, 0, sizeof( key ) );
 
         TIME_AND_TSC( "GOST89-TEST-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, key,
-                                                          buf, BUFSIZE, tmp ) );
+                                                          buf, buf, BUFSIZE, tmp ) );
     }
 #endif
 
