@@ -11,7 +11,7 @@
 #include "cipher.h"
 
 /*
- * RFC 4357 page 28:
+ * RFC 4491 page 9:
  *
  *     GostR3410-2001-PublicKey ::= OCTET STRING (SIZE (64)),
  *
@@ -24,6 +24,14 @@
  *
  *     where first half of octet string is s in big-endian format
  *     and second half is r in big-endian format
+ *
+ * http://www.tc26.ru/methods/project/%D0%A2%D0%9A26%D0%98%D0%9E%D0%9A.pdf page 8:
+ *
+ *     GostR3410-2012-256-PublicKey ::= OCTET STRING (SIZE (64)),
+ *     GostR3410-2012-512-PublicKey ::= OCTET STRING (SIZE (128)),
+ *
+ *     where first half of octet string is X_Q in little-endian format
+ *     and second half is Y_Q in little-endian format
  *
  * http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26CMS.pdf page 6-7:
  *
@@ -49,9 +57,9 @@
  */
 typedef struct
 {
-    mbedtls_ecp_keypair key;         /*!<  Key pair          */
-    mbedtls_md_type_t   gost94_alg;  /*!<  GOST94 algorithm  */
-    mbedtls_cipher_id_t gost89_alg;  /*!<  GOST89 algorithm  */
+    mbedtls_ecp_keypair key;          /*!<  Key pair           */
+    mbedtls_md_type_t   gost_md_alg;  /*!<  GOST MD algorithm  */
+    mbedtls_cipher_id_t gost89_alg;   /*!<  GOST89 algorithm   */
 }
 mbedtls_ecgost_context;
 
@@ -207,9 +215,13 @@ int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_
 /**
  * \brief           Initialize context
  *
- * \param ctx       Context to initialize
+ * \param ctx           Context to initialize
+ * \param gost_md_alg   GOST MD algorithm to use
+ * \param gost89_alg    GOST89 algorithm to use
  */
-void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx );
+void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
+                          mbedtls_md_type_t gost_md_alg,
+                          mbedtls_cipher_id_t gost89_alg );
 
 /**
  * \brief           Free context

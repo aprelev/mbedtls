@@ -436,16 +436,14 @@ int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_
 /*
  * Initialize context
  */
-void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx )
+void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
+                          mbedtls_md_type_t gost_md_alg,
+                          mbedtls_cipher_id_t gost89_alg )
 {
     mbedtls_ecp_keypair_init( &ctx->key );
 
-    /* default values */
-    ctx->gost94_alg = MBEDTLS_MD_GOST94_CRYPTOPRO;
-    /*
-     * TODO: change to MBEDTLS_CIPHER_ID_GOST89_Z
-     */
-    ctx->gost89_alg = MBEDTLS_CIPHER_ID_GOST89_A;
+    ctx->gost_md_alg = gost_md_alg;
+    ctx->gost89_alg = gost89_alg;
 }
 
 /*

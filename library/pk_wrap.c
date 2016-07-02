@@ -549,12 +549,38 @@ static int ecgost_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                 hash, hash_len, sig, sig_len, f_rng, p_rng ) );
 }
 
-static void *ecgost_alloc_wrap( void )
+static void *ecgost01_alloc_wrap( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecgost_context ) );
 
     if( ctx != NULL )
-        mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx );
+        mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
+                             MBEDTLS_MD_GOST94_CRYPTOPRO,
+                             MBEDTLS_CIPHER_ID_GOST89_A );
+
+    return( ctx );
+}
+
+static void *ecgost12_256_alloc_wrap( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecgost_context ) );
+
+    if( ctx != NULL )
+        mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
+                             MBEDTLS_MD_GOST12_256,
+                             MBEDTLS_CIPHER_ID_GOST89_Z );
+
+    return( ctx );
+}
+
+static void *ecgost12_512_alloc_wrap( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecgost_context ) );
+
+    if( ctx != NULL )
+        mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
+                             MBEDTLS_MD_GOST12_512,
+                             MBEDTLS_CIPHER_ID_GOST89_Z );
 
     return( ctx );
 }
@@ -575,7 +601,7 @@ const mbedtls_pk_info_t mbedtls_ecgost01_info = {
     NULL,
     NULL,
     eckey_check_pair,   /* Compatible key structures */
-    ecgost_alloc_wrap,
+    ecgost01_alloc_wrap,
     ecgost_free_wrap,
     eckey_debug,        /* Compatible key structures */
 };
@@ -590,7 +616,7 @@ const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
     NULL,
     NULL,
     eckey_check_pair,   /* Compatible key structures */
-    ecgost_alloc_wrap,
+    ecgost12_256_alloc_wrap,
     ecgost_free_wrap,
     eckey_debug,        /* Compatible key structures */
 };
@@ -605,7 +631,7 @@ const mbedtls_pk_info_t mbedtls_ecgost12_512_info = {
     NULL,
     NULL,
     eckey_check_pair,   /* Compatible key structures */
-    ecgost_alloc_wrap,
+    ecgost12_512_alloc_wrap,
     ecgost_free_wrap,
     eckey_debug,        /* Compatible key structures */
 };

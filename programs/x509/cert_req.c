@@ -65,29 +65,29 @@ int main( void )
 #define USAGE \
     "\n usage: cert_req param=<>...\n"                  \
     "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: keyfile.key\n"   \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
-    "    output_file=%%s      default: cert.req\n"      \
-    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
-    "    key_usage=%%s        default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          digital_signature\n"     \
-    "                          non_repudiation\n"       \
-    "                          key_encipherment\n"      \
-    "                          data_encipherment\n"     \
-    "                          key_agreement\n"         \
-    "                          key_cert_sign\n"  \
-    "                          crl_sign\n"              \
-    "    ns_cert_type=%%s     default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          ssl_client\n"            \
-    "                          ssl_server\n"            \
-    "                          email\n"                 \
-    "                          object_signing\n"        \
-    "                          ssl_ca\n"                \
-    "                          email_ca\n"              \
-    "                          object_signing_ca\n"     \
-    "    md=sha256|gost94     default: sha256\n"        \
+    "    filename=%%s                               default: keyfile.key\n"   \
+    "    debug_level=%%d                            default: 0 (disabled)\n"  \
+    "    output_file=%%s                            default: cert.req\n"      \
+    "    subject_name=%%s                           default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "    key_usage=%%s                              default: (empty)\n"       \
+    "                                              Comma-separated-list of values:\n"     \
+    "                                                digital_signature\n"     \
+    "                                                non_repudiation\n"       \
+    "                                                key_encipherment\n"      \
+    "                                                data_encipherment\n"     \
+    "                                                key_agreement\n"         \
+    "                                                key_cert_sign\n"  \
+    "                                                crl_sign\n"              \
+    "    ns_cert_type=%%s                           default: (empty)\n"       \
+    "                                              Comma-separated-list of values:\n"     \
+    "                                                ssl_client\n"            \
+    "                                                ssl_server\n"            \
+    "                                                email\n"                 \
+    "                                                object_signing\n"        \
+    "                                                ssl_ca\n"                \
+    "                                                email_ca\n"              \
+    "                                                object_signing_ca\n"     \
+    "    md=sha256|gost94|gost12_256|gost12_512     default: sha256\n"        \
     "\n"
 
 /*
@@ -251,6 +251,10 @@ int main( int argc, char *argv[] )
                 opt.md = MBEDTLS_MD_SHA256;
             else if( strcmp( q, "gost94" ) == 0 )
                 opt.md = MBEDTLS_MD_GOST94_CRYPTOPRO;
+            else if( strcmp( q, "gost12_256" ) == 0 )
+                opt.md = MBEDTLS_MD_GOST12_256;
+            else if( strcmp( q, "gost12_512" ) == 0 )
+                opt.md = MBEDTLS_MD_GOST12_512;
             else
                 goto usage;
         }

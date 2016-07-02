@@ -579,7 +579,7 @@ static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_co
     oid.p = p;
     p += oid.len;
 
-    if( mbedtls_oid_get_gost94_alg( &oid, &ctx->gost94_alg ) != 0 )
+    if( mbedtls_oid_get_gost_md_alg( &oid, &ctx->gost_md_alg ) != 0 )
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     /*

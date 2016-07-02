@@ -104,7 +104,7 @@ void ecgost256_write_read_random( int id )
     unsigned char sig[200];
     size_t sig_len, i;
 
-    mbedtls_ecgost_init( &ctx );
+    mbedtls_ecgost_init( &ctx, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
     memset( hash, 0, sizeof( hash ) );
     memset( sig, 0x2a, sizeof( sig ) );
@@ -164,7 +164,7 @@ void ecgost512_write_read_random( int id )
     unsigned char sig[200];
     size_t sig_len, i;
 
-    mbedtls_ecgost_init( &ctx );
+    mbedtls_ecgost_init( &ctx, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
     memset( hash, 0, sizeof( hash ) );
     memset( sig, 0x2a, sizeof( sig ) );

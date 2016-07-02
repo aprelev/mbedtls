@@ -797,7 +797,7 @@ int main( int argc, char *argv[] )
             curve_info++;
         for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
         {
-            mbedtls_ecgost_init( &ecgost );
+            mbedtls_ecgost_init( &ecgost, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
 
             if( mbedtls_ecgost_genkey( &ecgost, curve_info->grp_id, myrand, NULL ) != 0 )
                 mbedtls_exit( 1 );
@@ -817,7 +817,7 @@ int main( int argc, char *argv[] )
             curve_info++;
         for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
         {
-            mbedtls_ecgost_init( &ecgost );
+            mbedtls_ecgost_init( &ecgost, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
 
             if( mbedtls_ecgost_genkey( &ecgost, curve_info->grp_id, myrand, NULL ) != 0 ||
                 mbedtls_ecgost_write_signature( &ecgost, buf, curve_info->bit_size >> 3,

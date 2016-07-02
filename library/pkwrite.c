@@ -175,7 +175,7 @@ static int pk_write_gost_params( unsigned char **p, unsigned char *start,
     /*
      * digestParamSet
      */
-    if( ( ret = mbedtls_oid_get_oid_by_gost94( ctx->gost94_alg, &oid, &oid_len ) ) != 0 )
+    if( ( ret = mbedtls_oid_get_oid_by_gost_md( ctx->gost_md_alg, &oid, &oid_len ) ) != 0 )
         return( ret );
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
