@@ -77,6 +77,7 @@
 #define MBEDTLS_ASN1_UTF8_STRING             0x0C
 #define MBEDTLS_ASN1_SEQUENCE                0x10
 #define MBEDTLS_ASN1_SET                     0x11
+#define MBEDTLS_ASN1_NUMERIC_STRING          0x12
 #define MBEDTLS_ASN1_PRINTABLE_STRING        0x13
 #define MBEDTLS_ASN1_T61_STRING              0x14
 #define MBEDTLS_ASN1_IA5_STRING              0x16
