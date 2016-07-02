@@ -337,14 +337,16 @@ void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
  *
  *                 https://tools.ietf.org/html/rfc4357#page-7
  *
- * \param sbox_id  S-Box identifier
- * \param kek      32-byte key encryption key
- * \param ukm      8-byte user keying material
- * \param key      32-byte content encryption key
- * \param output   Wrapped content encryption key
+ * \param sbox_id              S-Box identifier
+ * \param kek                  32-byte key encryption key
+ * \param kek_diversification  1 => need to diversify kek before encryption, else 0
+ * \param ukm                  8-byte user keying material
+ * \param key                  32-byte content encryption key
+ * \param output               Wrapped content encryption key
  */
 void mbedtls_gost89_key_wrap( mbedtls_gost89_sbox_id_t sbox_id,
                               const unsigned char kek[MBEDTLS_GOST89_KEY_SIZE],
+                              int kek_diversification,
                               const unsigned char ukm[MBEDTLS_GOST89_BLOCKSIZE],
                               const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
                               unsigned char output[44] );
@@ -354,11 +356,12 @@ void mbedtls_gost89_key_wrap( mbedtls_gost89_sbox_id_t sbox_id,
  *
  *                 https://tools.ietf.org/html/rfc4357#page-8
  *
- * \param sbox_id  S-Box identifier
- * \param kek      32-byte key encryption key
- * \param input    buffer holding the wrapped key
- * \param ilen     length of the input buffer
- * \param key      32-byte unwrapped content encryption key
+ * \param sbox_id              S-Box identifier
+ * \param kek                  32-byte key encryption key
+ * \param kek_diversification  1 => need to diversify kek before decryption, else 0
+ * \param input                buffer holding the wrapped key
+ * \param ilen                 length of the input buffer
+ * \param key                  32-byte unwrapped content encryption key
  *
  * \return         0 if successful, or
  *                 MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH if ilen != 44, or
@@ -366,6 +369,7 @@ void mbedtls_gost89_key_wrap( mbedtls_gost89_sbox_id_t sbox_id,
  */
 int mbedtls_gost89_key_unwrap( mbedtls_gost89_sbox_id_t sbox_id,
                                const unsigned char kek[MBEDTLS_GOST89_KEY_SIZE],
+                               int kek_diversification,
                                const unsigned char *input, size_t ilen,
                                unsigned char key[MBEDTLS_GOST89_KEY_SIZE] );
 
