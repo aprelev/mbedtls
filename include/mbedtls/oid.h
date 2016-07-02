@@ -386,7 +386,7 @@
 /*
  * id-CryptoPro-algorithms OBJECT IDENTIFIER ::= {
  *   iso(1) member-body(2) ru(643) rans(2) cryptopro(2) } */
-#define MBEDTLS_OID_CRYPTOPRO                           MBEDTLS_OID_ISO_MEMBER_BODIES \
+#define MBEDTLS_OID_CRYPTOPRO_ALGORITHMS                MBEDTLS_OID_ISO_MEMBER_BODIES \
                                                         MBEDTLS_OID_COUNTRY_RU MBEDTLS_OID_RANS "\x02"
 
 /*
@@ -410,7 +410,7 @@
 /*
  * id-CryptoPro-hashes OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms hashes(30) } */
-#define MBEDTLS_OID_CRYPTOPRO_HASHES                    MBEDTLS_OID_CRYPTOPRO "\x1e"
+#define MBEDTLS_OID_CRYPTOPRO_HASHES                    MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x1e"
 /*
  * id-GostR3411-94-TestParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-hashes test(0) } */
@@ -440,7 +440,7 @@
 /*
  * id-CryptoPro-encrypts OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms encrypts(31) } */
-#define MBEDTLS_OID_CRYPTOPRO_ENCRYPTS                  MBEDTLS_OID_CRYPTOPRO "\x1f"
+#define MBEDTLS_OID_CRYPTOPRO_ENCRYPTS                  MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x1f"
 /*
  * id-Gost28147-89-TestParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-encrypts test(0) } */
@@ -470,7 +470,7 @@
 /*
  * id-CryptoPro-ecc-signs OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms ecc-signs(35) } */
-#define MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS                 MBEDTLS_OID_CRYPTOPRO "\x23"
+#define MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS                 MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x23"
 /*
  * id-GostR3410-2001-TestParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-ecc-signs test(0) } */
@@ -487,6 +487,18 @@
  * id-GostR3410-2001-CryptoPro-C-ParamSet OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-ecc-signs cryptopro-C(3) } */
 #define MBEDTLS_OID_EC_GRP_GOST256C                     MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x03"
+/*
+ * id-CryptoPro-ecc-exchanges OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms ecc-exchanges(36) } */
+#define MBEDTLS_OID_CRYPTOPRO_ECC_EXCHANGES             MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x24"
+/*
+ * id-GostR3410-2001-CryptoPro-XchA-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-exchanges cryptopro-XchA(0) } */
+#define MBEDTLS_OID_EC_GRP_GOST256A_ALT                 MBEDTLS_OID_CRYPTOPRO_ECC_EXCHANGES "\x00"
+/*
+ * id-GostR3410-2001-CryptoPro-XchB-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-exchanges cryptopro-XchB(1) } */
+#define MBEDTLS_OID_EC_GRP_GOST256C_ALT                 MBEDTLS_OID_CRYPTOPRO_ECC_EXCHANGES "\x01"
 
 /*
  * id-tc26-sign-constants OBJECT IDENTIFIER ::= {
@@ -516,7 +528,7 @@
 /*
  * id-GostR3411-94-with-GostR3410-2001 OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms gostR3411-94-with-gostR3410-2001(3) } */
-#define MBEDTLS_OID_GOSTR3411_94_WITH_GOSTR3410_2001    MBEDTLS_OID_CRYPTOPRO "\x03"
+#define MBEDTLS_OID_GOSTR3411_94_WITH_GOSTR3410_2001    MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x03"
 
 /*
  * id-tc26-signwithdigest OBJECT IDENTIFIER ::= {
@@ -537,7 +549,7 @@
 /*
  * id-GostR3410-2001 OBJECT IDENTIFIER ::= {
  *   id-CryptoPro-algorithms gostR3410-2001(19) } */
-#define MBEDTLS_OID_GOSTR3410_2001                      MBEDTLS_OID_CRYPTOPRO "\x13"
+#define MBEDTLS_OID_GOSTR3410_2001                      MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x13"
 
 /*
  * id-tc26-sign OBJECT IDENTIFIER ::= {

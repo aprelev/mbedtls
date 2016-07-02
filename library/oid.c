@@ -635,31 +635,39 @@ typedef struct {
 static const oid_ecgost_grp_t oid_ecgost_grp[] =
 {
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256TEST ),    "id-GostR3410-2001-TestParamSet",           "id-GostR3410-2001-TestParamSet" },
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256TEST ),    "id-GostR3410-2001-TestParamSet",               "id-GostR3410-2001-TestParamSet" },
         MBEDTLS_ECP_DP_GOST256TEST,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A ),       "id-GostR3410-2001-CryptoPro-A-ParamSet",   "id-GostR3410-2001-CryptoPro-A-ParamSet" },
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A ),       "id-GostR3410-2001-CryptoPro-A-ParamSet",       "id-GostR3410-2001-CryptoPro-A-ParamSet" },
         MBEDTLS_ECP_DP_GOST256A,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256B ),       "id-GostR3410-2001-CryptoPro-B-ParamSet",   "id-GostR3410-2001-CryptoPro-B-ParamSet" },
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A_ALT ),   "id-GostR3410-2001-CryptoPro-XchA-ParamSet",    "id-GostR3410-2001-CryptoPro-XchA-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256A,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256B ),       "id-GostR3410-2001-CryptoPro-B-ParamSet",       "id-GostR3410-2001-CryptoPro-B-ParamSet" },
         MBEDTLS_ECP_DP_GOST256B,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C ),       "id-GostR3410-2001-CryptoPro-C-ParamSet",   "id-GostR3410-2001-CryptoPro-C-ParamSet" },
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C ),       "id-GostR3410-2001-CryptoPro-C-ParamSet",       "id-GostR3410-2001-CryptoPro-C-ParamSet" },
         MBEDTLS_ECP_DP_GOST256C,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512TEST ),    "id-tc26-gost-3410-12-512-paramSetTest",    "id-tc26-gost-3410-12-512-paramSetTest" },
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C_ALT ),   "id-GostR3410-2001-CryptoPro-XchB-ParamSet",    "id-GostR3410-2001-CryptoPro-XchB-ParamSet" },
+        MBEDTLS_ECP_DP_GOST256C,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512TEST ),    "id-tc26-gost-3410-12-512-paramSetTest",        "id-tc26-gost-3410-12-512-paramSetTest" },
         MBEDTLS_ECP_DP_GOST512TEST,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512A ),       "id-tc26-gost-3410-12-512-paramSetA",       "id-tc26-gost-3410-12-512-paramSetA" },
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512A ),       "id-tc26-gost-3410-12-512-paramSetA",           "id-tc26-gost-3410-12-512-paramSetA" },
         MBEDTLS_ECP_DP_GOST512A,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512B ),       "id-tc26-gost-3410-12-512-paramSetB",       "id-tc26-gost-3410-12-512-paramSetB" },
+        { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512B ),       "id-tc26-gost-3410-12-512-paramSetB",           "id-tc26-gost-3410-12-512-paramSetB" },
         MBEDTLS_ECP_DP_GOST512B,
     },
     {
