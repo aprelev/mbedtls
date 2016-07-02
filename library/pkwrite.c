@@ -138,7 +138,7 @@ static int pk_write_ecgost_pubkey( unsigned char **p, unsigned char *start,
     size_t len = 0;
     unsigned char buf[MBEDTLS_ECP_MAX_PT_LEN];
 
-    if( ( ret = mbedtls_ecgost_write_pubkey( &ctx->key.grp, &ctx->key.Q,
+    if( ( ret = mbedtls_ecgost_write_pubkey( &ctx->grp, &ctx->Q,
                                         &len, buf, sizeof( buf ) ) ) != 0 )
     {
         return( ret );
@@ -183,7 +183,7 @@ static int pk_write_gost_params( unsigned char **p, unsigned char *start,
     /*
      * publicKeyParamSet
      */
-    if( ( ret = mbedtls_oid_get_oid_by_ecgost_grp( ctx->key.grp.id, &oid, &oid_len ) ) != 0 )
+    if( ( ret = mbedtls_oid_get_oid_by_ecgost_grp( ctx->grp.id, &oid, &oid_len ) ) != 0 )
         return( ret );
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
@@ -367,7 +367,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
         mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
     {
         mbedtls_ecgost_context *ctx = mbedtls_pk_ecgost( *key );
-        size_t n_size = ( ctx->key.grp.nbits + 7 ) / 8;
+        size_t n_size = ( ctx->grp.nbits + 7 ) / 8;
         size_t priv_len = n_size, par_len = 0, oid_len;
         const char *oid;
 
@@ -379,7 +379,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 
         /* privateKey */
         c -= priv_len;
-        if( ( ret = mbedtls_mpi_write_binary_le( &ctx->key.d, c, priv_len ) ) != 0 )
+        if( ( ret = mbedtls_mpi_write_binary_le( &ctx->d, c, priv_len ) ) != 0 )
             return( ret );
         MBEDTLS_ASN1_CHK_ADD( priv_len, mbedtls_asn1_write_len( &c, buf, n_size ) );
         MBEDTLS_ASN1_CHK_ADD( priv_len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OCTET_STRING ) );

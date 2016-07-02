@@ -57,9 +57,11 @@
  */
 typedef struct
 {
-    mbedtls_ecp_keypair key;          /*!<  Key pair           */
-    mbedtls_md_type_t   gost_md_alg;  /*!<  GOST MD algorithm  */
-    mbedtls_cipher_id_t gost89_alg;   /*!<  GOST89 algorithm   */
+    mbedtls_ecp_group grp;            /*!<  elliptic curve used             */
+    mbedtls_mpi d;                    /*!<  our secret value (private key)  */
+    mbedtls_ecp_point Q;              /*!<  our public value (public key)   */
+    mbedtls_md_type_t   gost_md_alg;  /*!<  GOST MD algorithm               */
+    mbedtls_cipher_id_t gost89_alg;   /*!<  GOST89 algorithm                */
 }
 mbedtls_ecgost_context;
 

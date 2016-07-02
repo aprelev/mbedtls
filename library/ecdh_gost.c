@@ -69,9 +69,9 @@ void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
         return;
 
     mbedtls_ecp_group_init( &ctx->grp );
-    mbedtls_ecp_point_init( &ctx->Q   );
-    mbedtls_ecp_point_init( &ctx->Qp  );
-    mbedtls_ecp_point_init( &ctx->P   );
+    mbedtls_ecp_point_init( &ctx->Q );
+    mbedtls_ecp_point_init( &ctx->Qp );
+    mbedtls_ecp_point_init( &ctx->P );
     mbedtls_mpi_init( &ctx->d );
 
     ctx->md_alg = md_alg;
@@ -86,9 +86,9 @@ void mbedtls_ecdh_gost_free( mbedtls_ecdh_gost_context *ctx )
         return;
 
     mbedtls_ecp_group_free( &ctx->grp );
-    mbedtls_ecp_point_free( &ctx->Q   );
-    mbedtls_ecp_point_free( &ctx->Qp  );
-    mbedtls_ecp_point_free( &ctx->P   );
+    mbedtls_ecp_point_free( &ctx->Q );
+    mbedtls_ecp_point_free( &ctx->Qp );
+    mbedtls_ecp_point_free( &ctx->P );
     mbedtls_mpi_free( &ctx->d );
 }
 

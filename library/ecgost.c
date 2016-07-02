@@ -250,7 +250,7 @@ int mbedtls_ecgost_write_signature( mbedtls_ecgost_context *ctx,
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecgost_sign( &ctx->key.grp, &r, &s, &ctx->key.d,
+    MBEDTLS_MPI_CHK( mbedtls_ecgost_sign( &ctx->grp, &r, &s, &ctx->d,
                          hash, hlen, f_rng, p_rng ) );
 
     /* GOST algorithm can only sign fixed size hash, n_size = hlen */
@@ -272,7 +272,7 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
 {
     int ret;
     unsigned char *p = (unsigned char *) sig;
-    size_t n_size = ( ctx->key.grp.nbits + 7 ) / 8;
+    size_t n_size = ( ctx->grp.nbits + 7 ) / 8;
     mbedtls_mpi r, s;
 
     if( slen != n_size << 1 )
@@ -295,8 +295,8 @@ int mbedtls_ecgost_read_signature( mbedtls_ecgost_context *ctx,
         goto cleanup;
     }
 
-    if( ( ret = mbedtls_ecgost_verify( &ctx->key.grp, hash, hlen,
-                              &ctx->key.Q, &r, &s ) ) != 0 )
+    if( ( ret = mbedtls_ecgost_verify( &ctx->grp, hash, hlen,
+                              &ctx->Q, &r, &s ) ) != 0 )
         goto cleanup;
 
 cleanup:
@@ -408,8 +408,8 @@ int mbedtls_ecgost_genkey( mbedtls_ecgost_context *ctx, mbedtls_ecp_group_id gid
     if( !is_gost_ecp_group( gid ) )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    return( mbedtls_ecp_group_load( &ctx->key.grp, gid ) ||
-            mbedtls_ecp_gen_keypair( &ctx->key.grp, &ctx->key.d, &ctx->key.Q, f_rng, p_rng ) );
+    return( mbedtls_ecp_group_load( &ctx->grp, gid ) ||
+            mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) );
 }
 
 /*
@@ -423,9 +423,9 @@ int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_
     if( !is_gost_ecp_group( key->grp.id ) )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecp_group_copy( &ctx->key.grp, &key->grp ) ) != 0 ||
-        ( ret = mbedtls_mpi_copy( &ctx->key.d, &key->d ) ) != 0 ||
-        ( ret = mbedtls_ecp_copy( &ctx->key.Q, &key->Q ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||
+        ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
     {
         mbedtls_ecgost_free( ctx );
     }
@@ -440,7 +440,9 @@ void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
                           mbedtls_md_type_t gost_md_alg,
                           mbedtls_cipher_id_t gost89_alg )
 {
-    mbedtls_ecp_keypair_init( &ctx->key );
+    mbedtls_ecp_group_init( &ctx->grp );
+    mbedtls_ecp_point_init( &ctx->Q );
+    mbedtls_mpi_init( &ctx->d );
 
     ctx->gost_md_alg = gost_md_alg;
     ctx->gost89_alg = gost89_alg;
@@ -451,7 +453,9 @@ void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
  */
 void mbedtls_ecgost_free( mbedtls_ecgost_context *ctx )
 {
-    mbedtls_ecp_keypair_free( &ctx->key );
+    mbedtls_ecp_group_free( &ctx->grp );
+    mbedtls_ecp_point_free( &ctx->Q );
+    mbedtls_mpi_free( &ctx->d );
 }
 
 #endif /* MBEDTLS_ECGOST_C */

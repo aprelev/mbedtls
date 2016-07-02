@@ -519,7 +519,7 @@ static size_t ecgost_get_bitlen( const void *ctx )
      * id-tc26-gost-3410-12-512-paramSetTest is exception,
      * it is 512-bits curve, but has zero MSB.
      */
-    return( ( ( ((mbedtls_ecgost_context *) ctx)->key.grp.nbits + 7 ) >> 3 ) << 3 );
+    return( ( ( ((mbedtls_ecgost_context *) ctx)->grp.nbits + 7 ) >> 3 ) << 3 );
 }
 
 static int ecgost_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
