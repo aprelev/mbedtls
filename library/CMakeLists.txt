@@ -19,6 +19,7 @@ set(src_crypto
     des.c
     dhm.c
     ecdh.c
+    ecdh_gost.c
     ecdsa.c
     ecgost.c
     ecjpake.c

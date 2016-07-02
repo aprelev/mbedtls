@@ -516,6 +516,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ECDH_C)
     "MBEDTLS_ECDH_C",
 #endif /* MBEDTLS_ECDH_C */
+#if defined(MBEDTLS_ECDH_GOST_C)
+    "MBEDTLS_ECDH_GOST_C",
+#endif /* MBEDTLS_ECDH_GOST_C */
 #if defined(MBEDTLS_ECDSA_C)
     "MBEDTLS_ECDSA_C",
 #endif /* MBEDTLS_ECDSA_C */

@@ -1,7 +1,7 @@
 /**
  * \file ecgost.h
  *
- * \brief Elliptic curve GOST algorithms
+ * \brief Elliptic curve GOST sign algorithms
  */
 #ifndef MBEDTLS_ECGOST_H
 #define MBEDTLS_ECGOST_H

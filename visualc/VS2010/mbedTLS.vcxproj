@@ -164,6 +164,7 @@
     <ClInclude Include="..\..\include\mbedtls\des.h" />
     <ClInclude Include="..\..\include\mbedtls\dhm.h" />
     <ClInclude Include="..\..\include\mbedtls\ecdh.h" />
+    <ClInclude Include="..\..\include\mbedtls\ecdh_gost.h" />
     <ClInclude Include="..\..\include\mbedtls\ecdsa.h" />
     <ClInclude Include="..\..\include\mbedtls\ecgost.h" />
     <ClInclude Include="..\..\include\mbedtls\ecjpake.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="..\..\library\des.c" />
     <ClCompile Include="..\..\library\dhm.c" />
     <ClCompile Include="..\..\library\ecdh.c" />
+    <ClCompile Include="..\..\library\ecdh_gost.c" />
     <ClCompile Include="..\..\library\ecdsa.c" />
     <ClCompile Include="..\..\library\ecgost.c" />
     <ClCompile Include="..\..\library\ecjpake.c" />

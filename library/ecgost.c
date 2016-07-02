@@ -1,5 +1,5 @@
 /*
- *  Elliptic curve GOST algorithms
+ *  Elliptic curve GOST sign algorithms
  *
  *  https://tools.ietf.org/html/rfc7091
  */

@@ -1719,6 +1719,22 @@
 #define MBEDTLS_ECDH_C
 
 /**
+ * \def MBEDTLS_ECDH_GOST_C
+ *
+ * Enable the elliptic curve GOST Diffie-Hellman library.
+ *
+ * Module:  library/ecdh_gost.c
+ * Caller:  library/ssl_cli.c
+ *          library/ssl_srv.c
+ *
+ * This module is used by the following key exchanges:
+ *      ECDH-GOST
+ *
+ * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
+ */
+#define MBEDTLS_ECDH_GOST_C
+
+/**
  * \def MBEDTLS_ECDSA_C
  *
  * Enable the elliptic curve DSA library.
