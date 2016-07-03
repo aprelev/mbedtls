@@ -211,31 +211,6 @@ cleanup:
 }
 
 /*
- * Convert a signature (given by context) to ASN.1
- */
-static int gost_signature_to_asn1( size_t n_size, const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                   unsigned char *sig, size_t *slen )
-{
-    int ret;
-    unsigned char buf[MBEDTLS_ECGOST_MAX_LEN];
-    unsigned char *p = buf + sizeof( buf );
-
-    p -= n_size;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( r, p, n_size ) );
-
-    p -= n_size;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( s, p, n_size ) );
-
-    *slen = n_size << 1;
-    memcpy( sig, p, *slen );
-
-    ret = 0;
-
-cleanup:
-    return( ret );
-}
-
-/*
  * Compute and write signature
  */
 int mbedtls_ecgost_write_signature( mbedtls_ecgost_context *ctx,
@@ -245,6 +220,8 @@ int mbedtls_ecgost_write_signature( mbedtls_ecgost_context *ctx,
                            void *p_rng )
 {
     int ret;
+    unsigned char buf[MBEDTLS_ECGOST_MAX_LEN];
+    unsigned char *p = buf + sizeof( buf );
     mbedtls_mpi r, s;
 
     mbedtls_mpi_init( &r );
@@ -254,7 +231,14 @@ int mbedtls_ecgost_write_signature( mbedtls_ecgost_context *ctx,
                          hash, hlen, f_rng, p_rng ) );
 
     /* GOST algorithm can only sign fixed size hash, n_size = hlen */
-    MBEDTLS_MPI_CHK( gost_signature_to_asn1( hlen, &r, &s, sig, slen ) );
+    p -= hlen;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &r, p, hlen ) );
+
+    p -= hlen;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &s, p, hlen ) );
+
+    *slen = hlen << 1;
+    memcpy( sig, p, *slen );
 
 cleanup:
     mbedtls_mpi_free( &r );
