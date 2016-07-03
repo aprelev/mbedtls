@@ -607,46 +607,46 @@ static void ecgost_debug( const void *ctx, mbedtls_pk_debug_item *items )
 const mbedtls_pk_info_t mbedtls_ecgost01_info = {
     MBEDTLS_PK_GOST01,
     "GOST01",
-    ecgost_get_bitlen,     /* Compatible key structures */
+    ecgost_get_bitlen,
     ecgost01_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
     NULL,
     NULL,
-    ecgost_check_pair,   /* Compatible key structures */
+    ecgost_check_pair,
     ecgost01_alloc_wrap,
     ecgost_free_wrap,
-    ecgost_debug,        /* Compatible key structures */
+    ecgost_debug,
 };
 
 const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
     MBEDTLS_PK_GOST12_256,
-    "GOST12_256",
-    ecgost_get_bitlen,     /* Compatible key structures */
+    "GOST256", /* We can't use GOST12_256 because maximum length of this field is 8 */
+    ecgost_get_bitlen,
     ecgost12_256_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
     NULL,
     NULL,
-    ecgost_check_pair,   /* Compatible key structures */
+    ecgost_check_pair,
     ecgost12_256_alloc_wrap,
     ecgost_free_wrap,
-    ecgost_debug,        /* Compatible key structures */
+    ecgost_debug,
 };
 
 const mbedtls_pk_info_t mbedtls_ecgost12_512_info = {
     MBEDTLS_PK_GOST12_512,
-    "GOST12_512",
-    ecgost_get_bitlen,     /* Compatible key structures */
+    "GOST512", /* We can't use GOST12_512 because maximum length of this field is 8 */
+    ecgost_get_bitlen,
     ecgost12_512_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
     NULL,
     NULL,
-    ecgost_check_pair,   /* Compatible key structures */
+    ecgost_check_pair,
     ecgost12_512_alloc_wrap,
     ecgost_free_wrap,
-    ecgost_debug,        /* Compatible key structures */
+    ecgost_debug,
 };
 #endif /* MBEDTLS_ECGOST_C */
 
