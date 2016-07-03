@@ -154,9 +154,9 @@ static int pk_write_ecgost_pubkey( unsigned char **p, unsigned char *start,
 }
 
 /*
- * Write parameters for ECGOST, GOST94 and GOST89 (RFC 4357)
+ * Write parameters for GOST key (RFC 4357)
  */
-static int pk_write_gost_params( unsigned char **p, unsigned char *start,
+static int pk_write_ecgost_params( unsigned char **p, unsigned char *start,
                                 mbedtls_ecgost_context *ctx )
 {
     int ret;
@@ -266,7 +266,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
         mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_256 ||
         mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_512 )
     {
-        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_gost_params( &c, buf, mbedtls_pk_ecgost( *key ) ) );
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ecgost_params( &c, buf, mbedtls_pk_ecgost( *key ) ) );
     }
 #endif
 
@@ -389,7 +389,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OCTET_STRING ) );
 
         /* parameters */
-        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_gost_params( &c, buf, ctx ) );
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ecgost_params( &c, buf, ctx ) );
 
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
                                                                 par_len ) );

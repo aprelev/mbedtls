@@ -539,9 +539,9 @@ static int pk_get_rsapubkey( unsigned char **p,
 
 #if defined(MBEDTLS_ECGOST_C)
 /*
- * Setup parameters for ECGOST, GOST94 and GOST89 (RFC 4357)
+ * Setup parameters for GOST key (RFC 4357)
  */
-static int pk_use_gost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_context *ctx )
+static int pk_use_ecgost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_context *ctx )
 {
     int ret;
     unsigned char *p = (unsigned char *) params->p;
@@ -714,7 +714,7 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
         pk_alg == MBEDTLS_PK_GOST12_256 ||
         pk_alg == MBEDTLS_PK_GOST12_512 )
     {
-        ret = pk_use_gost_params( &alg_params, mbedtls_pk_ecgost( *pk ) );
+        ret = pk_use_ecgost_params( &alg_params, mbedtls_pk_ecgost( *pk ) );
         if( ret == 0 )
             ret = pk_get_ecgost_pubkey( p, end, mbedtls_pk_ecgost( *pk ) );
     } else
@@ -1065,7 +1065,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         pk_alg == MBEDTLS_PK_GOST12_256 ||
         pk_alg == MBEDTLS_PK_GOST12_512 )
     {
-        if( ( ret = pk_use_gost_params( &params, mbedtls_pk_ecgost( *pk ) ) ) != 0 ||
+        if( ( ret = pk_use_ecgost_params( &params, mbedtls_pk_ecgost( *pk ) ) ) != 0 ||
             ( ret = pk_parse_ecgost_key_der( mbedtls_pk_ecgost( *pk ), p, len )  ) != 0 )
         {
             mbedtls_pk_free( pk );

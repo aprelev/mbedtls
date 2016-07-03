@@ -2070,7 +2070,7 @@
  *          library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: MBEDTLS_RSA_C or MBEDTLS_ECP_C
+ * Requires: MBEDTLS_RSA_C or MBEDTLS_ECP_C or MBEDTLS_ECGOST_C
  *
  * Uncomment to enable generic public key wrappers.
  */
