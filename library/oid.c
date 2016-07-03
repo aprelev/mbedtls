@@ -376,15 +376,15 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
     {
         { ADD_LEN( MBEDTLS_OID_GOSTR3411_94_WITH_GOSTR3410_2001 ),  "id-GostR3411-94-with-GostR3410-2001",  "GOST R 34.10-2001 with GOST R 34.11-94" },
-        MBEDTLS_MD_GOST94_CRYPTOPRO, MBEDTLS_PK_ECGOST01,
+        MBEDTLS_MD_GOST94_CRYPTOPRO, MBEDTLS_PK_GOST01,
     },
     {
         { ADD_LEN( MBEDTLS_OID_GOST3410_2012_256 ),                 "id-tc26-gost3410-2012-256",            "GOST R 34.10-2012 (256 bit) with GOST R 34.11-2012 (256 bit)" },
-        MBEDTLS_MD_GOST12_256, MBEDTLS_PK_ECGOST12_256,
+        MBEDTLS_MD_GOST12_256, MBEDTLS_PK_GOST12_256,
     },
     {
         { ADD_LEN( MBEDTLS_OID_GOST3410_2012_512 ),                 "id-tc26-gost3410-2012-512",            "GOST R 34.10-2012 (512 bit) with GOST R 34.11-2012 (512 bit)" },
-        MBEDTLS_MD_GOST12_512, MBEDTLS_PK_ECGOST12_512,
+        MBEDTLS_MD_GOST12_512, MBEDTLS_PK_GOST12_512,
     },
     {
         { NULL, 0, NULL, NULL },
@@ -422,15 +422,15 @@ static const oid_pk_alg_t oid_pk_alg[] =
     },
     {
         { ADD_LEN( MBEDTLS_OID_GOSTR3410_2001 ),        "id-GostR3410-2001",            "GOST R 34.10-2001 key" },
-        MBEDTLS_PK_ECGOST01,
+        MBEDTLS_PK_GOST01,
     },
     {
         { ADD_LEN( MBEDTLS_OID_GOST3410_2012_256 ),     "id-tc26-gost3410-2012-256",    "GOST R 34.10-2012 (256 bit) key" },
-        MBEDTLS_PK_ECGOST12_256,
+        MBEDTLS_PK_GOST12_256,
     },
     {
         { ADD_LEN( MBEDTLS_OID_GOST3410_2012_512 ),     "id-tc26-gost3410-2012-512",    "GOST R 34.10-2012 (512 bit) key" },
-        MBEDTLS_PK_ECGOST12_512,
+        MBEDTLS_PK_GOST12_512,
     },
     {
         { NULL, 0, NULL, NULL },

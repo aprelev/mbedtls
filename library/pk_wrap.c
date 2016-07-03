@@ -499,17 +499,17 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #if defined(MBEDTLS_ECGOST_C)
 static int ecgost01_can_do( mbedtls_pk_type_t type )
 {
-    return( type == MBEDTLS_PK_ECGOST01 );
+    return( type == MBEDTLS_PK_GOST01 );
 }
 
 static int ecgost12_256_can_do( mbedtls_pk_type_t type )
 {
-    return( type == MBEDTLS_PK_ECGOST12_256 );
+    return( type == MBEDTLS_PK_GOST12_256 );
 }
 
 static int ecgost12_512_can_do( mbedtls_pk_type_t type )
 {
-    return( type == MBEDTLS_PK_ECGOST12_512 );
+    return( type == MBEDTLS_PK_GOST12_512 );
 }
 
 static size_t ecgost_get_bitlen( const void *ctx )
@@ -547,6 +547,12 @@ static int ecgost_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     return( mbedtls_ecgost_write_signature( (mbedtls_ecgost_context *) ctx,
                 hash, hash_len, sig, sig_len, f_rng, p_rng ) );
+}
+
+static int ecgost_check_pair( const void *pub, const void *prv )
+{
+    return( mbedtls_ecgost_check_pub_priv( (const mbedtls_ecgost_context *) pub,
+                                (const mbedtls_ecgost_context *) prv ) );
 }
 
 static void *ecgost01_alloc_wrap( void )
@@ -591,49 +597,56 @@ static void ecgost_free_wrap( void *ctx )
     mbedtls_free( ctx );
 }
 
+static void ecgost_debug( const void *ctx, mbedtls_pk_debug_item *items )
+{
+    items->type = MBEDTLS_PK_DEBUG_ECP;
+    items->name = "ecgost.Q";
+    items->value = &( ((mbedtls_ecgost_context *) ctx)->Q );
+}
+
 const mbedtls_pk_info_t mbedtls_ecgost01_info = {
-    MBEDTLS_PK_ECGOST01,
-    "ECGOST01",
+    MBEDTLS_PK_GOST01,
+    "GOST01",
     ecgost_get_bitlen,     /* Compatible key structures */
     ecgost01_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
     NULL,
     NULL,
-    eckey_check_pair,   /* Compatible key structures */
+    ecgost_check_pair,   /* Compatible key structures */
     ecgost01_alloc_wrap,
     ecgost_free_wrap,
-    eckey_debug,        /* Compatible key structures */
+    ecgost_debug,        /* Compatible key structures */
 };
 
 const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
-    MBEDTLS_PK_ECGOST12_256,
-    "ECGOST12_256",
+    MBEDTLS_PK_GOST12_256,
+    "GOST12_256",
     ecgost_get_bitlen,     /* Compatible key structures */
     ecgost12_256_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
     NULL,
     NULL,
-    eckey_check_pair,   /* Compatible key structures */
+    ecgost_check_pair,   /* Compatible key structures */
     ecgost12_256_alloc_wrap,
     ecgost_free_wrap,
-    eckey_debug,        /* Compatible key structures */
+    ecgost_debug,        /* Compatible key structures */
 };
 
 const mbedtls_pk_info_t mbedtls_ecgost12_512_info = {
-    MBEDTLS_PK_ECGOST12_512,
-    "ECGOST12_512",
+    MBEDTLS_PK_GOST12_512,
+    "GOST12_512",
     ecgost_get_bitlen,     /* Compatible key structures */
     ecgost12_512_can_do,
     ecgost_verify_wrap,
     ecgost_sign_wrap,
     NULL,
     NULL,
-    eckey_check_pair,   /* Compatible key structures */
+    ecgost_check_pair,   /* Compatible key structures */
     ecgost12_512_alloc_wrap,
     ecgost_free_wrap,
-    eckey_debug,        /* Compatible key structures */
+    ecgost_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_ECGOST_C */
 

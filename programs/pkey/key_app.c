@@ -212,9 +212,9 @@ int main( int argc, char *argv[] )
         else
 #endif
 #if defined(MBEDTLS_ECGOST_C)
-        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECGOST01     ||
-            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECGOST12_256 ||
-            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECGOST12_512 )
+        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_GOST01     ||
+            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_GOST12_256 ||
+            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_GOST12_512 )
         {
             mbedtls_ecgost_context *ctx = mbedtls_pk_ecgost( pk );
             mbedtls_mpi_write_file( "Q(X): ", &ctx->Q.X, 16, NULL );

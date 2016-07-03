@@ -213,9 +213,9 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
     else
 #endif
 #if defined(MBEDTLS_ECGOST_C)
-    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_512 )
         MBEDTLS_ASN1_CHK_ADD( len, pk_write_ecgost_pubkey( p, start, mbedtls_pk_ecgost( *key ) ) );
     else
 #endif
@@ -262,9 +262,9 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     }
 #endif
 #if defined(MBEDTLS_ECGOST_C)
-    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_512 )
     {
         MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_gost_params( &c, buf, mbedtls_pk_ecgost( *key ) ) );
     }
@@ -362,9 +362,9 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
     else
 #endif /* MBEDTLS_ECP_C */
 #if defined(MBEDTLS_ECGOST_C)
-    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_512 )
     {
         mbedtls_ecgost_context *ctx = mbedtls_pk_ecgost( *key );
         size_t n_size = ( ctx->grp.nbits + 7 ) / 8;
@@ -552,9 +552,9 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_
     else
 #endif
 #if defined(MBEDTLS_ECGOST_C)
-    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST01     ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_256 ||
-        mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECGOST12_512 )
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_512 )
     {
         begin = PEM_BEGIN_PRIVATE_KEY_GOST;
         end = PEM_END_PRIVATE_KEY_GOST;

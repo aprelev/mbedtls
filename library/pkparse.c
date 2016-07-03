@@ -710,7 +710,9 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     } else
 #endif /* MBEDTLS_ECP_C */
 #if defined(MBEDTLS_ECGOST_C)
-    if( pk_alg == MBEDTLS_PK_ECGOST01 || pk_alg == MBEDTLS_PK_ECGOST12_256 || pk_alg == MBEDTLS_PK_ECGOST12_512 )
+    if( pk_alg == MBEDTLS_PK_GOST01     ||
+        pk_alg == MBEDTLS_PK_GOST12_256 ||
+        pk_alg == MBEDTLS_PK_GOST12_512 )
     {
         ret = pk_use_gost_params( &alg_params, mbedtls_pk_ecgost( *pk ) );
         if( ret == 0 )
@@ -1059,7 +1061,9 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     } else
 #endif /* MBEDTLS_ECP_C */
 #if defined(MBEDTLS_ECGOST_C)
-    if( pk_alg == MBEDTLS_PK_ECGOST01 || pk_alg == MBEDTLS_PK_ECGOST12_256 || pk_alg == MBEDTLS_PK_ECGOST12_512 )
+    if( pk_alg == MBEDTLS_PK_GOST01     ||
+        pk_alg == MBEDTLS_PK_GOST12_256 ||
+        pk_alg == MBEDTLS_PK_GOST12_512 )
     {
         if( ( ret = pk_use_gost_params( &params, mbedtls_pk_ecgost( *pk ) ) ) != 0 ||
             ( ret = pk_parse_ecgost_key_der( mbedtls_pk_ecgost( *pk ), p, len )  ) != 0 )
