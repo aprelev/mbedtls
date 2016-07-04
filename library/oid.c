@@ -379,11 +379,11 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_GOST94_CRYPTOPRO, MBEDTLS_PK_GOST01,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_GOST3410_2012_256 ),                 "id-tc26-gost3410-2012-256",            "GOST R 34.10-2012 (256 bit) with GOST R 34.11-2012 (256 bit)" },
+        { ADD_LEN( MBEDTLS_OID_GOST3410_12_256 ),                   "id-tc26-gost3410-2012-256",            "GOST R 34.10-2012 (256 bit) with GOST R 34.11-2012 (256 bit)" },
         MBEDTLS_MD_GOST12_256, MBEDTLS_PK_GOST12_256,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_GOST3410_2012_512 ),                 "id-tc26-gost3410-2012-512",            "GOST R 34.10-2012 (512 bit) with GOST R 34.11-2012 (512 bit)" },
+        { ADD_LEN( MBEDTLS_OID_GOST3410_12_512 ),                   "id-tc26-gost3410-2012-512",            "GOST R 34.10-2012 (512 bit) with GOST R 34.11-2012 (512 bit)" },
         MBEDTLS_MD_GOST12_512, MBEDTLS_PK_GOST12_512,
     },
     {
