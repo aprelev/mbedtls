@@ -250,6 +250,10 @@ X509 CRL Information EC, SHA512 Digest
 depends_on:MBEDTLS_PEM_PARSE_C
 mbedtls_x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
 
+X509 CRL Information GOST01
+depends_on:MBEDTLS_PEM_PARSE_C
+mbedtls_x509_crl_info:"data_files/cryptopro_test_ca.crl":"CRL version   \: 2\nissuer name   \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nthis update   \: 2016-06-30 12\:36\:51\nnext update   \: 2016-07-08 00\:56\:51\nRevoked certificates\:\nserial number\: 12\:00\:10\:01\:59\:47\:B4\:0E\:A1\:84\:45\:96\:BA\:00\:00\:00\:10\:01\:59 revocation date\: 2016-04-21 12\:46\:00\nserial number\: 12\:00\:0C\:C9\:77\:25\:D9\:A8\:15\:BF\:E7\:10\:75\:00\:00\:00\:0C\:C9\:77 revocation date\: 2016-01-28 15\:30\:00\nserial number\: 12\:00\:00\:7C\:DF\:E8\:B1\:00\:7A\:F3\:89\:60\:A6\:00\:00\:00\:00\:7C\:DF revocation date\: 2014-12-08 11\:45\:00\nsigned using  \: GOST R 34.10-2001 with GOST R 34.11-94\n"
+
 X509 CSR Information RSA with MD4
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD4_C
 mbedtls_x509_csr_info:"data_files/server1.req.md4":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
