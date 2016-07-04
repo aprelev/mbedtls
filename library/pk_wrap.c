@@ -606,7 +606,7 @@ static void ecgost_debug( const void *ctx, mbedtls_pk_debug_item *items )
 
 const mbedtls_pk_info_t mbedtls_ecgost01_info = {
     MBEDTLS_PK_GOST01,
-    "GOST01",
+    "GOST",
     ecgost_get_bitlen,
     ecgost01_can_do,
     ecgost_verify_wrap,
@@ -621,7 +621,7 @@ const mbedtls_pk_info_t mbedtls_ecgost01_info = {
 
 const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
     MBEDTLS_PK_GOST12_256,
-    "GOST256", /* We can't use GOST12_256 because maximum length of this field is 8 */
+    "GOST",
     ecgost_get_bitlen,
     ecgost12_256_can_do,
     ecgost_verify_wrap,
@@ -636,7 +636,7 @@ const mbedtls_pk_info_t mbedtls_ecgost12_256_info = {
 
 const mbedtls_pk_info_t mbedtls_ecgost12_512_info = {
     MBEDTLS_PK_GOST12_512,
-    "GOST512", /* We can't use GOST12_512 because maximum length of this field is 8 */
+    "GOST",
     ecgost_get_bitlen,
     ecgost12_512_can_do,
     ecgost_verify_wrap,
