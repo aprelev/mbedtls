@@ -122,6 +122,46 @@ X509 certificate v1 with extension
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
 x509_cert_info:"data_files/cert_v1_with_ext.crt":"cert. version     \: 1\nserial number     \: BD\:ED\:44\:C7\:D2\:3E\:C2\:A4\nissuer name       \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nsubject name      \: C=XX, ST=XX, L=XX, O=XX, OU=XX, emailAddress=admin@identity-check.org, CN=identity-check.org\nissued  on        \: 2013-07-04 16\:17\:02\nexpires on        \: 2014-07-04 16\:17\:02\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nsubject alt name  \: identity-check.org, www.identity-check.org\n"
 
+X509 Certificate information GOST01 GOST256TEST
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED
+x509_cert_info:"data_files/gost01_test.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:35\:95\:3A\:3A\:50\:50\:83\:2D\:BF\:00\:00\:00\:12\:7F\:35\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:24\:36\nexpires on        \: 2016-10-04 16\:34\:36\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST01 GOST256A
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_cert_info:"data_files/gost01_a.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:28\:8E\:54\:FB\:1A\:B8\:3C\:C1\:7B\:00\:00\:00\:12\:7F\:28\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:15\:41\nexpires on        \: 2016-10-04 16\:25\:41\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST01 GOST256B
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256B_ENABLED
+x509_cert_info:"data_files/gost01_b.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:29\:55\:6B\:1F\:50\:09\:82\:EA\:70\:00\:00\:00\:12\:7F\:29\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:16\:28\nexpires on        \: 2016-10-04 16\:26\:28\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST01 GOST256C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256C_ENABLED
+x509_cert_info:"data_files/gost01_c.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:2A\:E2\:3C\:8D\:FF\:1F\:C4\:D9\:4E\:00\:00\:00\:12\:7F\:2A\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:16\:52\nexpires on        \: 2016-10-04 16\:26\:52\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST12_256 GOST256TEST
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED
+x509_cert_info:"data_files/gost12_256_test.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:31\:F5\:3C\:5A\:8C\:E6\:6F\:12\:38\:00\:00\:00\:12\:7F\:31\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:23\:38\nexpires on        \: 2016-10-04 16\:33\:38\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST12_256 GOST256A
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_cert_info:"data_files/gost12_256_a.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:2C\:93\:23\:1A\:FB\:6D\:FC\:C9\:72\:00\:00\:00\:12\:7F\:2C\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:18\:21\nexpires on        \: 2016-10-04 16\:28\:21\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST12_256 GOST256B
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256B_ENABLED
+x509_cert_info:"data_files/gost12_256_b.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:2D\:4A\:F1\:59\:9A\:09\:53\:91\:4D\:00\:00\:00\:12\:7F\:2D\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:18\:46\nexpires on        \: 2016-10-04 16\:28\:46\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST12_256 GOST256C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256C_ENABLED
+x509_cert_info:"data_files/gost12_256_c.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:2E\:E0\:0F\:31\:DB\:7C\:F5\:07\:67\:00\:00\:00\:12\:7F\:2E\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:19\:08\nexpires on        \: 2016-10-04 16\:29\:08\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\n"
+
+X509 Certificate information GOST12_512 GOST512A
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST512A_ENABLED
+x509_cert_info:"data_files/gost12_512_a.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:2F\:9F\:CD\:62\:15\:5F\:8D\:18\:41\:00\:00\:00\:12\:7F\:2F\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:20\:08\nexpires on        \: 2016-10-04 16\:30\:08\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 512 bits\n"
+
+X509 Certificate information GOST12_512 GOST512B
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST512B_ENABLED
+x509_cert_info:"data_files/gost12_512_b.crt":"cert. version     \: 3\nserial number     \: 12\:00\:12\:7F\:30\:88\:07\:55\:88\:CB\:AD\:A1\:C4\:00\:00\:00\:12\:7F\:30\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: CN=Cert, O=mbed TLS, C=UK\nissued  on        \: 2016-07-04 16\:20\:35\nexpires on        \: 2016-10-04 16\:30\:35\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 512 bits\n"
+
 X509 Certificate information GOST01 GOST256A CA
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
 x509_cert_info:"data_files/cryptopro_test_ca.crt":"cert. version     \: 3\nserial number     \: 2B\:6E\:33\:51\:FD\:6E\:B2\:AD\:48\:20\:02\:03\:CB\:5B\:A1\:41\nissuer name       \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nsubject name      \: emailAddress=support@cryptopro.ru, C=RU, L=Moscow, O=CRYPTO-PRO LLC, CN=CRYPTO-PRO Test Center 2\nissued  on        \: 2014-08-05 13\:44\:24\nexpires on        \: 2019-08-05 13\:54\:03\nsigned using      \: GOST R 34.10-2001 with GOST R 34.11-94\nGOST key size     \: 256 bits\nbasic constraints \: CA=true\nkey usage         \: Digital Signature, Key Cert Sign, CRL Sign\n"
