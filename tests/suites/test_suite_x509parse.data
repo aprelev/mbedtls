@@ -671,6 +671,46 @@ X509 Certificate verification #39 (Valid, EC CA, SHA512 Digest)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_SHA256_C:MBEDTLS_SHA512_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 x509_verify:"data_files/server5-sha512.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
 
+X509 Certificate verification #39.1 (Valid, GOST01 GOST256TEST cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost01_test.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.2 (Valid, GOST01 GOST256A cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost01_a.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.3 (Valid, GOST01 GOST256B cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256B_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost01_b.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.4 (Valid, GOST01 GOST256C cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256C_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost01_c.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.5 (Valid, GOST12_256 GOST256TEST cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost12_256_test.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.6 (Valid, GOST12_256 GOST256A cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost12_256_a.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.7 (Valid, GOST12_256 GOST256B cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256B_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost12_256_b.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.8 (Valid, GOST12_256 GOST256C cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST256C_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost12_256_c.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.8 (Valid, GOST12_512 GOST512A cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST512A_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost12_512_a.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
+X509 Certificate verification #39.8 (Valid, GOST12_512 GOST512B cert, GOST01 GOST256A CA, GOST94 Digest)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_GOST94_C:MBEDTLS_ECP_DP_GOST512B_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost12_512_b.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
+
 X509 Certificate verification #40 (Valid, depth 0, RSA, CA)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
 x509_verify:"data_files/test-ca.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"NULL"
@@ -678,6 +718,10 @@ x509_verify:"data_files/test-ca.crt":"data_files/test-ca.crt":"data_files/crl.pe
 X509 Certificate verification #41 (Valid, depth 0, EC, CA)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA256_C
 x509_verify:"data_files/test-ca2.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"NULL"
+
+X509 Certificate verification #41.1 (Valid, depth 0, GOST01, CA)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256A_ENABLED:MBEDTLS_GOST94_C
+x509_verify:"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":0:0:"NULL"
 
 X509 Certificate verification #42 (Depth 0, not CA, RSA)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -694,6 +738,10 @@ x509_verify:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":"data_fil
 X509 Certificate verification #45 (Corrupted signature, RSA)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/server2-badsign.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"NULL"
+
+X509 Certificate verification #45.1 (Corrupted signature, GOST01)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECGOST_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED:MBEDTLS_ECP_DP_GOST256A_ENABLED
+x509_verify:"data_files/gost01_test-badsign.crt":"data_files/cryptopro_test_ca.crt":"data_files/cryptopro_test_ca.crl":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"NULL"
 
 X509 Certificate verification #46 (Valid, depth 2, EC-RSA-EC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C
