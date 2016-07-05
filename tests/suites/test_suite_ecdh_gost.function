@@ -1,0 +1,149 @@
+/* BEGIN_HEADER */
+#include "mbedtls/ecdh_gost.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_ECDH_GOST_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void ecdh_gost_primitive_random( int id )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point qA, qB, pA, pB;
+    mbedtls_mpi dA, dB, ukm;
+    rnd_pseudo_info rnd_info;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &qA ); mbedtls_ecp_point_init( &qB );
+    mbedtls_ecp_point_init( &pA ); mbedtls_ecp_point_init( &pB );
+    mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &dB ); mbedtls_mpi_init( &ukm );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( mbedtls_mpi_lset( &ukm, 1 ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &grp, &dA, &qA, &rnd_pseudo_rand, &rnd_info )
+                 == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &grp, &dB, &qB, &rnd_pseudo_rand, &rnd_info )
+                 == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gost_compute_shared( &grp, &pA, &qB, &dA, &ukm,
+                                      &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gost_compute_shared( &grp, &pB, &qA, &dB, &ukm,
+                                      NULL, NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecp_point_cmp( &pA, &pB ) == 0 );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &qA ); mbedtls_ecp_point_free( &qB );
+    mbedtls_ecp_point_free( &pA ); mbedtls_ecp_point_free( &pB );
+    mbedtls_mpi_free( &dA ); mbedtls_mpi_free( &dB ); mbedtls_mpi_free( &ukm ); 
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
+                             char *dA_str, char *xA_str, char *yA_str,
+                             char *dB_str, char *xB_str, char *yB_str,
+                             char *secret_str )
+{
+    unsigned char ukm[100];
+    unsigned char secret[100];
+    unsigned char output[100];
+    unsigned char rnd_buf_A[MBEDTLS_ECP_MAX_BYTES];
+    unsigned char rnd_buf_B[MBEDTLS_ECP_MAX_BYTES];
+    rnd_buf_info rnd_info_A, rnd_info_B;
+    mbedtls_ecdh_gost_context ctxA, ctxB;
+    mbedtls_mpi check;
+    size_t secret_len, olen;
+
+    memset( ukm, 0x00, sizeof( ukm ) );
+    memset( secret, 0x00, sizeof( secret ) );
+    memset( output, 0x00, sizeof( output ) );
+
+    mbedtls_ecdh_gost_init( &ctxA, md_alg );
+    mbedtls_ecdh_gost_init( &ctxB, md_alg );
+    mbedtls_mpi_init( &check );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &ctxA.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &ctxB.grp, id ) == 0 );
+
+    TEST_ASSERT( unhexify( ukm, ukm_str ) == 8 );
+
+    rnd_info_A.buf = rnd_buf_A;
+    rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
+
+    /* Fix rnd_buf_A by shifting it left if necessary */
+    if( ctxA.grp.nbits % 8 != 0 )
+    {
+        unsigned char shift = 8 - ( ctxA.grp.nbits % 8 );
+        size_t i;
+
+        for( i = 0; i < rnd_info_A.length - 1; i++ )
+            rnd_buf_A[i] = rnd_buf_A[i] << shift
+                         | rnd_buf_A[i+1] >> ( 8 - shift );
+
+        rnd_buf_A[rnd_info_A.length-1] <<= shift;
+    }
+
+    rnd_info_B.buf = rnd_buf_B;
+    rnd_info_B.length = unhexify( rnd_buf_B, dB_str );
+
+    /* Fix rnd_buf_B by shifting it left if necessary */
+    if( ctxB.grp.nbits % 8 != 0 )
+    {
+        unsigned char shift = 8 - ( ctxB.grp.nbits % 8 );
+        size_t i;
+
+        for( i = 0; i < rnd_info_B.length - 1; i++ )
+            rnd_buf_B[i] = rnd_buf_B[i] << shift
+                         | rnd_buf_B[i+1] >> ( 8 - shift );
+
+        rnd_buf_B[rnd_info_B.length-1] <<= shift;
+    }
+
+    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &ctxA.grp, &ctxA.d, &ctxA.Q,
+                                  rnd_buffer_rand, &rnd_info_A ) == 0 );
+    TEST_ASSERT( ! mbedtls_ecp_is_zero( &ctxA.Q ) );
+    TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, xA_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxA.Q.X, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, yA_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxA.Q.Y, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &ctxA.Q.Z, 1 ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxB.Qp.X, &ctxA.Q.X) == 0 );
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxB.Qp.Y, &ctxA.Q.Y) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &ctxB.Qp.Z, 1 ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &ctxB.grp, &ctxB.d, &ctxB.Q,
+                                  rnd_buffer_rand, &rnd_info_B ) == 0 );
+    TEST_ASSERT( ! mbedtls_ecp_is_zero( &ctxB.Q ) );
+    TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, xB_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxB.Q.X, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, yB_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxB.Q.Y, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &ctxB.Q.Z, 1 ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxA.Qp.X, &ctxB.Q.X) == 0 );
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxA.Qp.Y, &ctxB.Q.Y) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &ctxA.Qp.Z, 1 ) == 0 );
+
+    secret_len = unhexify( secret, secret_str );
+
+    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxA, ukm, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
+    TEST_ASSERT( secret_len == olen );
+    TEST_ASSERT( memcmp( secret, output, secret_len ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxB, ukm, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
+    TEST_ASSERT( secret_len == olen );
+    TEST_ASSERT( memcmp( secret, output, secret_len ) == 0 );
+
+exit:
+    mbedtls_ecdh_gost_free( &ctxA );
+    mbedtls_ecdh_gost_free( &ctxB );
+    mbedtls_mpi_free( &check );
+}
+/* END_CASE */

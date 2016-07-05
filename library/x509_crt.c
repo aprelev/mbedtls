@@ -91,7 +91,10 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
-    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_GOST94_CRYPTOPRO ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_GOST12_256 ) |
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_GOST12_512 ),
     0xFFFFFFF, /* Any PK alg    */
     0xFFFFFFF, /* Any curve     */
     2048,
@@ -192,6 +195,20 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
         pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
         mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
+
+        if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
+            return( 0 );
+
+        return( -1 );
+    }
+#endif
+
+#if defined(MBEDTLS_ECGOST_C)
+    if( pk_alg == MBEDTLS_PK_GOST01     ||
+        pk_alg == MBEDTLS_PK_GOST12_256 ||
+        pk_alg == MBEDTLS_PK_GOST12_512 )
+    {
+        mbedtls_ecp_group_id gid = mbedtls_pk_ecgost( *pk )->grp.id;
 
         if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
             return( 0 );

@@ -14,6 +14,7 @@ pkey/dh_genprime
 pkey/dh_server
 pkey/ecdsa
 pkey/ecdh_curve25519
+pkey/ecgost
 pkey/gen_key
 pkey/key_app
 pkey/key_app_writer

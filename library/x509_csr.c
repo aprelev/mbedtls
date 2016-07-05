@@ -96,7 +96,8 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
 {
     int ret;
     size_t len;
-    unsigned char *p, *end;
+    unsigned char *p, *end, *begin_hash, *end_hash;
+    unsigned char hash[64];
     mbedtls_x509_buf sig_params;
 
     memset( &sig_params, 0, sizeof( mbedtls_x509_buf ) );
@@ -143,6 +144,8 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
         return( MBEDTLS_ERR_X509_INVALID_FORMAT +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
+
+    begin_hash = p;
 
     /*
      *  CertificationRequestInfo ::= SEQUENCE {
@@ -226,6 +229,8 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
 
     end = csr->raw.p + csr->raw.len;
 
+    end_hash = p;
+
     /*
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signature            BIT STRING
@@ -247,6 +252,17 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     if( ( ret = mbedtls_x509_get_sig( &p, end, &csr->sig ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
+        return( ret );
+    }
+
+    /*
+     * Verify signature
+     */
+    mbedtls_md( mbedtls_md_info_from_type( csr->sig_md ), begin_hash, end_hash - begin_hash, hash );
+
+    if( ( ret = mbedtls_pk_verify_ext( csr->sig_pk, csr->sig_opts, &csr->pk,
+                                  csr->sig_md, hash, 0, csr->sig.p, csr->sig.len ) ) != 0 )
+    {
         return( ret );
     }
 

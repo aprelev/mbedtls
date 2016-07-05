@@ -232,6 +232,7 @@
 //#define MBEDTLS_CAMELLIA_ALT
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_XTEA_ALT
+//#define MBEDTLS_GOST89_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
 //#define MBEDTLS_MD5_ALT
@@ -239,6 +240,8 @@
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
+//#define MBEDTLS_GOST94_ALT
+//#define MBEDTLS_GOST12_ALT
 
 /**
  * \def MBEDTLS_MD2_PROCESS_ALT
@@ -270,6 +273,9 @@
 //#define MBEDTLS_SHA1_PROCESS_ALT
 //#define MBEDTLS_SHA256_PROCESS_ALT
 //#define MBEDTLS_SHA512_PROCESS_ALT
+//#define MBEDTLS_GOST89_MAC_PROCESS_ALT
+//#define MBEDTLS_GOST94_PROCESS_ALT
+//#define MBEDTLS_GOST12_PROCESS_ALT
 //#define MBEDTLS_DES_SETKEY_ALT
 //#define MBEDTLS_DES_CRYPT_ECB_ALT
 //#define MBEDTLS_DES3_CRYPT_ECB_ALT
@@ -277,6 +283,8 @@
 //#define MBEDTLS_AES_SETKEY_DEC_ALT
 //#define MBEDTLS_AES_ENCRYPT_ALT
 //#define MBEDTLS_AES_DECRYPT_ALT
+//#define MBEDTLS_GOST89_ENCRYPT_ALT
+//#define MBEDTLS_GOST89_DECRYPT_ALT
 
 /**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT
@@ -427,6 +435,13 @@
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
 #define MBEDTLS_ECP_DP_BP512R1_ENABLED
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
+#define MBEDTLS_ECP_DP_GOST256TEST_ENABLED
+#define MBEDTLS_ECP_DP_GOST256A_ENABLED
+#define MBEDTLS_ECP_DP_GOST256B_ENABLED
+#define MBEDTLS_ECP_DP_GOST256C_ENABLED
+#define MBEDTLS_ECP_DP_GOST512TEST_ENABLED
+#define MBEDTLS_ECP_DP_GOST512A_ENABLED
+#define MBEDTLS_ECP_DP_GOST512B_ENABLED
 
 /**
  * \def MBEDTLS_ECP_NIST_OPTIM
@@ -1704,6 +1719,22 @@
 #define MBEDTLS_ECDH_C
 
 /**
+ * \def MBEDTLS_ECDH_GOST_C
+ *
+ * Enable the elliptic curve GOST Diffie-Hellman library.
+ *
+ * Module:  library/ecdh_gost.c
+ * Caller:  library/ssl_cli.c
+ *          library/ssl_srv.c
+ *
+ * This module is used by the following key exchanges:
+ *      ECDH-GOST
+ *
+ * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
+ */
+#define MBEDTLS_ECDH_GOST_C
+
+/**
  * \def MBEDTLS_ECDSA_C
  *
  * Enable the elliptic curve DSA library.
@@ -1717,6 +1748,18 @@
  * Requires: MBEDTLS_ECP_C, MBEDTLS_ASN1_WRITE_C, MBEDTLS_ASN1_PARSE_C
  */
 #define MBEDTLS_ECDSA_C
+
+/**
+ * \def MBEDTLS_ECGOST_C
+ *
+ * Enable the elliptic curve GOST library.
+ *
+ * Module:  library/ecgost.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_ECP_C, MBEDTLS_ASN1_WRITE_C, MBEDTLS_ASN1_PARSE_C
+ */
+#define MBEDTLS_ECGOST_C
 
 /**
  * \def MBEDTLS_ECJPAKE_C
@@ -2027,7 +2070,7 @@
  *          library/ssl_cli.c
  *          library/ssl_srv.c
  *
- * Requires: MBEDTLS_RSA_C or MBEDTLS_ECP_C
+ * Requires: MBEDTLS_RSA_C or MBEDTLS_ECP_C or MBEDTLS_ECGOST_C
  *
  * Uncomment to enable generic public key wrappers.
  */

@@ -372,6 +372,198 @@
  *   ecdsa-with-SHA2(3) 4 } */
 #define MBEDTLS_OID_ECDSA_SHA512            MBEDTLS_OID_ANSI_X9_62_SIG_SHA2 "\x04"
 
+/*
+ * GOST identifiers, from RFC 4357 and https://www.tc26.ru/methods/OID_TK_26/
+ */
+#define MBEDTLS_OID_COUNTRY_RU                          "\x85\x03"      /* {ru(643)} */
+#define MBEDTLS_OID_RANS                                "\x02"          /* {rans(2)} */
+#define MBEDTLS_OID_ROSSTANDART                         "\x07"          /* {rosstandart(7)} */
+
+/*
+ * Common identifiers
+ */
+
+/*
+ * id-CryptoPro-algorithms OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) ru(643) rans(2) cryptopro(2) } */
+#define MBEDTLS_OID_CRYPTOPRO_ALGORITHMS                MBEDTLS_OID_ISO_MEMBER_BODIES \
+                                                        MBEDTLS_OID_COUNTRY_RU MBEDTLS_OID_RANS "\x02"
+
+/*
+ * id-tc26 OBJECT IDENTIFIER ::= {
+ *   iso(1) member-body(2) ru(643) rosstandart(7) tc26(1) } */
+#define MBEDTLS_OID_TC26                                MBEDTLS_OID_ISO_MEMBER_BODIES \
+                                                        MBEDTLS_OID_COUNTRY_RU MBEDTLS_OID_ROSSTANDART "\x01"
+/*
+ * id-tc26-algorithms OBJECT IDENTIFIER ::= {
+ *   id-tc26 algorithms(1) } */
+#define MBEDTLS_OID_TC26_ALGORITHMS                     MBEDTLS_OID_TC26 "\x01"
+/*
+ * id-tc26-constants OBJECT IDENTIFIER ::= {
+ *   id-tc26 constants(2) } */
+#define MBEDTLS_OID_TC26_CONSTANTS                      MBEDTLS_OID_TC26 "\x02"
+
+/*
+ * Digest identifiers
+ */
+
+/*
+ * id-CryptoPro-hashes OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms hashes(30) } */
+#define MBEDTLS_OID_CRYPTOPRO_HASHES                    MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x1e"
+/*
+ * id-GostR3411-94-TestParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-hashes test(0) } */
+#define MBEDTLS_OID_DIGEST_ALG_GOST94_TEST              MBEDTLS_OID_CRYPTOPRO_HASHES "\x00"
+/*
+ * id-GostR3411-94-CryptoProParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-hashes cryptopro(1) } */
+#define MBEDTLS_OID_DIGEST_ALG_GOST94_CRYPTOPRO         MBEDTLS_OID_CRYPTOPRO_HASHES "\x01"
+
+/*
+ * id-tc26-digest OBJECT IDENTIFIER ::= {
+ *   id-tc26-algorithms digest(2) } */
+#define MBEDTLS_OID_TC26_DIGEST                         MBEDTLS_OID_TC26_ALGORITHMS "\x02"
+/*
+ * id-tc26-gost3411-2012-256 OBJECT IDENTIFIER ::= {
+ *   id-tc26-digest gost3411-2012-256(2) } */
+#define MBEDTLS_OID_DIGEST_ALG_GOST12_256               MBEDTLS_OID_TC26_DIGEST "\x02"
+/*
+ * id-tc26-gost3411-2012-512 OBJECT IDENTIFIER ::= {
+ *   id-tc26-digest gost3411-2012-512(3) } */
+#define MBEDTLS_OID_DIGEST_ALG_GOST12_512               MBEDTLS_OID_TC26_DIGEST "\x03"
+
+/*
+ * Cipher identifiers
+ */
+
+/*
+ * id-CryptoPro-encrypts OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms encrypts(31) } */
+#define MBEDTLS_OID_CRYPTOPRO_ENCRYPTS                  MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x1f"
+/*
+ * id-Gost28147-89-TestParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-encrypts test(0) } */
+#define MBEDTLS_OID_GOST89_TEST                         MBEDTLS_OID_CRYPTOPRO_ENCRYPTS "\x00"
+/*
+ * id-Gost28147-89-CryptoPro-A-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-encrypts cryptopro-A(1) } */
+#define MBEDTLS_OID_GOST89_A                            MBEDTLS_OID_CRYPTOPRO_ENCRYPTS "\x01"
+
+/*
+ * id-tc26-cipher-constants OBJECT IDENTIFIER ::= {
+ *   id-tc26-constants cipher(5) } */
+#define MBEDTLS_OID_TC26_CIPHER_CONSTANTS               MBEDTLS_OID_TC26_CONSTANTS "\x05"
+/*
+ * id-tc26-gost-28147-constants OBJECT IDENTIFIER ::= {
+ *   id-tc26-cipher-constants gost-28147(1) } */
+#define MBEDTLS_OID_TC26_GOST28147_CONSTANTS            MBEDTLS_OID_TC26_CIPHER_CONSTANTS "\x01"
+/*
+ * id-tc26-gost-28147-param-Z OBJECT IDENTIFIER ::= {
+ *   id-tc26-gost-28147-constants param-Z(1) } */
+#define MBEDTLS_OID_GOST89_Z                            MBEDTLS_OID_TC26_GOST28147_CONSTANTS "\x01"
+
+/*
+ * Sign identifiers
+ */
+
+/*
+ * id-CryptoPro-ecc-signs OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms ecc-signs(35) } */
+#define MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS                 MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x23"
+/*
+ * id-GostR3410-2001-TestParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs test(0) } */
+#define MBEDTLS_OID_EC_GRP_GOST256TEST                  MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x00"
+/*
+ * id-GostR3410-2001-CryptoPro-A-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs cryptopro-A(1) } */
+#define MBEDTLS_OID_EC_GRP_GOST256A                     MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x01"
+/*
+ * id-GostR3410-2001-CryptoPro-B-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs cryptopro-B(2) } */
+#define MBEDTLS_OID_EC_GRP_GOST256B                     MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x02"
+/*
+ * id-GostR3410-2001-CryptoPro-C-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-signs cryptopro-C(3) } */
+#define MBEDTLS_OID_EC_GRP_GOST256C                     MBEDTLS_OID_CRYPTOPRO_ECC_SIGNS "\x03"
+/*
+ * id-CryptoPro-ecc-exchanges OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms ecc-exchanges(36) } */
+#define MBEDTLS_OID_CRYPTOPRO_ECC_EXCHANGES             MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x24"
+/*
+ * id-GostR3410-2001-CryptoPro-XchA-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-exchanges cryptopro-XchA(0) } */
+#define MBEDTLS_OID_EC_GRP_GOST256A_ALT                 MBEDTLS_OID_CRYPTOPRO_ECC_EXCHANGES "\x00"
+/*
+ * id-GostR3410-2001-CryptoPro-XchB-ParamSet OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-ecc-exchanges cryptopro-XchB(1) } */
+#define MBEDTLS_OID_EC_GRP_GOST256C_ALT                 MBEDTLS_OID_CRYPTOPRO_ECC_EXCHANGES "\x01"
+
+/*
+ * id-tc26-sign-constants OBJECT IDENTIFIER ::= {
+ *   id-tc26-constants sign(1) } */
+#define MBEDTLS_OID_TC26_SIGN_CONSTANTS                 MBEDTLS_OID_TC26_CONSTANTS "\x01"
+/*
+ * id-tc26-gost-3410-12-512-constants OBJECT IDENTIFIER ::= {
+ *   id-tc26-sign-constants gost-3410-12-512(2) } */
+#define MBEDTLS_OID_TC26_GOST3410_12_512_CONSTANTS      MBEDTLS_OID_TC26_SIGN_CONSTANTS "\x02"
+/*
+ * id-tc26-gost-3410-12-512-paramSetTest OBJECT IDENTIFIER ::= {
+ *   id-tc26-gost-3410-12-512-constants paramSetTest(0) } */
+#define MBEDTLS_OID_EC_GRP_GOST512TEST                  MBEDTLS_OID_TC26_GOST3410_12_512_CONSTANTS "\x00"
+/*
+ * id-tc26-gost-3410-12-512-paramSetA OBJECT IDENTIFIER ::= {
+ *   id-tc26-gost-3410-12-512-constants paramSetA(1) } */
+#define MBEDTLS_OID_EC_GRP_GOST512A                     MBEDTLS_OID_TC26_GOST3410_12_512_CONSTANTS "\x01"
+/*
+ * id-tc26-gost-3410-12-512-paramSetB OBJECT IDENTIFIER ::= {
+ *   id-tc26-gost-3410-12-512-constants paramSetB(2) } */
+#define MBEDTLS_OID_EC_GRP_GOST512B                     MBEDTLS_OID_TC26_GOST3410_12_512_CONSTANTS "\x02"
+
+/*
+ * Sign with digest identifiers
+ */
+
+/*
+ * id-GostR3411-94-with-GostR3410-2001 OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms gostR3411-94-with-gostR3410-2001(3) } */
+#define MBEDTLS_OID_GOSTR3411_94_WITH_GOSTR3410_2001    MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x03"
+
+/*
+ * id-tc26-signwithdigest OBJECT IDENTIFIER ::= {
+ *   id-tc26-algorithms signwithdigest(3) } */
+#define MBEDTLS_OID_TC26_SIGN_WITH_DIGEST               MBEDTLS_OID_TC26_ALGORITHMS "\x03"
+/*
+ * id-tc26-signwithdigest-gost3410-12-256 OBJECT IDENTIFIER ::= {
+ *   id-tc26-signwithdigest gost3410-12-256(2) } */
+#define MBEDTLS_OID_GOST3410_12_256                     MBEDTLS_OID_TC26_SIGN_WITH_DIGEST "\x02"
+/*
+ * id-tc26-signwithdigest-gost3410-12-512 OBJECT IDENTIFIER ::= {
+ *   id-tc26-signwithdigest gost3410-12-512(3) } */
+#define MBEDTLS_OID_GOST3410_12_512                     MBEDTLS_OID_TC26_SIGN_WITH_DIGEST "\x03"
+
+/*
+ * Public key identifiers
+ */
+/*
+ * id-GostR3410-2001 OBJECT IDENTIFIER ::= {
+ *   id-CryptoPro-algorithms gostR3410-2001(19) } */
+#define MBEDTLS_OID_GOSTR3410_2001                      MBEDTLS_OID_CRYPTOPRO_ALGORITHMS "\x13"
+
+/*
+ * id-tc26-sign OBJECT IDENTIFIER ::= {
+ *   id-tc26-algorithms sign(1) } */
+#define MBEDTLS_OID_TC26_SIGN                           MBEDTLS_OID_TC26_ALGORITHMS "\x01"
+/*
+ * id-tc26-gost3410-2012-256 OBJECT IDENTIFIER ::= {
+ *   id-tc26-sign gost3410-2012-256(1) } */
+#define MBEDTLS_OID_GOST3410_2012_256                   MBEDTLS_OID_TC26_SIGN "\x01"
+/*
+ * id-tc26-gost3410-2012-512 OBJECT IDENTIFIER ::= {
+ *   id-tc26-sign gost3410-2012-512(2) } */
+#define MBEDTLS_OID_GOST3410_2012_512                   MBEDTLS_OID_TC26_SIGN "\x02"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -562,6 +754,76 @@ int mbedtls_oid_get_cipher_alg( const mbedtls_asn1_buf *oid, mbedtls_cipher_type
 int mbedtls_oid_get_pkcs12_pbe_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_alg,
                             mbedtls_cipher_type_t *cipher_alg );
 #endif /* MBEDTLS_PKCS12_C */
+
+#if defined(MBEDTLS_ECGOST_C)
+/**
+ * \brief          Translate GOST curve OID into an EC group identifier
+ *
+ * \param oid      OID to use
+ * \param grp_id   place to store group id
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_ecgost_grp( const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *grp_id );
+
+/**
+ * \brief          Translate EC group identifier into GOST curve OID
+ *
+ * \param grp_id   EC group identifier
+ * \param oid      place to store ASN.1 OID string pointer
+ * \param olen     length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_oid_by_ecgost_grp( mbedtls_ecp_group_id grp_id,
+                           const char **oid, size_t *olen );
+#endif /* MBEDTLS_ECGOST_C */
+
+#if defined(MBEDTLS_GOST94_C) || defined(MBEDTLS_GOST12_C)
+/**
+ * \brief          Translate GOST hash algorithm OID into md_type
+ *
+ * \param oid            OID to use
+ * \param gost_md_alg    place to store message digest algorithm
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_gost_md_alg( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *gost_md_alg );
+
+/**
+ * \brief          Translate GOST md_type into hash algorithm OID
+ *
+ * \param gost_md_alg   message digest algorithm
+ * \param oid           place to store ASN.1 OID string pointer
+ * \param olen          length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_oid_by_gost_md( mbedtls_md_type_t gost_md_alg, const char **oid, size_t *olen );
+#endif /* MBEDTLS_GOST94_C */
+
+#if defined(MBEDTLS_GOST89_C)
+/**
+ * \brief          Translate GOST89 encryption algorithm OID into cipher_id
+ *
+ * \param oid           OID to use
+ * \param gost89_alg    place to store cipher algorithm
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_gost89_alg( const mbedtls_asn1_buf *oid, mbedtls_cipher_id_t *gost89_alg );
+
+/**
+ * \brief          Translate GOST89 cipher_id into encryption algorithm OID
+ *
+ * \param gost89_alg   cipher algorithm
+ * \param oid          place to store ASN.1 OID string pointer
+ * \param olen         length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_oid_by_gost89( mbedtls_cipher_id_t gost89_alg, const char **oid, size_t *olen );
+#endif /* MBEDTLS_GOST89_C */
 
 #ifdef __cplusplus
 }

@@ -70,7 +70,9 @@ int main( void )
 #include "mbedtls/rsa.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/ecdsa.h"
+#include "mbedtls/ecgost.h"
 #include "mbedtls/ecdh.h"
+#include "mbedtls/ecdh_gost.h"
 #include "mbedtls/error.h"
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -91,13 +93,13 @@ int main( void )
 
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
-#define TITLE_LEN       25
+#define TITLE_LEN       50
 
 #define OPTIONS                                                                 \
     "md4, md5, ripemd160, sha1, sha256, sha512, gost94, gost12,\n"              \
     "arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,\n" \
     "havege, ctr_drbg, hmac_drbg\n"                                             \
-    "rsa, dhm, ecdsa, ecdh.\n"
+    "rsa, dhm, ecdsa, ecgost, ecdh, ecdh_gost.\n"
 
 #if defined(MBEDTLS_ERROR_C)
 #define PRINT_ERROR                                                     \
@@ -239,7 +241,7 @@ typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512, gost94, gost12,
          arc4, des3, des, aes_cbc, aes_gcm, aes_ccm, camellia, blowfish, gost89,
          havege, ctr_drbg, hmac_drbg,
-         rsa, dhm, ecdsa, ecdh;
+         rsa, dhm, ecdsa, ecgost, ecdh, ecdh_gost;
 } todo_list;
 
 int main( int argc, char *argv[] )
@@ -308,8 +310,12 @@ int main( int argc, char *argv[] )
                 todo.dhm = 1;
             else if( strcmp( argv[i], "ecdsa" ) == 0 )
                 todo.ecdsa = 1;
+            else if( strcmp( argv[i], "ecgost" ) == 0 )
+                todo.ecgost = 1;
             else if( strcmp( argv[i], "ecdh" ) == 0 )
                 todo.ecdh = 1;
+            else if( strcmp( argv[i], "ecdh_gost" ) == 0 )
+                todo.ecdh_gost = 1;
             else
             {
                 mbedtls_printf( "Unrecognized option: %s\n", argv[i] );
@@ -535,6 +541,30 @@ int main( int argc, char *argv[] )
         mbedtls_gost89_free( &gost89 );
     }
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    if( todo.gost89 )
+    {
+        unsigned char iv[8];
+        size_t iv_offset = 0;
+
+        mbedtls_gost89_context gost89;
+        mbedtls_gost89_init( &gost89, MBEDTLS_GOST89_SBOX_TEST,
+                             MBEDTLS_GOST89_KEY_MESHING_NONE );
+
+        mbedtls_snprintf( title, sizeof( title ), "GOST89-TEST-CFB64" );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+        memset( iv, 0, sizeof( iv ) );
+        mbedtls_gost89_setkey( &gost89, tmp );
+
+        TIME_AND_TSC( title,
+                mbedtls_gost89_crypt_cfb64( &gost89, MBEDTLS_GOST89_ENCRYPT,
+                    BUFSIZE, &iv_offset, iv, buf, buf ) );
+
+        mbedtls_gost89_free( &gost89 );
+    }
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     if( todo.gost89 )
     {
@@ -568,7 +598,7 @@ int main( int argc, char *argv[] )
         memset( key, 0, sizeof( key ) );
 
         TIME_AND_TSC( "GOST89-TEST-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, key,
-                                                          buf, BUFSIZE, tmp ) );
+                                                          buf, buf, BUFSIZE, tmp ) );
     }
 #endif
 
@@ -737,7 +767,7 @@ int main( int argc, char *argv[] )
         memset( buf, 0x2A, sizeof( buf ) );
 
         for( curve_info = mbedtls_ecp_curve_list();
-             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+             curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST;
              curve_info++ )
         {
             mbedtls_ecdsa_init( &ecdsa );
@@ -756,7 +786,7 @@ int main( int argc, char *argv[] )
         }
 
         for( curve_info = mbedtls_ecp_curve_list();
-             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+             curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST;
              curve_info++ )
         {
             mbedtls_ecdsa_init( &ecdsa );
@@ -780,6 +810,61 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if defined(MBEDTLS_ECGOST_C)
+    if( todo.ecgost )
+    {
+        mbedtls_ecgost_context ecgost;
+        const mbedtls_ecp_curve_info *curve_info;
+        size_t sig_len;
+
+        memset( buf, 0x2A, sizeof( buf ) );
+
+        curve_info = mbedtls_ecp_curve_list();
+        while( curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST )
+            curve_info++;
+        for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
+        {
+            mbedtls_ecgost_init( &ecgost, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
+
+            if( mbedtls_ecgost_genkey( &ecgost, curve_info->grp_id, myrand, NULL ) != 0 )
+                mbedtls_exit( 1 );
+            ecp_clear_precomputed( &ecgost.grp );
+
+            mbedtls_snprintf( title, sizeof( title ), "ECGOST-%s",
+                                              curve_info->name );
+            TIME_PUBLIC( title, "sign",
+                    ret = mbedtls_ecgost_write_signature( &ecgost, buf, curve_info->bit_size >> 3,
+                                                tmp, &sig_len, myrand, NULL ) );
+
+            mbedtls_ecgost_free( &ecgost );
+        }
+
+        curve_info = mbedtls_ecp_curve_list();
+        while( curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST )
+            curve_info++;
+        for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
+        {
+            mbedtls_ecgost_init( &ecgost, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
+
+            if( mbedtls_ecgost_genkey( &ecgost, curve_info->grp_id, myrand, NULL ) != 0 ||
+                mbedtls_ecgost_write_signature( &ecgost, buf, curve_info->bit_size >> 3,
+                                               tmp, &sig_len, myrand, NULL ) != 0 )
+            {
+                mbedtls_exit( 1 );
+            }
+            ecp_clear_precomputed( &ecgost.grp );
+
+            mbedtls_snprintf( title, sizeof( title ), "ECGOST-%s",
+                                              curve_info->name );
+            TIME_PUBLIC( title, "verify",
+                    ret = mbedtls_ecgost_read_signature( &ecgost, buf, curve_info->bit_size >> 3,
+                                                tmp, sig_len ) );
+
+            mbedtls_ecgost_free( &ecgost );
+        }
+    }
+#endif
+
 #if defined(MBEDTLS_ECDH_C)
     if( todo.ecdh )
     {
@@ -791,7 +876,7 @@ int main( int argc, char *argv[] )
         size_t olen;
 
         for( curve_info = mbedtls_ecp_curve_list();
-             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+             curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST;
              curve_info++ )
         {
             mbedtls_ecdh_init( &ecdh );
@@ -837,7 +922,7 @@ int main( int argc, char *argv[] )
 #endif
 
         for( curve_info = mbedtls_ecp_curve_list();
-             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+             curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST;
              curve_info++ )
         {
             mbedtls_ecdh_init( &ecdh );
@@ -881,6 +966,79 @@ int main( int argc, char *argv[] )
         mbedtls_ecdh_free( &ecdh );
         mbedtls_mpi_free( &z );
 #endif
+    }
+#endif
+
+#if defined(MBEDTLS_ECDH_GOST_C)
+    if( todo.ecdh_gost )
+    {
+        mbedtls_ecdh_gost_context ecdh_gost;
+        const mbedtls_ecp_curve_info *curve_info;
+        unsigned char ukm[8];
+        size_t olen;
+
+        memset( ukm, 0x2A, sizeof( ukm ) );
+
+        curve_info = mbedtls_ecp_curve_list();
+        while( curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST )
+            curve_info++;
+        for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
+        {
+            if( curve_info->bit_size == 256 )
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_256 );
+            else
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512 );
+
+            if( mbedtls_ecp_group_load( &ecdh_gost.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,
+                                  myrand, NULL ) != 0 ||
+                mbedtls_ecp_copy( &ecdh_gost.Qp, &ecdh_gost.Q ) != 0 )
+            {
+                mbedtls_exit( 1 );
+            }
+            ecp_clear_precomputed( &ecdh_gost.grp );
+
+            mbedtls_snprintf( title, sizeof( title ), "ECDHE-GOST-%s",
+                                              curve_info->name );
+            TIME_PUBLIC( title, "handshake",
+                    ret |= mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp,
+                                             &ecdh_gost.d, &ecdh_gost.Q,
+                                             myrand, NULL );
+                    ret |= mbedtls_ecdh_gost_calc_secret( &ecdh_gost, ukm, &olen,
+                                             buf, sizeof( buf ),
+                                             myrand, NULL ) );
+            mbedtls_ecdh_gost_free( &ecdh_gost );
+        }
+
+        curve_info = mbedtls_ecp_curve_list();
+        while( curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST )
+            curve_info++;
+        for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
+        {
+            if( curve_info->bit_size == 256 )
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_256 );
+            else
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512 );
+
+            if( mbedtls_ecp_group_load( &ecdh_gost.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,
+                                  myrand, NULL ) != 0 ||
+                mbedtls_ecp_copy( &ecdh_gost.Qp, &ecdh_gost.Q ) != 0 ||
+                mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,
+                                  myrand, NULL ) != 0 )
+            {
+                mbedtls_exit( 1 );
+            }
+            ecp_clear_precomputed( &ecdh_gost.grp );
+
+            mbedtls_snprintf( title, sizeof( title ), "ECDH-GOST-%s",
+                                              curve_info->name );
+            TIME_PUBLIC( title, "handshake",
+                    ret |= mbedtls_ecdh_gost_calc_secret( &ecdh_gost, ukm, &olen,
+                                             buf, sizeof( buf ),
+                                             myrand, NULL ) );
+            mbedtls_ecdh_gost_free( &ecdh_gost );
+        }
     }
 #endif
 

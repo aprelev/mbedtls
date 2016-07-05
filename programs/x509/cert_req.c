@@ -60,32 +60,34 @@ int main( void )
 #define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
+#define DFL_MD                  MBEDTLS_MD_SHA256
 
 #define USAGE \
     "\n usage: cert_req param=<>...\n"                  \
     "\n acceptable parameters:\n"                       \
-    "    filename=%%s         default: keyfile.key\n"   \
-    "    debug_level=%%d      default: 0 (disabled)\n"  \
-    "    output_file=%%s      default: cert.req\n"      \
-    "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
-    "    key_usage=%%s        default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          digital_signature\n"     \
-    "                          non_repudiation\n"       \
-    "                          key_encipherment\n"      \
-    "                          data_encipherment\n"     \
-    "                          key_agreement\n"         \
-    "                          key_cert_sign\n"  \
-    "                          crl_sign\n"              \
-    "    ns_cert_type=%%s     default: (empty)\n"       \
-    "                        Comma-separated-list of values:\n"     \
-    "                          ssl_client\n"            \
-    "                          ssl_server\n"            \
-    "                          email\n"                 \
-    "                          object_signing\n"        \
-    "                          ssl_ca\n"                \
-    "                          email_ca\n"              \
-    "                          object_signing_ca\n"     \
+    "    filename=%%s                               default: keyfile.key\n"   \
+    "    debug_level=%%d                            default: 0 (disabled)\n"  \
+    "    output_file=%%s                            default: cert.req\n"      \
+    "    subject_name=%%s                           default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "    key_usage=%%s                              default: (empty)\n"       \
+    "                                              Comma-separated-list of values:\n"     \
+    "                                                digital_signature\n"     \
+    "                                                non_repudiation\n"       \
+    "                                                key_encipherment\n"      \
+    "                                                data_encipherment\n"     \
+    "                                                key_agreement\n"         \
+    "                                                key_cert_sign\n"  \
+    "                                                crl_sign\n"              \
+    "    ns_cert_type=%%s                           default: (empty)\n"       \
+    "                                              Comma-separated-list of values:\n"     \
+    "                                                ssl_client\n"            \
+    "                                                ssl_server\n"            \
+    "                                                email\n"                 \
+    "                                                object_signing\n"        \
+    "                                                ssl_ca\n"                \
+    "                                                email_ca\n"              \
+    "                                                object_signing_ca\n"     \
+    "    md=sha256|gost94|gost12_256|gost12_512     default: sha256\n"        \
     "\n"
 
 /*
@@ -99,6 +101,7 @@ struct options
     const char *subject_name;   /* subject name for certificate request */
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
+    int md;                     /* digest algorithm in certificate request  */
 } opt;
 
 int write_certificate_request( mbedtls_x509write_csr *req, const char *output_file,
@@ -146,7 +149,6 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     mbedtls_x509write_csr_init( &req );
-    mbedtls_x509write_csr_set_md_alg( &req, MBEDTLS_MD_SHA256 );
     mbedtls_pk_init( &key );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     memset( buf, 0, sizeof( buf ) );
@@ -165,6 +167,7 @@ int main( int argc, char *argv[] )
     opt.subject_name        = DFL_SUBJECT_NAME;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
+    opt.md                  = DFL_MD;
 
     for( i = 1; i < argc; i++ )
     {
@@ -242,9 +245,24 @@ int main( int argc, char *argv[] )
                 q = r;
             }
         }
+        else if( strcmp( p, "md" ) == 0 )
+        {
+            if( strcmp( q, "sha256" ) == 0 )
+                opt.md = MBEDTLS_MD_SHA256;
+            else if( strcmp( q, "gost94" ) == 0 )
+                opt.md = MBEDTLS_MD_GOST94_CRYPTOPRO;
+            else if( strcmp( q, "gost12_256" ) == 0 )
+                opt.md = MBEDTLS_MD_GOST12_256;
+            else if( strcmp( q, "gost12_512" ) == 0 )
+                opt.md = MBEDTLS_MD_GOST12_512;
+            else
+                goto usage;
+        }
         else
             goto usage;
     }
+
+    mbedtls_x509write_csr_set_md_alg( &req, opt.md );
 
     if( opt.key_usage )
         mbedtls_x509write_csr_set_key_usage( &req, opt.key_usage );

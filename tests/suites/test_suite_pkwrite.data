@@ -37,3 +37,47 @@ pk_write_key_check:"data_files/ec_521_prv.pem"
 Private key write check EC Brainpool 512 bits
 depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_key_check:"data_files/ec_bp512_prv.pem"
+
+Private key write check GOST01 GOST256TEST
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED
+pk_write_key_check:"data_files/gost01_test_prv.pem"
+
+Private key write check GOST01 GOST256A
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+pk_write_key_check:"data_files/gost01_a_prv.pem"
+
+Private key write check GOST01 GOST256B
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256B_ENABLED
+pk_write_key_check:"data_files/gost01_b_prv.pem"
+
+Private key write check GOST01 GOST256C
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256C_ENABLED
+pk_write_key_check:"data_files/gost01_c_prv.pem"
+
+Private key write check GOST12_256 GOST256TEST
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED
+pk_write_key_check:"data_files/gost12_256_test_prv.pem"
+
+Private key write check GOST12_256 GOST256A
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+pk_write_key_check:"data_files/gost12_256_a_prv.pem"
+
+Private key write check GOST12_256 GOST256B
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256B_ENABLED
+pk_write_key_check:"data_files/gost12_256_b_prv.pem"
+
+Private key write check GOST12_256 GOST256C
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST256C_ENABLED
+pk_write_key_check:"data_files/gost12_256_c_prv.pem"
+
+Private key write check GOST12_512 GOST512TEST
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST512TEST_ENABLED
+pk_write_key_check:"data_files/gost12_512_test_prv.pem"
+
+Private key write check GOST12_512 GOST512A
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST512A_ENABLED
+pk_write_key_check:"data_files/gost12_512_a_prv.pem"
+
+Private key write check GOST12_512 GOST512B
+depends_on:MBEDTLS_ECP_C:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_GOST512B_ENABLED
+pk_write_key_check:"data_files/gost12_512_b_prv.pem"

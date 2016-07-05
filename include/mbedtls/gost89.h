@@ -21,6 +21,7 @@
 #define MBEDTLS_GOST89_KEY_SIZE    32
 
 #define MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH              -0x007E  /**< Invalid data input length. */
+#define MBEDTLS_ERR_GOST89_KEY_UNWRAP_INVALID_MAC            -0x007D  /**< Verification of the unwrapped key MAC failed. */
 
 /**
  * \brief          Available S-Boxes
@@ -151,6 +152,37 @@ int mbedtls_gost89_crypt_cbc( mbedtls_gost89_context *ctx,
                               unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+/**
+ * \brief          GOST89 CFB buffer encryption/decryption.
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
+ * \param ctx      GOST89 context
+ * \param mode     MBEDTLS_GOST89_ENCRYPT or MBEDTLS_GOST89_DECRYPT
+ * \param length   length of the input data
+ * \param iv_off   offset in IV (updated after use)
+ * \param iv       initialization vector (updated after use)
+ * \param input    buffer holding the input data
+ * \param output   buffer holding the output data
+ *
+ * \return         0 if successful
+ */
+int mbedtls_gost89_crypt_cfb64( mbedtls_gost89_context *ctx,
+                                int mode,
+                                size_t length,
+                                size_t *iv_off,
+                                unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
+                                const unsigned char *input,
+                                unsigned char *output );
+#endif /*MBEDTLS_CIPHER_MODE_CFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
  * \brief               GOST89-CNT buffer encryption/decryption
@@ -243,9 +275,11 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
  * \brief          GOST89-MAC context setup
  *
  * \param ctx      context to be initialized
+ * \param iv       8-byte IV
  * \param sbox_id  S-Box identifier
  */
 void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
+                                const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
                                 mbedtls_gost89_sbox_id_t sbox_id );
 
 /**
@@ -287,14 +321,57 @@ extern "C" {
  *
  * \param sbox_id  S-Box identifier
  * \param key      32-byte secret key
+ * \param iv       8-byte IV
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  * \param output   GOST89-MAC checksum result
  */
 void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
                          const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
+                         const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
                          const unsigned char *input, size_t ilen,
                          unsigned char output[4] );
+
+/**
+ * \brief          GOST89 key wrap algorithm from RFC 4357 page 7-8:
+ *
+ *                 https://tools.ietf.org/html/rfc4357#page-7
+ *
+ * \param sbox_id              S-Box identifier
+ * \param kek                  32-byte key encryption key
+ * \param kek_diversification  1 => need to diversify kek before encryption, else 0
+ * \param ukm                  8-byte user keying material
+ * \param key                  32-byte content encryption key
+ * \param output               Wrapped content encryption key
+ */
+void mbedtls_gost89_key_wrap( mbedtls_gost89_sbox_id_t sbox_id,
+                              const unsigned char kek[MBEDTLS_GOST89_KEY_SIZE],
+                              int kek_diversification,
+                              const unsigned char ukm[MBEDTLS_GOST89_BLOCKSIZE],
+                              const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
+                              unsigned char output[44] );
+
+/**
+ * \brief          GOST89 key unwrap algorithm from RFC 4357 page 8:
+ *
+ *                 https://tools.ietf.org/html/rfc4357#page-8
+ *
+ * \param sbox_id              S-Box identifier
+ * \param kek                  32-byte key encryption key
+ * \param kek_diversification  1 => need to diversify kek before decryption, else 0
+ * \param input                buffer holding the wrapped key
+ * \param ilen                 length of the input buffer
+ * \param key                  32-byte unwrapped content encryption key
+ *
+ * \return         0 if successful, or
+ *                 MBEDTLS_ERR_GOST89_INVALID_INPUT_LENGTH if ilen != 44, or
+ *                 MBEDTLS_ERR_GOST89_KEY_UNWRAP_INVALID_MAC if MAC verification failed
+ */
+int mbedtls_gost89_key_unwrap( mbedtls_gost89_sbox_id_t sbox_id,
+                               const unsigned char kek[MBEDTLS_GOST89_KEY_SIZE],
+                               int kek_diversification,
+                               const unsigned char *input, size_t ilen,
+                               unsigned char key[MBEDTLS_GOST89_KEY_SIZE] );
 
 /**
  * \brief          Checkup routine

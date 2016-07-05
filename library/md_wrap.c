@@ -586,19 +586,30 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 
 #if defined(MBEDTLS_GOST89_C)
 
+/*
+ * Just to save mbedtls MD interface
+ */
+static const unsigned char gost89_mac_zero_iv[8] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
 static void gost89_test_mac_starts_wrap( void *ctx )
 {
-    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_TEST );
+    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, gost89_mac_zero_iv,
+                               MBEDTLS_GOST89_SBOX_TEST );
 }
 
 static void gost89_a_mac_starts_wrap( void *ctx )
 {
-    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_A );
+    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, gost89_mac_zero_iv,
+                               MBEDTLS_GOST89_SBOX_A );
 }
 
 static void gost89_z_mac_starts_wrap( void *ctx )
 {
-    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, MBEDTLS_GOST89_SBOX_Z );
+    mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, gost89_mac_zero_iv,
+                               MBEDTLS_GOST89_SBOX_Z );
 }
 
 static void gost89_mac_update_wrap( void *ctx, const unsigned char *input,
@@ -624,19 +635,22 @@ static const unsigned char gost89_mac_zero_key[32] =
 static void gost89_test_mac_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
-    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, gost89_mac_zero_key, input, ilen, output );
+    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, gost89_mac_zero_key, gost89_mac_zero_iv,
+                        input, ilen, output );
 }
 
 static void gost89_a_mac_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
-    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, gost89_mac_zero_key, input, ilen, output );
+    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, gost89_mac_zero_key, gost89_mac_zero_iv,
+                        input, ilen, output );
 }
 
 static void gost89_z_mac_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
-    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_Z, gost89_mac_zero_key, input, ilen, output );
+    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_Z, gost89_mac_zero_key, gost89_mac_zero_iv,
+                        input, ilen, output );
 }
 
 static void *gost89_mac_ctx_alloc( void )

@@ -89,6 +89,14 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
         case MBEDTLS_PK_ECDSA:
             return( &mbedtls_ecdsa_info );
 #endif
+#if defined(MBEDTLS_ECGOST_C)
+        case MBEDTLS_PK_GOST01:
+            return( &mbedtls_ecgost01_info );
+        case MBEDTLS_PK_GOST12_256:
+            return( &mbedtls_ecgost12_256_info );
+        case MBEDTLS_PK_GOST12_512:
+            return( &mbedtls_ecgost12_512_info );
+#endif
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */
         default:
             return( NULL );

@@ -13,6 +13,9 @@ target_link_libraries(ecdh_curve25519 mbedtls)
 add_executable(ecdsa ecdsa.c)
 target_link_libraries(ecdsa mbedtls)
 
+add_executable(ecgost ecgost.c)
+target_link_libraries(ecgost mbedtls)
+
 add_executable(gen_key gen_key.c)
 target_link_libraries(gen_key mbedtls)
 

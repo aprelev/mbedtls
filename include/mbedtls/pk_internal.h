@@ -111,4 +111,10 @@ extern const mbedtls_pk_info_t mbedtls_ecdsa_info;
 extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
 
+#if defined(MBEDTLS_ECGOST_C)
+extern const mbedtls_pk_info_t mbedtls_ecgost01_info;
+extern const mbedtls_pk_info_t mbedtls_ecgost12_256_info;
+extern const mbedtls_pk_info_t mbedtls_ecgost12_512_info;
+#endif
+
 #endif /* MBEDTLS_PK_WRAP_H */

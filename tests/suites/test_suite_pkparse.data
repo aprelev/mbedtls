@@ -206,6 +206,50 @@ Parse EC Key #15 (SEC1 DER, secp256k1, SpecifiedECDomain)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256K1_ENABLED:MBEDTLS_PK_PARSE_EC_EXTENDED
 pk_parse_keyfile_ec:"data_files/ec_prv.specdom.der":"NULL":0
 
+Parse GOST01 GOST256TEST Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST01:"data_files/gost01_test_prv.pem":"NULL":0
+
+Parse GOST01 GOST256A Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST01:"data_files/gost01_a_prv.pem":"NULL":0
+
+Parse GOST01 GOST256B Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256B_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST01:"data_files/gost01_b_prv.pem":"NULL":0
+
+Parse GOST01 GOST256C Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256C_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST01:"data_files/gost01_c_prv.pem":"NULL":0
+
+Parse GOST12_256 GOST256TEST Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256TEST_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST12_256:"data_files/gost12_256_test_prv.pem":"NULL":0
+
+Parse GOST12_256 GOST256A Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256A_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST12_256:"data_files/gost12_256_a_prv.pem":"NULL":0
+
+Parse GOST12_256 GOST256B Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256B_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST12_256:"data_files/gost12_256_b_prv.pem":"NULL":0
+
+Parse GOST12_256 GOST256C Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST256C_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST12_256:"data_files/gost12_256_c_prv.pem":"NULL":0
+
+Parse GOST12_512 GOST512TEST Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST512TEST_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST12_512:"data_files/gost12_512_test_prv.pem":"NULL":0
+
+Parse GOST12_512 GOST512A Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST512A_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST12_512:"data_files/gost12_512_a_prv.pem":"NULL":0
+
+Parse GOST12_512 GOST512B Key
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_GOST512B_ENABLED
+pk_parse_keyfile_ecgost:MBEDTLS_PK_GOST12_512:"data_files/gost12_512_b_prv.pem":"NULL":0
+
 Key ASN1 (Incorrect first tag)
 pk_parse_key_rsa:"":"":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 

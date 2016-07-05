@@ -211,6 +211,19 @@ int main( int argc, char *argv[] )
         }
         else
 #endif
+#if defined(MBEDTLS_ECGOST_C)
+        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_GOST01     ||
+            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_GOST12_256 ||
+            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_GOST12_512 )
+        {
+            mbedtls_ecgost_context *ctx = mbedtls_pk_ecgost( pk );
+            mbedtls_mpi_write_file( "Q(X): ", &ctx->Q.X, 16, NULL );
+            mbedtls_mpi_write_file( "Q(Y): ", &ctx->Q.Y, 16, NULL );
+            mbedtls_mpi_write_file( "Q(Z): ", &ctx->Q.Z, 16, NULL );
+            mbedtls_mpi_write_file( "D   : ", &ctx->d  , 16, NULL );
+        }
+        else
+#endif
         {
             mbedtls_printf("Do not know how to print key information for this type\n" );
             goto exit;

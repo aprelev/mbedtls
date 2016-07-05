@@ -65,6 +65,13 @@ typedef enum
     MBEDTLS_ECP_DP_SECP192K1,      /*!< 192-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< 224-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< 256-bits "Koblitz" curve */
+    MBEDTLS_ECP_DP_GOST256TEST,    /*!< 256-bits id-GostR3410-2001-TestParamSet curve         */
+    MBEDTLS_ECP_DP_GOST256A,       /*!< 256-bits id-GostR3410-2001-CryptoPro-A-ParamSet curve */
+    MBEDTLS_ECP_DP_GOST256B,       /*!< 256-bits id-GostR3410-2001-CryptoPro-B-ParamSet curve */
+    MBEDTLS_ECP_DP_GOST256C,       /*!< 256-bits id-GostR3410-2001-CryptoPro-C-ParamSet curve */
+    MBEDTLS_ECP_DP_GOST512TEST,    /*!< 512-bits id-tc26-gost-3410-12-512-paramSetTest curve  */
+    MBEDTLS_ECP_DP_GOST512A,       /*!< 512-bits id-tc26-gost-3410-12-512-paramSetA curve     */
+    MBEDTLS_ECP_DP_GOST512B,       /*!< 512-bits id-tc26-gost-3410-12-512-paramSetB curve     */
 } mbedtls_ecp_group_id;
 
 /**
@@ -72,7 +79,7 @@ typedef enum
  *
  * (Montgomery curves excluded for now.)
  */
-#define MBEDTLS_ECP_DP_MAX     12
+#define MBEDTLS_ECP_DP_MAX     16
 
 /**
  * Curve information for use by other modules
