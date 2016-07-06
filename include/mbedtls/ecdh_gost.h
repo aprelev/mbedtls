@@ -14,6 +14,15 @@ extern "C" {
 #endif
 
 /**
+ * When importing from an GOST key, select if it is our key or the peer's key
+ */
+typedef enum
+{
+    MBEDTLS_ECDH_GOST_OURS,
+    MBEDTLS_ECDH_GOST_THEIRS,
+} mbedtls_ecdh_gost_side;
+
+/**
  * \brief           ECDH-GOST context structure
  */
 typedef struct
@@ -84,6 +93,21 @@ void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
  * \param ctx       Context to free
  */
 void mbedtls_ecdh_gost_free( mbedtls_ecdh_gost_context *ctx );
+
+/**
+ * \brief           Setup an ECDH-GOST context from an EC key.
+ *                  (Used by clients and servers in place of the
+ *                  ServerKeyEchange for static ECDH-GOST: import ECDH-GOST parameters
+ *                  from a certificate's GOST key information.)
+ *
+ * \param ctx       ECDH constext to set
+ * \param key       EC key to use
+ * \param side      Is it our key (1) or the peer's key (0) ?
+ *
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
+ */
+int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_ecp_keypair *key,
+                     mbedtls_ecdh_gost_side side );
 
 /**
  * \brief           Derive and export the shared secret.

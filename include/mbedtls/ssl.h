@@ -47,6 +47,10 @@
 #include "ecdh.h"
 #endif
 
+#if defined(MBEDTLS_ECDH_GOST_C)
+#include "ecdh_gost.h"
+#endif
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
 #include "zlib.h"
 #endif

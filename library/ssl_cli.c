@@ -1929,6 +1929,34 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+static int ssl_check_server_ecdh_gost_params( const mbedtls_ssl_context *ssl )
+{
+    const mbedtls_ecp_curve_info *curve_info;
+
+    curve_info = mbedtls_ecp_curve_info_from_grp_id( ssl->handshake->ecdh_gost_ctx.grp.id );
+    if( curve_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH-GOST curve: %s", curve_info->name ) );
+
+#if defined(MBEDTLS_ECP_C)
+    if( mbedtls_ssl_check_curve( ssl, ssl->handshake->ecdh_gost_ctx.grp.id ) != 0 )
+#else
+    if( ssl->handshake->ecdh_gost_ctx.grp.nbits < 163 ||
+        ssl->handshake->ecdh_gost_ctx.grp.nbits > 521 )
+#endif
+        return( -1 );
+
+    MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Qp", &ssl->handshake->ecdh_gost_ctx.Qp );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
@@ -2182,6 +2210,45 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+static int ssl_get_ecdh_gost_params_from_cert( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    const mbedtls_ecp_keypair *peer_key;
+
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
+
+    if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, MBEDTLS_PK_GOST01 ) &&
+        ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, MBEDTLS_PK_GOST12_256 ) &&
+        ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, MBEDTLS_PK_GOST12_512 ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH-GOST capable" ) );
+        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+    }
+
+    peer_key = mbedtls_pk_ec( ssl->session_negotiate->peer_cert->pk );
+
+    if( ( ret = mbedtls_ecdh_gost_get_params( &ssl->handshake->ecdh_gost_ctx, peer_key,
+                                 MBEDTLS_ECDH_GOST_THEIRS ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_gost_get_params" ), ret );
+        return( ret );
+    }
+
+    if( ssl_check_server_ecdh_gost_params( ssl ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH-GOST curve)" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
+    }
+
+    return( ret );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
+
 static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -2220,6 +2287,21 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
     ((void) end);
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        if( ( ret = ssl_get_ecdh_gost_params_from_cert( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_ecdh_gost_params_from_cert", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
+        ssl->state++;
+        return( 0 );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
