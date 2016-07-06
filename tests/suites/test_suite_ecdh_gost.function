@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdh_gost.h"
+#include "mbedtls/md.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -11,17 +12,20 @@
 void ecdh_gost_primitive_random( int id )
 {
     mbedtls_ecp_group grp;
-    mbedtls_ecp_point qA, qB, pA, pB;
-    mbedtls_mpi dA, dB, ukm;
+    mbedtls_ecp_point qA, qB;
+    mbedtls_mpi dA, dB;
+    unsigned char zA[MBEDTLS_MD_MAX_SIZE], zB[MBEDTLS_MD_MAX_SIZE];
+    unsigned char ukm[8];
+    size_t ukm_len = sizeof( ukm );
+    mbedtls_md_type_t md_alg = MBEDTLS_MD_GOST12_256;
     rnd_pseudo_info rnd_info;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &qA ); mbedtls_ecp_point_init( &qB );
-    mbedtls_ecp_point_init( &pA ); mbedtls_ecp_point_init( &pB );
-    mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &dB ); mbedtls_mpi_init( &ukm );
+    mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &dB );
+    memset( zA, 0, MBEDTLS_MD_MAX_SIZE ); memset( zB, 0, MBEDTLS_MD_MAX_SIZE );
+    memset( ukm, 0x2A, ukm_len );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
-
-    TEST_ASSERT( mbedtls_mpi_lset( &ukm, 1 ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
@@ -29,18 +33,17 @@ void ecdh_gost_primitive_random( int id )
                  == 0 );
     TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &grp, &dB, &qB, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
-    TEST_ASSERT( mbedtls_ecdh_gost_compute_shared( &grp, &pA, &qB, &dA, &ukm,
+    TEST_ASSERT( mbedtls_ecdh_gost_compute_shared( &grp, zA, &qB, &dA, ukm, ukm_len, md_alg,
                                       &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdh_gost_compute_shared( &grp, &pB, &qA, &dB, &ukm,
+    TEST_ASSERT( mbedtls_ecdh_gost_compute_shared( &grp, zB, &qA, &dB, ukm, ukm_len, md_alg,
                                       NULL, NULL ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecp_point_cmp( &pA, &pB ) == 0 );
+    TEST_ASSERT( memcmp( zA, zB, MBEDTLS_MD_MAX_SIZE ) == 0 );
 
 exit:
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &qA ); mbedtls_ecp_point_free( &qB );
-    mbedtls_ecp_point_free( &pA ); mbedtls_ecp_point_free( &pB );
-    mbedtls_mpi_free( &dA ); mbedtls_mpi_free( &dB ); mbedtls_mpi_free( &ukm ); 
+    mbedtls_mpi_free( &dA ); mbedtls_mpi_free( &dB );
 }
 /* END_CASE */
 
@@ -58,7 +61,7 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
     rnd_buf_info rnd_info_A, rnd_info_B;
     mbedtls_ecdh_gost_context ctxA, ctxB;
     mbedtls_mpi check;
-    size_t secret_len, olen;
+    size_t ukm_len, secret_len, olen;
 
     memset( ukm, 0x00, sizeof( ukm ) );
     memset( secret, 0x00, sizeof( secret ) );
@@ -71,7 +74,7 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
     TEST_ASSERT( mbedtls_ecp_group_load( &ctxA.grp, id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_group_load( &ctxB.grp, id ) == 0 );
 
-    TEST_ASSERT( unhexify( ukm, ukm_str ) == 8 );
+    ukm_len = unhexify( ukm, ukm_str );
 
     rnd_info_A.buf = rnd_buf_A;
     rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
@@ -133,11 +136,11 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
 
     secret_len = unhexify( secret, secret_str );
 
-    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxA, ukm, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxA, ukm, ukm_len, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
     TEST_ASSERT( secret_len == olen );
     TEST_ASSERT( memcmp( secret, output, secret_len ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxB, ukm, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxB, ukm, ukm_len, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
     TEST_ASSERT( secret_len == olen );
     TEST_ASSERT( memcmp( secret, output, secret_len ) == 0 );
 

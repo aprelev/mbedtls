@@ -975,9 +975,9 @@ int main( int argc, char *argv[] )
         mbedtls_ecdh_gost_context ecdh_gost;
         const mbedtls_ecp_curve_info *curve_info;
         unsigned char ukm[8];
-        size_t olen;
+        size_t ukm_len = sizeof( ukm ), olen;
 
-        memset( ukm, 0x2A, sizeof( ukm ) );
+        memset( ukm, 0x2A, ukm_len );
 
         curve_info = mbedtls_ecp_curve_list();
         while( curve_info->grp_id != MBEDTLS_ECP_DP_GOST256TEST )
@@ -1004,8 +1004,8 @@ int main( int argc, char *argv[] )
                     ret |= mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp,
                                              &ecdh_gost.d, &ecdh_gost.Q,
                                              myrand, NULL );
-                    ret |= mbedtls_ecdh_gost_calc_secret( &ecdh_gost, ukm, &olen,
-                                             buf, sizeof( buf ),
+                    ret |= mbedtls_ecdh_gost_calc_secret( &ecdh_gost, ukm, ukm_len,
+                                             &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
             mbedtls_ecdh_gost_free( &ecdh_gost );
         }
@@ -1034,8 +1034,8 @@ int main( int argc, char *argv[] )
             mbedtls_snprintf( title, sizeof( title ), "ECDH-GOST-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
-                    ret |= mbedtls_ecdh_gost_calc_secret( &ecdh_gost, ukm, &olen,
-                                             buf, sizeof( buf ),
+                    ret |= mbedtls_ecdh_gost_calc_secret( &ecdh_gost, ukm, ukm_len,
+                                             &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
             mbedtls_ecdh_gost_free( &ecdh_gost );
         }

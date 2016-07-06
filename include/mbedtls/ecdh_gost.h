@@ -27,12 +27,12 @@ typedef enum
  */
 typedef struct
 {
-    mbedtls_ecp_group grp;      /*!<  elliptic curve used                           */
-    mbedtls_mpi d;              /*!<  our secret value (private key)                */
-    mbedtls_ecp_point Q;        /*!<  our public value (public key)                 */
-    mbedtls_ecp_point Qp;       /*!<  peer's public value (public key)              */
-    mbedtls_ecp_point P;        /*!<  shared secret                                 */
-    mbedtls_md_type_t md_alg;   /*!<  message digest for hashing P coordinates      */
+    mbedtls_ecp_group grp;                 /*!<  elliptic curve used                     */
+    mbedtls_mpi d;                         /*!<  our secret value (private key)          */
+    mbedtls_ecp_point Q;                   /*!<  our public value (public key)           */
+    mbedtls_ecp_point Qp;                  /*!<  peer's public value (public key)        */
+    unsigned char z[MBEDTLS_MD_MAX_SIZE];  /*!<  shared secret                           */
+    mbedtls_md_type_t md_alg;              /*!<  message digest for hashing coordinates  */
 }
 mbedtls_ecdh_gost_context;
 
@@ -58,10 +58,12 @@ int mbedtls_ecdh_gost_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtl
  *                  Raw function that only does the core computation.
  *
  * \param grp       ECP group
- * \param P         Destination elliptic curve point (shared secret)
+ * \param z         Destination buffer (shared secret)
  * \param Q         Public key from other party
  * \param d         Our secret exponent (private key)
  * \param ukm       User keying material
+ * \param ukm_len   UKM length
+ * \param md_alg    Message digest for hashing coordinates
  * \param f_rng     RNG function (see notes)
  * \param p_rng     RNG parameter
  *
@@ -72,9 +74,9 @@ int mbedtls_ecdh_gost_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtl
  *                  countermeasures against potential elaborate timing
  *                  attacks, see \c mbedtls_ecp_mul() for details.
  */
-int mbedtls_ecdh_gost_compute_shared( mbedtls_ecp_group *grp, mbedtls_ecp_point *P,
+int mbedtls_ecdh_gost_compute_shared( mbedtls_ecp_group *grp, unsigned char *z,
                          const mbedtls_ecp_point *Q, const mbedtls_mpi *d,
-                         const mbedtls_mpi *ukm,
+                         const unsigned char *ukm, size_t ukm_len, mbedtls_md_type_t md_alg,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );
 
@@ -114,7 +116,8 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
  *                  (Last function used by both TLS client en servers.)
  *
  * \param ctx       ECDH-GOST context
- * \param ukm       8-byte user keying material
+ * \param ukm       User keying material
+ * \param ukm_len   UKM length
  * \param olen      number of bytes written
  * \param buf       destination buffer
  * \param blen      buffer length
@@ -124,8 +127,8 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
 int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
-                      unsigned char ukm[8], size_t *olen,
-                      unsigned char *buf, size_t blen,
+                      const unsigned char *ukm, size_t ukm_len,
+                      size_t *olen, unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
 
