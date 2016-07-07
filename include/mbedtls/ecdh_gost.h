@@ -6,10 +6,7 @@
 #ifndef MBEDTLS_ECDH_GOST_H
 #define MBEDTLS_ECDH_GOST_H
 
-#include "ecp.h"
 #include "ecgost.h"
-#include "md.h"
-#include "cipher.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,11 +83,12 @@ int mbedtls_ecdh_gost_compute_shared( mbedtls_ecp_group *grp, unsigned char *z,
 /**
  * \brief           Initialize context
  *
- * \param ctx       Context to initialize
- * \param md_alg    Message digest for hashing shared secret coordinates
+ * \param ctx            Context to initialize
+ * \param gost_md_alg    GOST MD for hashing coordinates
+ * \param gost89_alg     GOST89 algorithm
  */
 void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
-                             mbedtls_md_type_t md_alg,
+                             mbedtls_md_type_t gost_md_alg,
                              mbedtls_cipher_id_t gost89_alg );
 
 /**

@@ -40,7 +40,10 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
 #include "mbedtls/gost89.h"
+#endif
 
 #include <string.h>
 
@@ -50,7 +53,8 @@
 #include <time.h>
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -3057,6 +3061,9 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                                  ssl->handshake->premaster,
                                 &ssl->out_msg[i]
                                  );
+
+        mbedtls_zeroize( ukm, MBEDTLS_MD_MAX_SIZE );
+        mbedtls_zeroize( kek, 32 );
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
