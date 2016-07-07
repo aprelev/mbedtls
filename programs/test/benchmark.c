@@ -985,9 +985,9 @@ int main( int argc, char *argv[] )
         for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
         {
             if( curve_info->bit_size == 256 )
-                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_256 );
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
             else
-                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512 );
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512, MBEDTLS_CIPHER_ID_GOST89_Z );
 
             if( mbedtls_ecp_group_load( &ecdh_gost.grp, curve_info->grp_id ) != 0 ||
                 mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,
@@ -1016,9 +1016,9 @@ int main( int argc, char *argv[] )
         for( ; curve_info->grp_id != MBEDTLS_ECP_DP_NONE; curve_info++ )
         {
             if( curve_info->bit_size == 256 )
-                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_256 );
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
             else
-                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512 );
+                mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512, MBEDTLS_CIPHER_ID_GOST89_Z );
 
             if( mbedtls_ecp_group_load( &ecdh_gost.grp, curve_info->grp_id ) != 0 ||
                 mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,

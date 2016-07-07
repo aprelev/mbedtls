@@ -7,7 +7,9 @@
 #define MBEDTLS_ECDH_GOST_H
 
 #include "ecp.h"
+#include "ecgost.h"
 #include "md.h"
+#include "cipher.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,12 +29,13 @@ typedef enum
  */
 typedef struct
 {
-    mbedtls_ecp_group grp;                 /*!<  elliptic curve used                     */
-    mbedtls_mpi d;                         /*!<  our secret value (private key)          */
-    mbedtls_ecp_point Q;                   /*!<  our public value (public key)           */
-    mbedtls_ecp_point Qp;                  /*!<  peer's public value (public key)        */
-    unsigned char z[MBEDTLS_MD_MAX_SIZE];  /*!<  shared secret                           */
-    mbedtls_md_type_t md_alg;              /*!<  message digest for hashing coordinates  */
+    mbedtls_ecp_group grp;                 /*!<  elliptic curve used               */
+    mbedtls_mpi d;                         /*!<  our secret value (private key)    */
+    mbedtls_ecp_point Q;                   /*!<  our public value (public key)     */
+    mbedtls_ecp_point Qp;                  /*!<  peer's public value (public key)  */
+    unsigned char z[MBEDTLS_MD_MAX_SIZE];  /*!<  shared secret                     */
+    mbedtls_md_type_t gost_md_alg;         /*!<  GOST MD for hashing coordinates   */
+    mbedtls_cipher_id_t gost89_alg;        /*!<  GOST89 algorithm                  */
 }
 mbedtls_ecdh_gost_context;
 
@@ -87,7 +90,8 @@ int mbedtls_ecdh_gost_compute_shared( mbedtls_ecp_group *grp, unsigned char *z,
  * \param md_alg    Message digest for hashing shared secret coordinates
  */
 void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
-                             mbedtls_md_type_t md_alg );
+                             mbedtls_md_type_t md_alg,
+                             mbedtls_cipher_id_t gost89_alg );
 
 /**
  * \brief           Free context
@@ -102,13 +106,13 @@ void mbedtls_ecdh_gost_free( mbedtls_ecdh_gost_context *ctx );
  *                  ServerKeyEchange for static ECDH-GOST: import ECDH-GOST parameters
  *                  from a certificate's GOST key information.)
  *
- * \param ctx       ECDH constext to set
- * \param key       EC key to use
+ * \param ctx       ECDH-GOST context to set
+ * \param key       GOST key with params to use
  * \param side      Is it our key (1) or the peer's key (0) ?
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_ecp_keypair *key,
+int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_ecgost_context *key,
                      mbedtls_ecdh_gost_side side );
 
 /**

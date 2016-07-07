@@ -40,6 +40,7 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
+#include "mbedtls/gost89.h"
 
 #include <string.h>
 
@@ -2214,7 +2215,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 static int ssl_get_ecdh_gost_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret;
-    const mbedtls_ecp_keypair *peer_key;
+    const mbedtls_ecgost_context *peer_key;
 
     if( ssl->session_negotiate->peer_cert == NULL )
     {
@@ -2230,7 +2231,7 @@ static int ssl_get_ecdh_gost_params_from_cert( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
     }
 
-    peer_key = mbedtls_pk_ec( ssl->session_negotiate->peer_cert->pk );
+    peer_key = mbedtls_pk_ecgost( ssl->session_negotiate->peer_cert->pk );
 
     if( ( ret = mbedtls_ecdh_gost_get_params( &ssl->handshake->ecdh_gost_ctx, peer_key,
                                  MBEDTLS_ECDH_GOST_THEIRS ) ) != 0 )
@@ -2993,6 +2994,72 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        /*
+         * ECDH-GOST key exchange -- send wrapped premaster and client public value
+         */
+        const mbedtls_md_info_t *md_info;
+        unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
+        unsigned char kek[32];
+        size_t olen;
+
+        i = 4;
+
+        if( ( md_info = mbedtls_md_info_from_type( ssl->handshake->ecdh_gost_ctx.gost_md_alg ) ) == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        ret = mbedtls_md( md_info, ssl->handshake->randbytes, 64, ukm );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md", ret );
+            return( ret );
+        }
+
+        ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->handshake->premaster, 32 );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
+            return( ret );
+        }
+
+        ret = mbedtls_ecdh_gost_gen_public( &ssl->handshake->ecdh_gost_ctx.grp,
+                                &ssl->handshake->ecdh_gost_ctx.d,
+                                &ssl->handshake->ecdh_gost_ctx.Q,
+                                ssl->conf->f_rng, ssl->conf->p_rng );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_gen_public", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Q", &ssl->handshake->ecdh_gost_ctx.Q );
+
+        if( ( ret = mbedtls_ecdh_gost_calc_secret( &ssl->handshake->ecdh_gost_ctx,
+                                       ukm, 8,
+                                      &olen, kek, 32,
+                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_calc_secret", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "ECDH-GOST: z", ssl->handshake->ecdh_gost_ctx.z, 32 );
+
+        mbedtls_gost89_key_wrap( ssl->handshake->ecdh_gost_ctx.gost89_alg,
+                                 kek,
+                                 1,
+                                 ukm,
+                                 ssl->handshake->premaster,
+                                &ssl->out_msg[i]
+                                 );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {

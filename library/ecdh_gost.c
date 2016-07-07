@@ -104,7 +104,8 @@ cleanup:
  * Initialize context
  */
 void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
-                             mbedtls_md_type_t md_alg )
+                             mbedtls_md_type_t gost_md_alg,
+                             mbedtls_cipher_id_t gost89_alg )
 {
     if( ctx == NULL )
         return;
@@ -116,7 +117,8 @@ void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
 
     memset( &ctx->z, 0, MBEDTLS_MD_MAX_SIZE );
 
-    ctx->md_alg = md_alg;
+    ctx->gost_md_alg = gost_md_alg;
+    ctx->gost89_alg = gost89_alg;
 }
 
 /*
@@ -138,10 +140,13 @@ void mbedtls_ecdh_gost_free( mbedtls_ecdh_gost_context *ctx )
 /*
  * Get parameters from a keypair
  */
-int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_ecp_keypair *key,
+int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_ecgost_context *key,
                      mbedtls_ecdh_gost_side side )
 {
     int ret;
+
+    ctx->gost_md_alg = key->gost_md_alg;
+    ctx->gost89_alg = key->gost89_alg;
 
     if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 )
         return( ret );
@@ -177,7 +182,7 @@ int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( md_info = mbedtls_md_info_from_type( ctx->md_alg ) ) == NULL )
+    if( ( md_info = mbedtls_md_info_from_type( ctx->gost_md_alg ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     hash_len = mbedtls_md_get_size( md_info );
@@ -186,7 +191,7 @@ int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_ecdh_gost_compute_shared( &ctx->grp, ctx->z, &ctx->Qp,
-                                     &ctx->d, ukm, ukm_len, ctx->md_alg,
+                                     &ctx->d, ukm, ukm_len, ctx->gost_md_alg,
                                      f_rng, p_rng ) ) != 0 )
     {
         return( ret );

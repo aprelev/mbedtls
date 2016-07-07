@@ -67,8 +67,8 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
     memset( secret, 0x00, sizeof( secret ) );
     memset( output, 0x00, sizeof( output ) );
 
-    mbedtls_ecdh_gost_init( &ctxA, md_alg );
-    mbedtls_ecdh_gost_init( &ctxB, md_alg );
+    mbedtls_ecdh_gost_init( &ctxA, md_alg, MBEDTLS_CIPHER_ID_GOST89_Z );
+    mbedtls_ecdh_gost_init( &ctxB, md_alg, MBEDTLS_CIPHER_ID_GOST89_Z );
     mbedtls_mpi_init( &check );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &ctxA.grp, id ) == 0 );
