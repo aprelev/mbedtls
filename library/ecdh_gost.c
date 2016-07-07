@@ -20,6 +20,11 @@
 
 #include <string.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Generate public key: simple wrapper around mbedtls_ecp_gen_keypair
  */
@@ -107,8 +112,9 @@ void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
     mbedtls_ecp_group_init( &ctx->grp );
     mbedtls_ecp_point_init( &ctx->Q );
     mbedtls_ecp_point_init( &ctx->Qp );
-    memset( &ctx->z, 0, MBEDTLS_MD_MAX_SIZE );
     mbedtls_mpi_init( &ctx->d );
+
+    memset( &ctx->z, 0, MBEDTLS_MD_MAX_SIZE );
 
     ctx->md_alg = md_alg;
 }
@@ -124,8 +130,9 @@ void mbedtls_ecdh_gost_free( mbedtls_ecdh_gost_context *ctx )
     mbedtls_ecp_group_free( &ctx->grp );
     mbedtls_ecp_point_free( &ctx->Q );
     mbedtls_ecp_point_free( &ctx->Qp );
-    memset( &ctx->z, 0, MBEDTLS_MD_MAX_SIZE );
     mbedtls_mpi_free( &ctx->d );
+
+    mbedtls_zeroize( &ctx->z, MBEDTLS_MD_MAX_SIZE );
 }
 
 /*
