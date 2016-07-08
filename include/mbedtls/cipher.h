@@ -714,7 +714,7 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 #if defined(MBEDTLS_GOST89_C)
-static inline mbedtls_gost89_sbox_id_t mbedtls_gost89_sbox_id_from_type( mbedtls_cipher_type_t gost89_type )
+static inline mbedtls_gost89_sbox_id_t mbedtls_gost89_sbox_id_from_type( mbedtls_cipher_id_t gost89_type )
 {
     switch( gost89_type )
     {
