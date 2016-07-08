@@ -3006,6 +3006,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          */
         const mbedtls_md_info_t *md_info;
         unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
+        mbedtls_gost89_sbox_id_t sbox_id;
         unsigned char kek[32];
         size_t olen;
 
@@ -3031,13 +3032,13 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        ret = mbedtls_ecdh_gost_gen_public( &ssl->handshake->ecdh_gost_ctx.grp,
-                                &ssl->handshake->ecdh_gost_ctx.d,
-                                &ssl->handshake->ecdh_gost_ctx.Q,
+        ret = mbedtls_ecdh_gost_make_public( &ssl->handshake->ecdh_gost_ctx,
+                                &n,
+                                &ssl->out_msg[i], 1000,
                                 ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_gen_public", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_make_public", ret );
             return( ret );
         }
 
@@ -3054,7 +3055,9 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "ECDH-GOST: z", ssl->handshake->ecdh_gost_ctx.z, 32 );
 
-        mbedtls_gost89_key_wrap( ssl->handshake->ecdh_gost_ctx.gost89_alg,
+        sbox_id = mbedtls_gost89_sbox_id_from_type( ssl->handshake->ecdh_gost_ctx.gost89_alg );
+
+        mbedtls_gost89_key_wrap( sbox_id,
                                  kek,
                                  1,
                                  ukm,

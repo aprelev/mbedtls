@@ -167,6 +167,38 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
 }
 
 /*
+ * Setup and export the client public value
+ */
+int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng )
+{
+    int ret;
+
+    if( ctx == NULL || ctx->grp.pbits == 0 )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    if( ( ret = mbedtls_ecdh_gost_gen_public( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) )
+                != 0 )
+        return( ret );
+
+    return mbedtls_ecgost_write_pubkey( &ctx->grp, &ctx->Q, olen, buf, blen );
+}
+
+/*
+ * Parse and import the client's public value
+ */
+int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
+                      const unsigned char *buf, size_t blen )
+{
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    return mbedtls_ecgost_read_pubkey( &ctx->grp, &ctx->Qp, buf, blen );
+}
+
+/*
  * Derive and export the shared secret
  */
 int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,

@@ -114,6 +114,37 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
                      mbedtls_ecdh_gost_side side );
 
 /**
+ * \brief           Generate a public key and a TLS ClientKeyExchange payload.
+ *                  (Second function used by a TLS client for ECDH(E)-GOST.)
+ *
+ * \param ctx       ECDH-GOST context
+ * \param olen      number of bytes actually written
+ * \param buf       destination buffer
+ * \param blen      size of destination buffer
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
+ */
+int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, size_t *olen,
+                      unsigned char *buf, size_t blen,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng );
+
+/**
+ * \brief           Parse and process a TLS ClientKeyExchange payload.
+ *                  (Second function used by a TLS server for ECDH(E)-GOST.)
+ *
+ * \param ctx       ECDH-GOST context
+ * \param buf       start of input buffer
+ * \param blen      length of input buffer
+ *
+ * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
+ */
+int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
+                      const unsigned char *buf, size_t blen );
+
+/**
  * \brief           Derive and export the shared secret.
  *                  (Last function used by both TLS client en servers.)
  *

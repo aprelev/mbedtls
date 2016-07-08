@@ -32,6 +32,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_GOST89_C)
+#include "gost89.h"
+#endif
+
 #include <stddef.h>
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
@@ -708,6 +712,22 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
                          unsigned char *output, size_t *olen,
                          const unsigned char *tag, size_t tag_len );
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
+
+#if defined(MBEDTLS_GOST89_C)
+static inline mbedtls_gost89_sbox_id_t mbedtls_gost89_sbox_id_from_type( mbedtls_cipher_type_t gost89_type )
+{
+    switch( gost89_type )
+    {
+        case MBEDTLS_CIPHER_ID_GOST89_TEST:
+            return MBEDTLS_GOST89_SBOX_TEST;
+        case MBEDTLS_CIPHER_ID_GOST89_A:
+            return MBEDTLS_GOST89_SBOX_A;
+        case MBEDTLS_CIPHER_ID_GOST89_Z:
+        default:
+            return MBEDTLS_GOST89_SBOX_Z;
+    }
+}
+#endif /* MBEDTLS_GOST89_C */
 
 #ifdef __cplusplus
 }
