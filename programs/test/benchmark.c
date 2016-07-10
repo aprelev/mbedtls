@@ -93,7 +93,7 @@ int main( void )
 
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
-#define TITLE_LEN       50
+#define TITLE_LEN       25
 
 #define OPTIONS                                                                 \
     "md4, md5, ripemd160, sha1, sha256, sha512, gost94, gost12,\n"              \
