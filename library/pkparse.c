@@ -564,10 +564,10 @@ static int pk_use_ecgost_params( const mbedtls_asn1_buf *params, mbedtls_ecgost_
     /*
      * grp may already be initilialized; if so, make sure IDs match
      */
-    if( ctx->grp.id != MBEDTLS_ECP_DP_NONE && ctx->grp.id != ecgost_grp_id )
+    if( ctx->key.grp.id != MBEDTLS_ECP_DP_NONE && ctx->key.grp.id != ecgost_grp_id )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
 
-    if( ( ret = mbedtls_ecp_group_load( &ctx->grp, ecgost_grp_id ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_load( &ctx->key.grp, ecgost_grp_id ) ) != 0 )
         return( ret );
 
     /*
@@ -608,10 +608,10 @@ static int pk_get_ecgost_pubkey( unsigned char **p, const unsigned char *end,
 {
     int ret;
 
-    if( ( ret = mbedtls_ecgost_read_pubkey( &ctx->grp, &ctx->Q,
+    if( ( ret = mbedtls_ecgost_read_pubkey( &ctx->key.grp, &ctx->key.Q,
                     (const unsigned char *) *p, end - *p ) ) == 0 )
     {
-        ret = mbedtls_ecp_check_pubkey( &ctx->grp, &ctx->Q );
+        ret = mbedtls_ecp_check_pubkey( &ctx->key.grp, &ctx->key.Q );
     }
 
     /*
@@ -954,20 +954,20 @@ static int pk_parse_ecgost_key_der( mbedtls_ecgost_context *ctx,
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
-    if( ( ret = mbedtls_mpi_read_binary_le( &ctx->d, p, len ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_binary_le( &ctx->key.d, p, len ) ) != 0 )
     {
         mbedtls_ecgost_free( ctx );
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = mbedtls_ecp_mul( &ctx->grp, &ctx->Q, &ctx->d, &ctx->grp.G,
+    if( ( ret = mbedtls_ecp_mul( &ctx->key.grp, &ctx->key.Q, &ctx->key.d, &ctx->key.grp.G,
                                                       NULL, NULL ) ) != 0 )
     {
         mbedtls_ecgost_free( ctx );
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
     }
 
-    if( ( ret = mbedtls_ecp_check_privkey( &ctx->grp, &ctx->d ) ) != 0 )
+    if( ( ret = mbedtls_ecp_check_privkey( &ctx->key.grp, &ctx->key.d ) ) != 0 )
     {
         mbedtls_ecgost_free( ctx );
         return( ret );

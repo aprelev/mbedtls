@@ -148,19 +148,19 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
     ctx->gost_md_alg = key->gost_md_alg;
     ctx->gost89_alg = key->gost89_alg;
 
-    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->key.grp ) ) != 0 )
         return( ret );
 
     /* If it's not our key, just import the public part as Qp */
     if( side == MBEDTLS_ECDH_GOST_THEIRS )
-        return( mbedtls_ecp_copy( &ctx->Qp, &key->Q ) );
+        return( mbedtls_ecp_copy( &ctx->Qp, &key->key.Q ) );
 
     /* Our key: import public (as Q) and private parts */
     if( side != MBEDTLS_ECDH_GOST_OURS )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 ||
-        ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 )
+    if( ( ret = mbedtls_ecp_copy( &ctx->Q, &key->key.Q ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->d, &key->key.d ) ) != 0 )
         return( ret );
 
     return( 0 );
