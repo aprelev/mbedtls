@@ -42,7 +42,9 @@
 #include "mbedtls/ssl_internal.h"
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+#include "mbedtls/asn1write.h"
 #include "mbedtls/gost89.h"
+#include "mbedtls/oid.h"
 #endif
 
 #include <string.h>
@@ -3005,12 +3007,19 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          * ECDH-GOST key exchange -- send wrapped premaster and client public value
          */
         const mbedtls_md_info_t *md_info;
-        unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
         mbedtls_gost89_sbox_id_t sbox_id;
+        unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
+        unsigned char pubkey[200];
         unsigned char kek[32];
-        size_t olen;
+        unsigned char wrapped_key[44];
+        unsigned char buf[500];
+        unsigned char *p = buf + sizeof( buf );
+        const char *oid;
+        size_t olen, len = 0;
 
         i = 4;
+
+        /* Write ukm */
 
         if( ( md_info = mbedtls_md_info_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg ) ) == NULL )
         {
@@ -3024,17 +3033,14 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md", ret );
             return( ret );
         }
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_octet_string( &p, buf, ukm, 8 ) );
 
-        ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->handshake->premaster, 32 );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
-            return( ret );
-        }
+        /* Generate ephemeralPublicKey and write it to SubjectPublicKeyInfo */
 
         ret = mbedtls_ecdh_gost_make_public( &ssl->handshake->ecdh_gost_ctx,
-                                &n,
-                                &ssl->out_msg[i], 1000,
+                                ssl->session_negotiate->peer_cert->pk.pk_info,
+                                &olen,
+                                pubkey, sizeof( pubkey ),
                                 ssl->conf->f_rng, ssl->conf->p_rng );
         if( ret != 0 )
         {
@@ -3044,9 +3050,26 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Q", &ssl->handshake->ecdh_gost_ctx.ecgost.key.Q );
 
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &p, buf, pubkey, olen ) );
+
+        /* Write encryptionParamSet */
+
+        ret = mbedtls_oid_get_oid_by_gost89( ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg, &oid, &olen );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( &p, buf, oid, olen ) );
+
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+
+        /* Generate shared secret and premaster */
+
         if( ( ret = mbedtls_ecdh_gost_calc_secret( &ssl->handshake->ecdh_gost_ctx,
-                                       ukm, 8,
-                                      &olen, kek, 32,
+                                       ukm, 8, &olen, kek, 32,
                                        ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_calc_secret", ret );
@@ -3055,18 +3078,31 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "ECDH-GOST: z", ssl->handshake->ecdh_gost_ctx.z, 32 );
 
-        sbox_id = mbedtls_gost89_sbox_id_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg );
+        ssl->handshake->pmslen = 32;
+        ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->handshake->premaster,
+                                ssl->handshake->pmslen );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
+            return( ret );
+        }
 
-        mbedtls_gost89_key_wrap( sbox_id,
-                                 kek,
-                                 1,
-                                 ukm,
-                                 ssl->handshake->premaster,
-                                &ssl->out_msg[i]
-                                 );
+        /* Wrap premaster using shared secret and write it */
+
+        sbox_id = mbedtls_gost89_sbox_id_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg );
+        mbedtls_gost89_key_wrap( sbox_id, kek, 1, ukm, ssl->handshake->premaster,
+                                 wrapped_key );
+
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &p, buf, wrapped_key, 36 ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+        memcpy( &ssl->out_msg[i], p, len );
 
         mbedtls_zeroize( ukm, MBEDTLS_MD_MAX_SIZE );
         mbedtls_zeroize( kek, 32 );
+
+        n = len;
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */

@@ -17,6 +17,7 @@
 #if defined(MBEDTLS_ECDH_GOST_C)
 
 #include "mbedtls/ecdh_gost.h"
+#include "mbedtls/asn1write.h"
 
 #include <string.h>
 
@@ -160,12 +161,15 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
 /*
  * Setup and export the client public value
  */
-int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, size_t *olen,
-                      unsigned char *buf, size_t blen,
+int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls_pk_info_t *pk_info,
+                      size_t *olen, unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng )
 {
     int ret;
+    mbedtls_pk_context pk;
+    unsigned char pubkey[200];
+    size_t pub_len = 0;
 
     if( ctx == NULL || ctx->ecgost.key.grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -174,7 +178,18 @@ int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, size_t *olen,
                         &ctx->ecgost.key.Q, f_rng, p_rng ) ) != 0 )
         return( ret );
 
-    return mbedtls_ecgost_write_pubkey( &ctx->ecgost.key.grp, &ctx->ecgost.key.Q, olen, buf, blen );
+    pk.pk_info = pk_info;
+    pk.pk_ctx = &ctx->ecgost;
+
+    MBEDTLS_ASN1_CHK_ADD( pub_len, mbedtls_pk_write_pubkey_der( &pk, pubkey, sizeof( pubkey ) ) );
+
+    *olen = pub_len;
+    if( blen < pub_len )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    memcpy( buf, pubkey + sizeof( pubkey ) - pub_len, pub_len );
+
+    return( 0 );
 }
 
 /*

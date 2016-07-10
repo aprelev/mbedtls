@@ -7,6 +7,7 @@
 #define MBEDTLS_ECDH_GOST_H
 
 #include "ecgost.h"
+#include "mbedtls/pk.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,6 +115,7 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
  *                  (Second function used by a TLS client for ECDH(E)-GOST.)
  *
  * \param ctx       ECDH-GOST context
+ * \param pk_info   GOST PK information to use
  * \param olen      number of bytes actually written
  * \param buf       destination buffer
  * \param blen      size of destination buffer
@@ -122,8 +124,8 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, size_t *olen,
-                      unsigned char *buf, size_t blen,
+int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls_pk_info_t *pk_info,
+                      size_t *olen, unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
 

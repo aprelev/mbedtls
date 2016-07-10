@@ -714,6 +714,13 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 #if defined(MBEDTLS_GOST89_C)
+/**
+ * \brief               Convert given GOST89 cipher id into S-Box id.
+ *
+ * \param gost89_type   GOST89 cipher id
+ *
+ * \return              S-Box id corresponding to given GOST89 cipher.
+ */
 static inline mbedtls_gost89_sbox_id_t mbedtls_gost89_sbox_id_from_type( mbedtls_cipher_id_t gost89_type )
 {
     switch( gost89_type )
