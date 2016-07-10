@@ -306,10 +306,10 @@ int mbedtls_ecgost_write_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp
     if( !is_gost_ecp_group( grp->id ) )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    p -= n_size;
+    p -= len;
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->Y, p, len ) );
 
-    p -= n_size;
+    p -= len;
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->X, p, len ) );
 
     len <<= 1;
