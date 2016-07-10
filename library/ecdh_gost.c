@@ -110,15 +110,9 @@ void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
     if( ctx == NULL )
         return;
 
-    mbedtls_ecp_group_init( &ctx->grp );
-    mbedtls_ecp_point_init( &ctx->Q );
+    mbedtls_ecgost_init( &ctx->ecgost, gost_md_alg, gost89_alg );
     mbedtls_ecp_point_init( &ctx->Qp );
-    mbedtls_mpi_init( &ctx->d );
-
     memset( &ctx->z, 0, MBEDTLS_MD_MAX_SIZE );
-
-    ctx->gost_md_alg = gost_md_alg;
-    ctx->gost89_alg = gost89_alg;
 }
 
 /*
@@ -129,11 +123,8 @@ void mbedtls_ecdh_gost_free( mbedtls_ecdh_gost_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_ecp_group_free( &ctx->grp );
-    mbedtls_ecp_point_free( &ctx->Q );
+    mbedtls_ecgost_free( &ctx->ecgost );
     mbedtls_ecp_point_free( &ctx->Qp );
-    mbedtls_mpi_free( &ctx->d );
-
     mbedtls_zeroize( &ctx->z, MBEDTLS_MD_MAX_SIZE );
 }
 
@@ -145,10 +136,10 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
 {
     int ret;
 
-    ctx->gost_md_alg = key->gost_md_alg;
-    ctx->gost89_alg = key->gost89_alg;
+    ctx->ecgost.gost_md_alg = key->gost_md_alg;
+    ctx->ecgost.gost89_alg = key->gost89_alg;
 
-    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->key.grp ) ) != 0 )
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->ecgost.key.grp, &key->key.grp ) ) != 0 )
         return( ret );
 
     /* If it's not our key, just import the public part as Qp */
@@ -159,8 +150,8 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
     if( side != MBEDTLS_ECDH_GOST_OURS )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecp_copy( &ctx->Q, &key->key.Q ) ) != 0 ||
-        ( ret = mbedtls_mpi_copy( &ctx->d, &key->key.d ) ) != 0 )
+    if( ( ret = mbedtls_ecp_copy( &ctx->ecgost.key.Q, &key->key.Q ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->ecgost.key.d, &key->key.d ) ) != 0 )
         return( ret );
 
     return( 0 );
@@ -176,14 +167,14 @@ int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, size_t *olen,
 {
     int ret;
 
-    if( ctx == NULL || ctx->grp.pbits == 0 )
+    if( ctx == NULL || ctx->ecgost.key.grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecdh_gost_gen_public( &ctx->grp, &ctx->d, &ctx->Q, f_rng, p_rng ) )
-                != 0 )
+    if( ( ret = mbedtls_ecdh_gost_gen_public( &ctx->ecgost.key.grp, &ctx->ecgost.key.d,
+                        &ctx->ecgost.key.Q, f_rng, p_rng ) ) != 0 )
         return( ret );
 
-    return mbedtls_ecgost_write_pubkey( &ctx->grp, &ctx->Q, olen, buf, blen );
+    return mbedtls_ecgost_write_pubkey( &ctx->ecgost.key.grp, &ctx->ecgost.key.Q, olen, buf, blen );
 }
 
 /*
@@ -195,7 +186,7 @@ int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    return mbedtls_ecgost_read_pubkey( &ctx->grp, &ctx->Qp, buf, blen );
+    return mbedtls_ecgost_read_pubkey( &ctx->ecgost.key.grp, &ctx->Qp, buf, blen );
 }
 
 /*
@@ -214,7 +205,7 @@ int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( md_info = mbedtls_md_info_from_type( ctx->gost_md_alg ) ) == NULL )
+    if( ( md_info = mbedtls_md_info_from_type( ctx->ecgost.gost_md_alg ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     hash_len = mbedtls_md_get_size( md_info );
@@ -222,8 +213,8 @@ int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
     if( hash_len > blen )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_ecdh_gost_compute_shared( &ctx->grp, ctx->z, &ctx->Qp,
-                                     &ctx->d, ukm, ukm_len, ctx->gost_md_alg,
+    if( ( ret = mbedtls_ecdh_gost_compute_shared( &ctx->ecgost.key.grp, ctx->z, &ctx->Qp,
+                                     &ctx->ecgost.key.d, ukm, ukm_len, ctx->ecgost.gost_md_alg,
                                      f_rng, p_rng ) ) != 0 )
     {
         return( ret );

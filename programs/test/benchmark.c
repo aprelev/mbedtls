@@ -989,20 +989,21 @@ int main( int argc, char *argv[] )
             else
                 mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512, MBEDTLS_CIPHER_ID_GOST89_Z );
 
-            if( mbedtls_ecp_group_load( &ecdh_gost.grp, curve_info->grp_id ) != 0 ||
-                mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,
+            if( mbedtls_ecp_group_load( &ecdh_gost.ecgost.key.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_gost_gen_public( &ecdh_gost.ecgost.key.grp,
+                                  &ecdh_gost.ecgost.key.d, &ecdh_gost.ecgost.key.Q,
                                   myrand, NULL ) != 0 ||
-                mbedtls_ecp_copy( &ecdh_gost.Qp, &ecdh_gost.Q ) != 0 )
+                mbedtls_ecp_copy( &ecdh_gost.Qp, &ecdh_gost.ecgost.key.Q ) != 0 )
             {
                 mbedtls_exit( 1 );
             }
-            ecp_clear_precomputed( &ecdh_gost.grp );
+            ecp_clear_precomputed( &ecdh_gost.ecgost.key.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDHE-GOST-%s",
                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
-                    ret |= mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp,
-                                             &ecdh_gost.d, &ecdh_gost.Q,
+                    ret |= mbedtls_ecdh_gost_gen_public( &ecdh_gost.ecgost.key.grp,
+                                             &ecdh_gost.ecgost.key.d, &ecdh_gost.ecgost.key.Q,
                                              myrand, NULL );
                     ret |= mbedtls_ecdh_gost_calc_secret( &ecdh_gost, ukm, ukm_len,
                                              &olen, buf, sizeof( buf ),
@@ -1020,16 +1021,18 @@ int main( int argc, char *argv[] )
             else
                 mbedtls_ecdh_gost_init( &ecdh_gost, MBEDTLS_MD_GOST12_512, MBEDTLS_CIPHER_ID_GOST89_Z );
 
-            if( mbedtls_ecp_group_load( &ecdh_gost.grp, curve_info->grp_id ) != 0 ||
-                mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,
+            if( mbedtls_ecp_group_load( &ecdh_gost.ecgost.key.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_gost_gen_public( &ecdh_gost.ecgost.key.grp,
+                                  &ecdh_gost.ecgost.key.d, &ecdh_gost.ecgost.key.Q,
                                   myrand, NULL ) != 0 ||
-                mbedtls_ecp_copy( &ecdh_gost.Qp, &ecdh_gost.Q ) != 0 ||
-                mbedtls_ecdh_gost_gen_public( &ecdh_gost.grp, &ecdh_gost.d, &ecdh_gost.Q,
+                mbedtls_ecp_copy( &ecdh_gost.Qp, &ecdh_gost.ecgost.key.Q ) != 0 ||
+                mbedtls_ecdh_gost_gen_public( &ecdh_gost.ecgost.key.grp,
+                                  &ecdh_gost.ecgost.key.d, &ecdh_gost.ecgost.key.Q,
                                   myrand, NULL ) != 0 )
             {
                 mbedtls_exit( 1 );
             }
-            ecp_clear_precomputed( &ecdh_gost.grp );
+            ecp_clear_precomputed( &ecdh_gost.ecgost.key.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDH-GOST-%s",
                                               curve_info->name );

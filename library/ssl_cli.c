@@ -1939,7 +1939,7 @@ static int ssl_check_server_ecdh_gost_params( const mbedtls_ssl_context *ssl )
 {
     const mbedtls_ecp_curve_info *curve_info;
 
-    curve_info = mbedtls_ecp_curve_info_from_grp_id( ssl->handshake->ecdh_gost_ctx.grp.id );
+    curve_info = mbedtls_ecp_curve_info_from_grp_id( ssl->handshake->ecdh_gost_ctx.ecgost.key.grp.id );
     if( curve_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -1949,7 +1949,7 @@ static int ssl_check_server_ecdh_gost_params( const mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH-GOST curve: %s", curve_info->name ) );
 
 #if defined(MBEDTLS_ECP_C)
-    if( mbedtls_ssl_check_curve( ssl, ssl->handshake->ecdh_gost_ctx.grp.id ) != 0 )
+    if( mbedtls_ssl_check_curve( ssl, ssl->handshake->ecdh_gost_ctx.ecgost.key.grp.id ) != 0 )
 #else
     if( ssl->handshake->ecdh_gost_ctx.grp.nbits < 163 ||
         ssl->handshake->ecdh_gost_ctx.grp.nbits > 521 )
@@ -3012,7 +3012,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         i = 4;
 
-        if( ( md_info = mbedtls_md_info_from_type( ssl->handshake->ecdh_gost_ctx.gost_md_alg ) ) == NULL )
+        if( ( md_info = mbedtls_md_info_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg ) ) == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3042,7 +3042,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Q", &ssl->handshake->ecdh_gost_ctx.Q );
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Q", &ssl->handshake->ecdh_gost_ctx.ecgost.key.Q );
 
         if( ( ret = mbedtls_ecdh_gost_calc_secret( &ssl->handshake->ecdh_gost_ctx,
                                        ukm, 8,
@@ -3055,7 +3055,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "ECDH-GOST: z", ssl->handshake->ecdh_gost_ctx.z, 32 );
 
-        sbox_id = mbedtls_gost89_sbox_id_from_type( ssl->handshake->ecdh_gost_ctx.gost89_alg );
+        sbox_id = mbedtls_gost89_sbox_id_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg );
 
         mbedtls_gost89_key_wrap( sbox_id,
                                  kek,

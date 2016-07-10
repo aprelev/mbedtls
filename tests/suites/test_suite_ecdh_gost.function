@@ -71,8 +71,8 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
     mbedtls_ecdh_gost_init( &ctxB, md_alg, MBEDTLS_CIPHER_ID_GOST89_Z );
     mbedtls_mpi_init( &check );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &ctxA.grp, id ) == 0 );
-    TEST_ASSERT( mbedtls_ecp_group_load( &ctxB.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &ctxA.ecgost.key.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &ctxB.ecgost.key.grp, id ) == 0 );
 
     ukm_len = unhexify( ukm, ukm_str );
 
@@ -80,9 +80,9 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
     rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
 
     /* Fix rnd_buf_A by shifting it left if necessary */
-    if( ctxA.grp.nbits % 8 != 0 )
+    if( ctxA.ecgost.key.grp.nbits % 8 != 0 )
     {
-        unsigned char shift = 8 - ( ctxA.grp.nbits % 8 );
+        unsigned char shift = 8 - ( ctxA.ecgost.key.grp.nbits % 8 );
         size_t i;
 
         for( i = 0; i < rnd_info_A.length - 1; i++ )
@@ -96,9 +96,9 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
     rnd_info_B.length = unhexify( rnd_buf_B, dB_str );
 
     /* Fix rnd_buf_B by shifting it left if necessary */
-    if( ctxB.grp.nbits % 8 != 0 )
+    if( ctxB.ecgost.key.grp.nbits % 8 != 0 )
     {
-        unsigned char shift = 8 - ( ctxB.grp.nbits % 8 );
+        unsigned char shift = 8 - ( ctxB.ecgost.key.grp.nbits % 8 );
         size_t i;
 
         for( i = 0; i < rnd_info_B.length - 1; i++ )
@@ -108,30 +108,32 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
         rnd_buf_B[rnd_info_B.length-1] <<= shift;
     }
 
-    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &ctxA.grp, &ctxA.d, &ctxA.Q,
+    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &ctxA.ecgost.key.grp,
+                                  &ctxA.ecgost.key.d, &ctxA.ecgost.key.Q,
                                   rnd_buffer_rand, &rnd_info_A ) == 0 );
-    TEST_ASSERT( ! mbedtls_ecp_is_zero( &ctxA.Q ) );
+    TEST_ASSERT( ! mbedtls_ecp_is_zero( &ctxA.ecgost.key.Q ) );
     TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, xA_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxA.Q.X, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxA.ecgost.key.Q.X, &check ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, yA_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxA.Q.Y, &check ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_lset( &ctxA.Q.Z, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxA.ecgost.key.Q.Y, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &ctxA.ecgost.key.Q.Z, 1 ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_copy( &ctxB.Qp.X, &ctxA.Q.X) == 0 );
-    TEST_ASSERT( mbedtls_mpi_copy( &ctxB.Qp.Y, &ctxA.Q.Y) == 0 );
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxB.Qp.X, &ctxA.ecgost.key.Q.X) == 0 );
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxB.Qp.Y, &ctxA.ecgost.key.Q.Y) == 0 );
     TEST_ASSERT( mbedtls_mpi_lset( &ctxB.Qp.Z, 1 ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &ctxB.grp, &ctxB.d, &ctxB.Q,
+    TEST_ASSERT( mbedtls_ecdh_gost_gen_public( &ctxB.ecgost.key.grp,
+                                  &ctxB.ecgost.key.d, &ctxB.ecgost.key.Q,
                                   rnd_buffer_rand, &rnd_info_B ) == 0 );
-    TEST_ASSERT( ! mbedtls_ecp_is_zero( &ctxB.Q ) );
+    TEST_ASSERT( ! mbedtls_ecp_is_zero( &ctxB.ecgost.key.Q ) );
     TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, xB_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxB.Q.X, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxB.ecgost.key.Q.X, &check ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, yB_str ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxB.Q.Y, &check ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_lset( &ctxB.Q.Z, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &ctxB.ecgost.key.Q.Y, &check ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &ctxB.ecgost.key.Q.Z, 1 ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_copy( &ctxA.Qp.X, &ctxB.Q.X) == 0 );
-    TEST_ASSERT( mbedtls_mpi_copy( &ctxA.Qp.Y, &ctxB.Q.Y) == 0 );
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxA.Qp.X, &ctxB.ecgost.key.Q.X) == 0 );
+    TEST_ASSERT( mbedtls_mpi_copy( &ctxA.Qp.Y, &ctxB.ecgost.key.Q.Y) == 0 );
     TEST_ASSERT( mbedtls_mpi_lset( &ctxA.Qp.Z, 1 ) == 0 );
 
     secret_len = unhexify( secret, secret_str );

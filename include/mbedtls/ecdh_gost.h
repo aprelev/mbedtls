@@ -26,13 +26,9 @@ typedef enum
  */
 typedef struct
 {
-    mbedtls_ecp_group grp;                 /*!<  elliptic curve used               */
-    mbedtls_mpi d;                         /*!<  our secret value (private key)    */
-    mbedtls_ecp_point Q;                   /*!<  our public value (public key)     */
+    mbedtls_ecgost_context ecgost;         /*!<  our key pair with GOST params     */
     mbedtls_ecp_point Qp;                  /*!<  peer's public value (public key)  */
     unsigned char z[MBEDTLS_MD_MAX_SIZE];  /*!<  shared secret                     */
-    mbedtls_md_type_t gost_md_alg;         /*!<  GOST MD for hashing coordinates   */
-    mbedtls_cipher_id_t gost89_alg;        /*!<  GOST89 algorithm                  */
 }
 mbedtls_ecdh_gost_context;
 
