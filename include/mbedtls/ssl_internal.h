@@ -41,6 +41,14 @@
 #include "sha512.h"
 #endif
 
+#if defined(MBEDTLS_GOST94_C)
+#include "gost94.h"
+#endif
+
+#if defined(MBEDTLS_GOST12_C)
+#include "gost12.h"
+#endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #include "ecjpake.h"
 #endif
@@ -230,6 +238,9 @@ struct mbedtls_ssl_handshake_params
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
        mbedtls_md5_context fin_md5;
       mbedtls_sha1_context fin_sha1;
+#if defined(MBEDTLS_GOST94_C)
+      mbedtls_gost94_context fin_gost94;
+#endif
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
@@ -237,6 +248,9 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_SHA512_C)
     mbedtls_sha512_context fin_sha512;
+#endif
+#if defined(MBEDTLS_GOST12_C)
+    mbedtls_gost12_context fin_gost12;
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 

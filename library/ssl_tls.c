@@ -450,6 +450,28 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
                              label, random, rlen, dstbuf, dlen ) );
 }
 #endif /* MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_GOST94_C)
+static int tls_prf_gost94( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen )
+{
+    return( tls_prf_generic( MBEDTLS_MD_GOST94_CRYPTOPRO, secret, slen,
+                             label, random, rlen, dstbuf, dlen ) );
+}
+#endif /* MBEDTLS_GOST94_C */
+
+#if defined(MBEDTLS_GOST12_C)
+static int tls_prf_gost12( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen )
+{
+    return( tls_prf_generic( MBEDTLS_MD_GOST12_256, secret, slen,
+                             label, random, rlen, dstbuf, dlen ) );
+}
+#endif /* MBEDTLS_GOST12_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 static void ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );
@@ -533,13 +555,29 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        handshake->tls_prf = tls1_prf;
+#if defined(MBEDTLS_GOST94_C)
+        if( transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT )
+            handshake->tls_prf = tls_prf_gost94;
+        else
+#endif
+            handshake->tls_prf = tls1_prf;
+
         handshake->calc_verify = ssl_calc_verify_tls;
         handshake->calc_finished = ssl_calc_finished_tls;
     }
     else
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_GOST12_C)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT )
+    {
+        handshake->tls_prf = tls_prf_gost12;
+        handshake->calc_verify = ssl_calc_verify_tls_sha384;
+        handshake->calc_finished = ssl_calc_finished_tls_sha384;
+    }
+    else
+#endif
 #if defined(MBEDTLS_SHA512_C)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
         transform->ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
@@ -4580,7 +4618,12 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
-        ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
+#if defined(MBEDTLS_GOST94_C)
+        if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT )
+            ssl->handshake->update_checksum = ssl_update_checksum_gost94;
+        else
+#endif
+            ssl->handshake->update_checksum = ssl_update_checksum_md5sha1;
     else
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -4590,6 +4633,11 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
     else
 #endif
 #if defined(MBEDTLS_SHA256_C)
+    if( ciphersuite_info->mac != MBEDTLS_MD_SHA384 )
+        ssl->handshake->update_checksum = ssl_update_checksum_sha256;
+    else
+#endif
+#if defined(MBEDTLS_GOST12_C)
     if( ciphersuite_info->mac != MBEDTLS_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
     else
@@ -4644,6 +4692,13 @@ static void ssl_update_checksum_md5sha1( mbedtls_ssl_context *ssl,
      mbedtls_md5_update( &ssl->handshake->fin_md5 , buf, len );
     mbedtls_sha1_update( &ssl->handshake->fin_sha1, buf, len );
 }
+#if defined(MBEDTLS_GOST94_C)
+static void ssl_update_checksum_gost94( mbedtls_ssl_context *ssl,
+                                        const unsigned char *buf, size_t len )
+{
+    mbedtls_gost94_update( &ssl->handshake->fin_gost94, buf, len );
+}
+#endif
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -4660,6 +4715,14 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
 {
     mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
+}
+#endif
+
+#if defined(MBEDTLS_GOST12_C)
+static void ssl_update_checksum_gost12( mbedtls_ssl_context *ssl,
+                                        const unsigned char *buf, size_t len )
+{
+    mbedtls_gost12_update( &ssl->handshake->fin_gost12, buf, len );
 }
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -5202,6 +5265,10 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     mbedtls_sha1_init(   &handshake->fin_sha1 );
      mbedtls_md5_starts( &handshake->fin_md5  );
     mbedtls_sha1_starts( &handshake->fin_sha1 );
+#if defined(MBEDTLS_GOST94_C)
+    mbedtls_gost94_init( &handshake->fin_gost94 );
+    mbedtls_gost94_starts( &handshake->fin_gost94, MBEDTLS_GOST94_SBOX_CRYPTOPRO );
+#endif
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
@@ -5211,6 +5278,10 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_SHA512_C)
     mbedtls_sha512_init(   &handshake->fin_sha512    );
     mbedtls_sha512_starts( &handshake->fin_sha512, 1 );
+#endif
+#if defined(MBEDTLS_GOST12_C)
+    mbedtls_gost12_init(   &handshake->fin_gost12    );
+    mbedtls_gost12_starts( &handshake->fin_gost12, 1 );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
