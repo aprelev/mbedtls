@@ -562,7 +562,7 @@ static void *ecgost01_alloc_wrap( void )
     if( ctx != NULL )
         mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
                              MBEDTLS_MD_GOST94_CRYPTOPRO,
-                             MBEDTLS_CIPHER_ID_GOST89_A );
+                             MBEDTLS_CIPHER_ID_GOST89_A, 0 );
 
     return( ctx );
 }
@@ -574,7 +574,7 @@ static void *ecgost12_256_alloc_wrap( void )
     if( ctx != NULL )
         mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
                              MBEDTLS_MD_GOST12_256,
-                             MBEDTLS_CIPHER_ID_GOST89_Z );
+                             MBEDTLS_CIPHER_ID_GOST89_Z, 0 );
 
     return( ctx );
 }
@@ -586,7 +586,7 @@ static void *ecgost12_512_alloc_wrap( void )
     if( ctx != NULL )
         mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
                              MBEDTLS_MD_GOST12_512,
-                             MBEDTLS_CIPHER_ID_GOST89_Z );
+                             MBEDTLS_CIPHER_ID_GOST89_Z, 0 );
 
     return( ctx );
 }

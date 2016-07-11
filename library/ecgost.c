@@ -422,7 +422,8 @@ int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_
  */
 void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
                           mbedtls_md_type_t gost_md_alg,
-                          mbedtls_cipher_id_t gost89_alg )
+                          mbedtls_cipher_id_t gost89_alg,
+                          int key_exchange )
 {
     mbedtls_ecp_group_init( &ctx->key.grp );
     mbedtls_ecp_point_init( &ctx->key.Q );
@@ -430,6 +431,8 @@ void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
 
     ctx->gost_md_alg = gost_md_alg;
     ctx->gost89_alg = gost89_alg;
+
+    ctx->key_exchange = key_exchange;
 }
 
 /*

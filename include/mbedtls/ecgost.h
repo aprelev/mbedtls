@@ -57,9 +57,15 @@
  */
 typedef struct
 {
-    mbedtls_ecp_keypair key;          /*!<  Key pair           */
-    mbedtls_md_type_t   gost_md_alg;  /*!<  GOST MD algorithm  */
-    mbedtls_cipher_id_t gost89_alg;   /*!<  GOST89 algorithm   */
+    mbedtls_ecp_keypair key;          /*!<  Key pair            */
+    mbedtls_md_type_t   gost_md_alg;  /*!<  GOST MD algorithm   */
+    mbedtls_cipher_id_t gost89_alg;   /*!<  GOST89 algorithm    */
+
+    /*
+     * Now is used to indicate that we don't need to write
+     * additional SEQUENCE tag in ClientKeyExchange.
+     */
+    int key_exchange;                 /*!<  context is for key exchange */
 }
 mbedtls_ecgost_context;
 
@@ -218,10 +224,12 @@ int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_
  * \param ctx           Context to initialize
  * \param gost_md_alg   GOST MD algorithm to use
  * \param gost89_alg    GOST89 algorithm to use
+ * \param key_exchange  Context is for key exchange
  */
 void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
                           mbedtls_md_type_t gost_md_alg,
-                          mbedtls_cipher_id_t gost89_alg );
+                          mbedtls_cipher_id_t gost89_alg,
+                          int key_exchange );
 
 /**
  * \brief           Free context

@@ -3015,9 +3015,10 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         unsigned char buf[500];
         unsigned char *p = buf + sizeof( buf );
         const char *oid;
-        size_t olen, len = 0;
+        size_t ukm_len = 0, olen;
 
         i = 4;
+        n = 0;
 
         /* Write ukm */
 
@@ -3033,7 +3034,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md", ret );
             return( ret );
         }
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_octet_string( &p, buf, ukm, 8 ) );
+        MBEDTLS_ASN1_CHK_ADD( ukm_len, mbedtls_asn1_write_octet_string( &p, buf, ukm, 8 ) );
 
         /* Generate ephemeralPublicKey and write it to SubjectPublicKeyInfo */
 
@@ -3050,7 +3051,9 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Q", &ssl->handshake->ecdh_gost_ctx.ecgost.key.Q );
 
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &p, buf, pubkey, olen ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_raw_buffer( &p, buf, pubkey, olen ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf, 0xA0 ) );
 
         /* Write encryptionParamSet */
 
@@ -3060,11 +3063,11 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( &p, buf, oid, olen ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_oid( &p, buf, oid, olen ) );
 
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
-
+        n += ukm_len;
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf, 0xA0 ) );
 
         /* Generate shared secret and premaster */
 
@@ -3087,22 +3090,43 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        /* Wrap premaster using shared secret and write it */
+        /* Wrap premaster using shared secret and write it to output buffer */
 
         sbox_id = mbedtls_gost89_sbox_id_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg );
+
         mbedtls_gost89_key_wrap( sbox_id, kek, 1, ukm, ssl->handshake->premaster,
                                  wrapped_key );
 
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &p, buf, wrapped_key, 36 ) );
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+        /* From RFC 4357:
+         *
+         * Gost28147-89-Key ::= OCTET STRING (SIZE (32))
+         * Gost28147-89-MAC ::= OCTET STRING (SIZE (1..4))
+         */
 
-        memcpy( &ssl->out_msg[i], p, len );
+        olen = 0;
+        MBEDTLS_ASN1_CHK_ADD( olen, mbedtls_asn1_write_octet_string( &p, buf,
+                                                        &wrapped_key[40], 4 ) );
+        MBEDTLS_ASN1_CHK_ADD( olen, mbedtls_asn1_write_octet_string( &p, buf,
+                                                        &wrapped_key[8], 32 ) );
 
-        mbedtls_zeroize( ukm, MBEDTLS_MD_MAX_SIZE );
+        n += olen;
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, olen ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf,
+                            MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf,
+                            MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf,
+                            MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+        memcpy( &ssl->out_msg[i], p, n );
+
+        /* Don't forget to clear local kek */
+
         mbedtls_zeroize( kek, 32 );
-
-        n = len;
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */

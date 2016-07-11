@@ -273,9 +273,27 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
                                                         par_len ) );
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED |
-                                                MBEDTLS_ASN1_SEQUENCE ) );
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST01     ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_256 ||
+        mbedtls_pk_get_type( key ) == MBEDTLS_PK_GOST12_512 )
+    {
+        if( ! mbedtls_pk_ecgost( *key )->key_exchange )
+        {
+            MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+            MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                        MBEDTLS_ASN1_SEQUENCE ) );
+        }
+    }
+    else
+    {
+#endif
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                    MBEDTLS_ASN1_SEQUENCE ) );
+#if defined(MBEDTLS_ECGOST_C)
+    }
+#endif
 
     return( (int) len );
 }

@@ -88,8 +88,8 @@ int main( int argc, char *argv[] )
 
     mbedtls_gost12( msg, sizeof( msg ), hash, 1 );
 
-    mbedtls_ecgost_init( &ctx_sign, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
-    mbedtls_ecgost_init( &ctx_verify, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z );
+    mbedtls_ecgost_init( &ctx_sign, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z, 0 );
+    mbedtls_ecgost_init( &ctx_verify, MBEDTLS_MD_GOST12_256, MBEDTLS_CIPHER_ID_GOST89_Z, 0 );
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
     memset(sig, 0, sizeof( sig ) );

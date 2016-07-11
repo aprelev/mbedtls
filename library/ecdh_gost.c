@@ -111,7 +111,7 @@ void mbedtls_ecdh_gost_init( mbedtls_ecdh_gost_context *ctx,
     if( ctx == NULL )
         return;
 
-    mbedtls_ecgost_init( &ctx->ecgost, gost_md_alg, gost89_alg );
+    mbedtls_ecgost_init( &ctx->ecgost, gost_md_alg, gost89_alg, 1 );
     mbedtls_ecp_point_init( &ctx->Qp );
     memset( &ctx->z, 0, MBEDTLS_MD_MAX_SIZE );
 }
@@ -180,6 +180,7 @@ int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls
 
     pk.pk_info = pk_info;
     pk.pk_ctx = &ctx->ecgost;
+    ctx->ecgost.key_exchange = 1;
 
     MBEDTLS_ASN1_CHK_ADD( pub_len, mbedtls_pk_write_pubkey_der( &pk, pubkey, sizeof( pubkey ) ) );
 
