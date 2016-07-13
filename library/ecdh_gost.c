@@ -215,13 +215,22 @@ int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
                       void *p_rng )
 {
     int ret;
+    mbedtls_md_type_t md_alg;
     const mbedtls_md_info_t *md_info;
     size_t hash_len;
 
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( md_info = mbedtls_md_info_from_type( ctx->ecgost.gost_md_alg ) ) == NULL )
+    md_alg = ctx->ecgost.gost_md_alg;
+
+    /* Change GOST12_512 to GOST12_256 for key exchange */
+    if( md_alg == MBEDTLS_MD_GOST12_512 )
+    {
+        md_alg = MBEDTLS_MD_GOST12_256;
+    }
+
+    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     hash_len = mbedtls_md_get_size( md_info );
@@ -230,7 +239,7 @@ int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_ecdh_gost_compute_shared( &ctx->ecgost.key.grp, ctx->z, &ctx->Qp,
-                                     &ctx->ecgost.key.d, ukm, ukm_len, ctx->ecgost.gost_md_alg,
+                                     &ctx->ecgost.key.d, ukm, ukm_len, md_alg,
                                      f_rng, p_rng ) ) != 0 )
     {
         return( ret );
