@@ -138,11 +138,11 @@ void ecdh_gost_primitive_testvec( int id, int md_alg, char *ukm_str,
 
     secret_len = unhexify( secret, secret_str );
 
-    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxA, ukm, ukm_len, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxA, md_alg, ukm, ukm_len, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
     TEST_ASSERT( secret_len == olen );
     TEST_ASSERT( memcmp( secret, output, secret_len ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxB, ukm, ukm_len, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_gost_calc_secret( &ctxB, md_alg, ukm, ukm_len, &olen, output, sizeof( output ), NULL, NULL ) == 0 );
     TEST_ASSERT( secret_len == olen );
     TEST_ASSERT( memcmp( secret, output, secret_len ) == 0 );
 

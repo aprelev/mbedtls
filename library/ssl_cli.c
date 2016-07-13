@@ -3006,6 +3006,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         /*
          * ECDH-GOST key exchange -- send wrapped premaster and client public value
          */
+        mbedtls_md_type_t md_alg;
         const mbedtls_md_info_t *md_info;
         mbedtls_gost89_sbox_id_t sbox_id;
         unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
@@ -3022,7 +3023,15 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         /* Write ukm */
 
-        if( ( md_info = mbedtls_md_info_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg ) ) == NULL )
+        md_alg = ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg;
+
+        /* Change GOST12_512 to GOST12_256 for key exchange */
+        if( md_alg == MBEDTLS_MD_GOST12_512 )
+        {
+            md_alg = MBEDTLS_MD_GOST12_256;
+        }
+
+        if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3072,7 +3081,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         /* Generate shared secret and premaster */
 
         if( ( ret = mbedtls_ecdh_gost_calc_secret( &ssl->handshake->ecdh_gost_ctx,
-                                       ukm, 8, &olen, kek, 32,
+                                       md_alg, ukm, 8, &olen, kek, 32,
                                        ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_calc_secret", ret );

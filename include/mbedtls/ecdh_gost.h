@@ -147,6 +147,7 @@ int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
  *                  (Last function used by both TLS client en servers.)
  *
  * \param ctx       ECDH-GOST context
+ * \param md_alg    MD for hashing coordinates
  * \param ukm       User keying material
  * \param ukm_len   UKM length
  * \param olen      number of bytes written
@@ -158,6 +159,7 @@ int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
 int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
+                      mbedtls_md_type_t md_alg,
                       const unsigned char *ukm, size_t ukm_len,
                       size_t *olen, unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),

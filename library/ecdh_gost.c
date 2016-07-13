@@ -209,26 +209,18 @@ int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
  * Derive and export the shared secret
  */
 int mbedtls_ecdh_gost_calc_secret( mbedtls_ecdh_gost_context *ctx,
+                      mbedtls_md_type_t md_alg,
                       const unsigned char *ukm, size_t ukm_len,
                       size_t *olen, unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng )
 {
     int ret;
-    mbedtls_md_type_t md_alg;
     const mbedtls_md_info_t *md_info;
     size_t hash_len;
 
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    md_alg = ctx->ecgost.gost_md_alg;
-
-    /* Change GOST12_512 to GOST12_256 for key exchange */
-    if( md_alg == MBEDTLS_MD_GOST12_512 )
-    {
-        md_alg = MBEDTLS_MD_GOST12_256;
-    }
 
     if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
