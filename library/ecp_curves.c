@@ -1078,6 +1078,7 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 
 #if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
         case MBEDTLS_ECP_DP_GOST256A:
+        case MBEDTLS_ECP_DP_GOST256A_ALT:
             grp->modp = ecp_mod_gost256a;
             return( LOAD_GROUP( gost256a ) );
 #endif /* MBEDTLS_ECP_DP_GOST256A_ENABLED */
@@ -1090,6 +1091,7 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 
 #if defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
         case MBEDTLS_ECP_DP_GOST256C:
+        case MBEDTLS_ECP_DP_GOST256C_ALT:
             return( LOAD_GROUP( gost256c ) );
 #endif /* MBEDTLS_ECP_DP_GOST256C_ENABLED */
 
@@ -1670,7 +1672,10 @@ static int ecp_mod_p256k1( mbedtls_mpi *N )
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)    ||   \
     defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)    ||   \
-    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
+    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)    ||   \
+    defined(MBEDTLS_ECP_DP_GOST512TEST_ENABLED) ||   \
+    defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)    ||   \
+    defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
 /*
  * Fast quasi-reduction modulo P = 2^s - R (or P = 2^(s - 1) + R),
  * with R in one limb, used by the GOST curves.
@@ -1748,10 +1753,13 @@ static inline int ecp_mod_gost( mbedtls_mpi *N, mbedtls_mpi_sint R, size_t p_lim
 cleanup:
     return( ret );
 }
-#endif /* MBEDTLS_ECP_DP_GOST256TEST_ENABLED) ||
-          MBEDTLS_ECP_DP_GOST256A_ENABLED)    ||
-          MBEDTLS_ECP_DP_GOST256B_ENABLED)    ||
-          MBEDTLS_ECP_DP_GOST256C_ENABLED) */
+#endif /* MBEDTLS_ECP_DP_GOST256TEST_ENABLED ||
+          MBEDTLS_ECP_DP_GOST256A_ENABLED    ||
+          MBEDTLS_ECP_DP_GOST256B_ENABLED    ||
+          MBEDTLS_ECP_DP_GOST256C_ENABLED    ||
+          MBEDTLS_ECP_DP_GOST512TEST_ENABLED ||
+          MBEDTLS_ECP_DP_GOST512A_ENABLED    ||
+          MBEDTLS_ECP_DP_GOST512B_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
 /*

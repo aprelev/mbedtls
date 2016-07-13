@@ -644,7 +644,7 @@ static const oid_ecgost_grp_t oid_ecgost_grp[] =
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A_ALT ),   "id-GostR3410-2001-CryptoPro-XchA-ParamSet",    "id-GostR3410-2001-CryptoPro-XchA-ParamSet" },
-        MBEDTLS_ECP_DP_GOST256A,
+        MBEDTLS_ECP_DP_GOST256A_ALT,
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256B ),       "id-GostR3410-2001-CryptoPro-B-ParamSet",       "id-GostR3410-2001-CryptoPro-B-ParamSet" },
@@ -656,7 +656,7 @@ static const oid_ecgost_grp_t oid_ecgost_grp[] =
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C_ALT ),   "id-GostR3410-2001-CryptoPro-XchB-ParamSet",    "id-GostR3410-2001-CryptoPro-XchB-ParamSet" },
-        MBEDTLS_ECP_DP_GOST256C,
+        MBEDTLS_ECP_DP_GOST256C_ALT,
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512TEST ),    "id-tc26-gost-3410-12-512-paramSetTest",        "id-tc26-gost-3410-12-512-paramSetTest" },

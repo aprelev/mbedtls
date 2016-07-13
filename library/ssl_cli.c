@@ -3008,7 +3008,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          */
         mbedtls_md_type_t md_alg;
         const mbedtls_md_info_t *md_info;
-        mbedtls_gost89_sbox_id_t sbox_id;
+        mbedtls_cipher_id_t wrap_alg;
         unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
         unsigned char pubkey[200];
         unsigned char kek[32];
@@ -3021,14 +3021,19 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         i = 4;
         n = 0;
 
-        /* Write ukm */
+        /* Set MD algorithm */
 
-        md_alg = ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg;
-
-        /* Change GOST12_512 to GOST12_256 for key exchange */
-        if( md_alg == MBEDTLS_MD_GOST12_512 )
-        {
+        if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
+            ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 )
+            md_alg = MBEDTLS_MD_GOST94_CRYPTOPRO;
+        else
+        if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
+            ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
             md_alg = MBEDTLS_MD_GOST12_256;
+        else
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
@@ -3036,6 +3041,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
+
+        /* Compute and write ukm */
 
         ret = mbedtls_md( md_info, ssl->handshake->randbytes, 64, ukm );
         if( ret != 0 )
@@ -3066,7 +3073,11 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         /* Write encryptionParamSet */
 
-        ret = mbedtls_oid_get_oid_by_gost89( ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg, &oid, &olen );
+        /* S-Box for wrap is defined by encryptionParamSet in server certificate */
+
+        wrap_alg = ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg;
+
+        ret = mbedtls_oid_get_oid_by_gost89( wrap_alg, &oid, &olen );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -3079,6 +3090,12 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf, 0xA0 ) );
 
         /* Generate shared secret and premaster */
+
+        /* MD for hashing coordinates is defined by digestParamSet in server certificate */
+
+        md_alg = ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg;
+        if( md_alg == MBEDTLS_MD_GOST12_512 )
+            md_alg = MBEDTLS_MD_GOST12_256;
 
         if( ( ret = mbedtls_ecdh_gost_calc_secret( &ssl->handshake->ecdh_gost_ctx,
                                        md_alg, ukm, 8, &olen, kek, 32,
@@ -3101,9 +3118,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         /* Wrap premaster using shared secret and write it to output buffer */
 
-        sbox_id = mbedtls_gost89_sbox_id_from_type( ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg );
-
-        mbedtls_gost89_key_wrap( sbox_id, kek, 1, ukm, ssl->handshake->premaster,
+        mbedtls_gost89_key_wrap( mbedtls_gost89_sbox_id_from_type( wrap_alg ),
+                                 kek, 1, ukm, ssl->handshake->premaster,
                                  wrapped_key );
 
         /* From RFC 4357:

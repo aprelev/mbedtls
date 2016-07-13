@@ -94,7 +94,10 @@ static unsigned long add_count, dbl_count, mul_count;
     defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED) || \
     defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)  ||   \
     defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)  ||   \
-    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
+    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)  ||   \
+    defined(MBEDTLS_ECP_DP_GOST512TEST_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)  ||   \
+    defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
 #define ECP_SHORTWEIERSTRASS
 #endif
 
@@ -164,12 +167,14 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
     { MBEDTLS_ECP_DP_GOST256A,     -2,     256,    "gost256a"          },
+    { MBEDTLS_ECP_DP_GOST256A_ALT, -2,     256,    "gost256a_alt"      },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
     { MBEDTLS_ECP_DP_GOST256B,     -3,     256,    "gost256b"          },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
     { MBEDTLS_ECP_DP_GOST256C,     -4,     256,    "gost256c"          },
+    { MBEDTLS_ECP_DP_GOST256C_ALT, -4,     256,    "gost256c_alt"      },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST512TEST_ENABLED)
     { MBEDTLS_ECP_DP_GOST512TEST,  -5,     512,    "gost512test"       },

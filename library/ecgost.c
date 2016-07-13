@@ -48,12 +48,14 @@ cleanup:
 
 static inline int is_gost_ecp_group( mbedtls_ecp_group_id gid )
 {
-    return( ( gid == MBEDTLS_ECP_DP_GOST256TEST ) ||
-            ( gid == MBEDTLS_ECP_DP_GOST256A )    ||
-            ( gid == MBEDTLS_ECP_DP_GOST256B )    ||
-            ( gid == MBEDTLS_ECP_DP_GOST256C )    ||
-            ( gid == MBEDTLS_ECP_DP_GOST512TEST ) ||
-            ( gid == MBEDTLS_ECP_DP_GOST512A )    ||
+    return( ( gid == MBEDTLS_ECP_DP_GOST256TEST )  ||
+            ( gid == MBEDTLS_ECP_DP_GOST256A )     ||
+            ( gid == MBEDTLS_ECP_DP_GOST256A_ALT ) ||
+            ( gid == MBEDTLS_ECP_DP_GOST256B )     ||
+            ( gid == MBEDTLS_ECP_DP_GOST256C )     ||
+            ( gid == MBEDTLS_ECP_DP_GOST256C_ALT ) ||
+            ( gid == MBEDTLS_ECP_DP_GOST512TEST )  ||
+            ( gid == MBEDTLS_ECP_DP_GOST512A )     ||
             ( gid == MBEDTLS_ECP_DP_GOST512B ) );
 }
 
