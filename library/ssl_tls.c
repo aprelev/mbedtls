@@ -866,11 +866,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
         if( transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
-            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 ||
-            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
-            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT )
         {
-            /* For GOST ciphersuites mac_key_length != mac_length */
+            /* For GOST ciphersuites with encryption mac_key_length != mac_length */
 
             key1 = keyblk + transform->keylen * 2;
             key2 = keyblk + transform->keylen * 2 + transform->keylen;
@@ -904,11 +902,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
         if( transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
-            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 ||
-            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
-            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+            transform->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT )
         {
-            /* For GOST ciphersuites mac_key_length != mac_length */
+            /* For GOST ciphersuites with encryption mac_key_length != mac_length */
 
             key1 = keyblk + transform->keylen * 2 + transform->keylen;
             key2 = keyblk + transform->keylen * 2;
