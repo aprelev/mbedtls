@@ -369,8 +369,8 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1) || MBEDTLS_SSL_PROTO_TLS1_1 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) || defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST)
+
 static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
                             const char *label,
@@ -433,8 +433,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_KEY_EXCHANGE_ECDH_GOST */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
@@ -461,8 +460,6 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
 static int tls_prf_gost94( const unsigned char *secret, size_t slen,
                            const char *label,
@@ -483,8 +480,6 @@ static int tls_prf_gost12_256( const unsigned char *secret, size_t slen,
                              label, random, rlen, dstbuf, dlen ) );
 }
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 static void ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );
@@ -519,8 +514,6 @@ static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
 static void ssl_update_checksum_gost94( mbedtls_ssl_context *, const unsigned char *, size_t );
 static void ssl_calc_verify_tls_gost94( mbedtls_ssl_context *, unsigned char * );
@@ -531,8 +524,6 @@ static void ssl_update_checksum_gost12_256( mbedtls_ssl_context *, const unsigne
 static void ssl_calc_verify_tls_gost12_256( mbedtls_ssl_context *, unsigned char * );
 static void ssl_calc_finished_tls_gost12_256( mbedtls_ssl_context *, unsigned char *, int );
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
@@ -583,8 +574,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     else
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
     if( ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
         ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 )
@@ -605,8 +594,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
@@ -1256,8 +1243,6 @@ void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
 static void ssl_calc_verify_tls_gost94( mbedtls_ssl_context *ssl, unsigned char hash[32] )
 {
@@ -1298,8 +1283,6 @@ static void ssl_calc_verify_tls_gost12_256( mbedtls_ssl_context *ssl, unsigned c
     return;
 }
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -4915,8 +4898,6 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
     ((void) ciphersuite_info);
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
     if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
         ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 )
@@ -4929,8 +4910,6 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
         ssl->handshake->update_checksum = ssl_update_checksum_gost12_256;
     else
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
@@ -4974,16 +4953,12 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
     mbedtls_gost94_starts( &ssl->handshake->fin_gost94, MBEDTLS_GOST94_SBOX_CRYPTOPRO );
 #endif /* MBEDTLS_GOST94_C */
 #if defined(MBEDTLS_GOST12_C)
     mbedtls_gost12_starts( &ssl->handshake->fin_gost12, 1 );
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 }
 
@@ -5005,16 +4980,12 @@ static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
     mbedtls_gost94_update( &ssl->handshake->fin_gost94, buf, len );
 #endif /* MBEDTLS_GOST94_C */
 #if defined(MBEDTLS_GOST12_C)
     mbedtls_gost12_update( &ssl->handshake->fin_gost12, buf, len );
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 }
 
@@ -5047,8 +5018,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
 static void ssl_update_checksum_gost94( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
@@ -5063,8 +5032,6 @@ static void ssl_update_checksum_gost12_256( mbedtls_ssl_context *ssl,
     mbedtls_gost12_update( &ssl->handshake->fin_gost12, buf, len );
 }
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -5312,8 +5279,6 @@ static void ssl_calc_finished_tls_sha384(
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
 static void ssl_calc_finished_tls_gost94(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
@@ -5414,8 +5379,6 @@ static void ssl_calc_finished_tls_gost12_256(
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
@@ -5725,8 +5688,6 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
     mbedtls_gost94_init(   &handshake->fin_gost94    );
     mbedtls_gost94_starts( &handshake->fin_gost94, MBEDTLS_GOST94_SBOX_CRYPTOPRO );
@@ -5735,8 +5696,6 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     mbedtls_gost12_init(   &handshake->fin_gost12    );
     mbedtls_gost12_starts( &handshake->fin_gost12, 1 );
 #endif /* MBEDTLS_GOST12_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     handshake->update_checksum = ssl_update_checksum_start;

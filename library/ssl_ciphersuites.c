@@ -277,7 +277,6 @@ static const int ciphersuite_preference[] =
 static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-
 #if defined(MBEDTLS_GOST89_C)
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     { MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT, "TLS-GOSTR341112-256-WITH-28147-CNT-IMIT",
@@ -292,7 +291,6 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       0 },
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 #endif /* MBEDTLS_GOST89_C */
-
 #if defined(MBEDTLS_GOST12_C)
     { MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411, "TLS-GOSTR341112-256-WITH-NULL-GOSTR3411",
       MBEDTLS_CIPHER_NULL, MBEDTLS_MD_GOST12_256, MBEDTLS_KEY_EXCHANGE_ECDH_GOST,
@@ -300,7 +298,6 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif /* MBEDTLS_GOST12_C */
-
 #if defined(MBEDTLS_GOST94_C)
     { MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411, "TLS-GOSTR341001-WITH-NULL-GOSTR3411",
       MBEDTLS_CIPHER_NULL, MBEDTLS_MD_GOST94_CRYPTOPRO, MBEDTLS_KEY_EXCHANGE_ECDH_GOST,
@@ -308,7 +305,6 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3,
       0 },
 #endif /* MBEDTLS_GOST94_C */
-
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)

@@ -249,16 +249,12 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_GOST94_C)
     mbedtls_gost94_context fin_gost94;
 #endif /* MBEDTLS_GOST94_C */
 #if defined(MBEDTLS_GOST12_C)
     mbedtls_gost12_context fin_gost12;
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
-          MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_GOST12_C */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);

@@ -735,7 +735,10 @@
  *
  * Requires: MBEDTLS_ECDH_GOST_C, MBEDTLS_GOST89_C,
  *           MBEDTLS_GOST94_C or MBEDTLS_GOST12_C,
- *           MBEDTLS_X509_CRT_PARSE_C
+ *           MBEDTLS_X509_CRT_PARSE_C,
+ *           MBEDTLS_SSL_PROTO_TLS1    or
+ *           MBEDTLS_SSL_PROTO_TLS1_1  or
+ *           MBEDTLS_SSL_PROTO_TLS1_2
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
