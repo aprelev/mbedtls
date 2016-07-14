@@ -272,7 +272,8 @@ void mbedtls_gost89_mac( char *hex_key_string, char *hex_src_string, char *hex_h
     unhexify( key_str, hex_key_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_gost89_mac( sbox_id, key_str, iv_str, src_str, src_len, output );
+    mbedtls_gost89_mac( sbox_id, MBEDTLS_GOST89_KEY_MESHING_NONE,
+                        key_str, iv_str, src_str, src_len, output );
     hexify( hash_str, output, 4 );
 
     TEST_ASSERT( strcasecmp( (char *) hash_str, hex_hash_string ) == 0 );

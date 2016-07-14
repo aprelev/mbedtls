@@ -58,11 +58,11 @@ extern "C" {
  */
 typedef struct
 {
-    uint32_t rk[8];                           /*!< round keys                                               */
-    mbedtls_gost89_sbox_id_t sbox_id;         /*!< S-Box identifier                                         */
-    mbedtls_gost89_key_meshing_t key_meshing; /*!< key meshing type                                         */
-    size_t processed_len;                     /*!< number of processed bytes (for CNT mode only)            */
-    int iv_encrypted;                         /*!< flag indicates that IV was encrypted (for CNT mode only) */
+    uint32_t rk[8];                           /*!< round keys                                                  */
+    mbedtls_gost89_sbox_id_t sbox_id;         /*!< S-Box identifier                                            */
+    mbedtls_gost89_key_meshing_t key_meshing; /*!< key meshing type                                            */
+    size_t processed_blocks;                  /*!< number of processed blocks (for key meshing in CNT and CFB) */
+    int iv_encrypted;                         /*!< flag indicates that IV was encrypted (for CNT mode only)    */
 } mbedtls_gost89_context;
 
 /**
@@ -72,8 +72,10 @@ typedef struct
 {
     uint32_t rk[8];                                          /*!< round keys                 */
     mbedtls_gost89_sbox_id_t sbox_id;                        /*!< S-Box identifier           */
+    mbedtls_gost89_key_meshing_t key_meshing;                /*!< key meshing type           */
     unsigned char buffer[MBEDTLS_GOST89_BLOCKSIZE];          /*!< data block being processed */
     unsigned char encrypted_block[MBEDTLS_GOST89_BLOCKSIZE]; /*!< previous encrypted block   */
+    size_t processed_blocks;                                 /*!< number of processed blocks */
     size_t processed_len;                                    /*!< number of processed bytes  */
 } mbedtls_gost89_mac_context;
 
@@ -274,13 +276,15 @@ void mbedtls_gost89_mac_clone( mbedtls_gost89_mac_context *dst,
 /**
  * \brief          GOST89-MAC context setup
  *
- * \param ctx      context to be initialized
- * \param iv       8-byte IV
- * \param sbox_id  S-Box identifier
+ * \param ctx         context to be initialized
+ * \param iv          8-byte IV
+ * \param sbox_id     S-Box identifier
+ * \param key_meshing key meshing to use
  */
 void mbedtls_gost89_mac_starts( mbedtls_gost89_mac_context *ctx,
                                 const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
-                                mbedtls_gost89_sbox_id_t sbox_id );
+                                mbedtls_gost89_sbox_id_t sbox_id,
+                                mbedtls_gost89_key_meshing_t key_meshing );
 
 /**
  * \brief          GOST89-MAC process buffer
@@ -319,14 +323,16 @@ extern "C" {
 /**
  * \brief          Output = GOST89-MAC( input buffer )
  *
- * \param sbox_id  S-Box identifier
- * \param key      32-byte secret key
- * \param iv       8-byte IV
- * \param input    buffer holding the  data
- * \param ilen     length of the input data
- * \param output   GOST89-MAC checksum result
+ * \param sbox_id     S-Box identifier
+ * \param key_meshing key meshing to use
+ * \param key         32-byte secret key
+ * \param iv          8-byte IV
+ * \param input       buffer holding the  data
+ * \param ilen        length of the input data
+ * \param output      GOST89-MAC checksum result
  */
 void mbedtls_gost89_mac( mbedtls_gost89_sbox_id_t sbox_id,
+                         mbedtls_gost89_key_meshing_t key_meshing,
                          const unsigned char key[MBEDTLS_GOST89_KEY_SIZE],
                          const unsigned char iv[MBEDTLS_GOST89_BLOCKSIZE],
                          const unsigned char *input, size_t ilen,

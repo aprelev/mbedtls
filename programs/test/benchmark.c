@@ -597,8 +597,9 @@ int main( int argc, char *argv[] )
 
         memset( key, 0, sizeof( key ) );
 
-        TIME_AND_TSC( "GOST89-TEST-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, key,
-                                                          buf, buf, BUFSIZE, tmp ) );
+        TIME_AND_TSC( "GOST89-TEST-MAC", mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST,
+                                                MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO,
+                                                key, buf, buf, BUFSIZE, tmp ) );
     }
 #endif
 

@@ -597,19 +597,19 @@ static const unsigned char gost89_mac_zero_iv[8] =
 static void gost89_test_mac_starts_wrap( void *ctx )
 {
     mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, gost89_mac_zero_iv,
-                               MBEDTLS_GOST89_SBOX_TEST );
+                               MBEDTLS_GOST89_SBOX_TEST, MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 }
 
 static void gost89_a_mac_starts_wrap( void *ctx )
 {
     mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, gost89_mac_zero_iv,
-                               MBEDTLS_GOST89_SBOX_A );
+                               MBEDTLS_GOST89_SBOX_A, MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 }
 
 static void gost89_z_mac_starts_wrap( void *ctx )
 {
     mbedtls_gost89_mac_starts( (mbedtls_gost89_mac_context *) ctx, gost89_mac_zero_iv,
-                               MBEDTLS_GOST89_SBOX_Z );
+                               MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_CRYPTOPRO );
 }
 
 static void gost89_mac_update_wrap( void *ctx, const unsigned char *input,
@@ -635,21 +635,24 @@ static const unsigned char gost89_mac_zero_key[32] =
 static void gost89_test_mac_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
-    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, gost89_mac_zero_key, gost89_mac_zero_iv,
+    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_TEST, MBEDTLS_GOST89_KEY_MESHING_NONE,
+                        gost89_mac_zero_key, gost89_mac_zero_iv,
                         input, ilen, output );
 }
 
 static void gost89_a_mac_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
-    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, gost89_mac_zero_key, gost89_mac_zero_iv,
+    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_A, MBEDTLS_GOST89_KEY_MESHING_NONE,
+                        gost89_mac_zero_key, gost89_mac_zero_iv,
                         input, ilen, output );
 }
 
 static void gost89_z_mac_wrap( const unsigned char *input, size_t ilen,
                     unsigned char *output )
 {
-    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_Z, gost89_mac_zero_key, gost89_mac_zero_iv,
+    mbedtls_gost89_mac( MBEDTLS_GOST89_SBOX_Z, MBEDTLS_GOST89_KEY_MESHING_NONE,
+                        gost89_mac_zero_key, gost89_mac_zero_iv,
                         input, ilen, output );
 }
 
