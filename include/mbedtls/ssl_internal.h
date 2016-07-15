@@ -253,7 +253,8 @@ struct mbedtls_ssl_handshake_params
     mbedtls_gost94_context fin_gost94;
 #endif /* MBEDTLS_GOST94_C */
 #if defined(MBEDTLS_GOST12_C)
-    mbedtls_gost12_context fin_gost12;
+    mbedtls_gost12_context fin_gost12_256;
+    mbedtls_gost12_context fin_gost12_512;
 #endif /* MBEDTLS_GOST12_C */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 

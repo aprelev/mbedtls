@@ -45,6 +45,8 @@
 #include "mbedtls/asn1write.h"
 #include "mbedtls/gost89.h"
 #include "mbedtls/oid.h"
+#include "mbedtls/md.h"
+#include "mbedtls/pk.h"
 #endif
 
 #include <string.h>
@@ -3240,7 +3242,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
     size_t n = 0, offset = 0;
-    unsigned char hash[48];
+    unsigned char hash[64];
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     unsigned int hashlen;
@@ -3282,6 +3284,34 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
      */
     ssl->handshake->calc_verify( ssl, hash );
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
+        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 ||
+        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
+        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+    {
+        const mbedtls_md_info_t *md_info;
+        mbedtls_pk_context *pk_ctx;
+
+        pk_ctx = mbedtls_ssl_own_key( ssl );
+        if( pk_ctx == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        md_alg = mbedtls_pk_ecgost( *pk_ctx )->gost_md_alg;
+
+        if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        hashlen = mbedtls_md_get_size( md_info );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
@@ -3363,6 +3393,26 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );
     }
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
+        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 ||
+        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
+        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+    {
+        /* We need to reverse GOST signature in certificate verify */
+
+        size_t i;
+        unsigned char tmp;
+
+        for( i = 0; i < n / 2; i++ )
+        {
+            tmp = ssl->out_msg[6 + offset + i];
+            ssl->out_msg[6 + offset + i] = ssl->out_msg[6 + offset + n - 1 - i];
+            ssl->out_msg[6 + offset + n - 1 - i] = tmp;
+        }
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );
