@@ -579,14 +579,45 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     if( ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
         ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 )
     {
-        mbedtls_md_type_t verify_md_alg;
-
-        handshake->tls_prf = tls_prf_gost94;
-        handshake->calc_finished = ssl_calc_finished_tls_gost94;
-
         /* Get verify MD algorithm from client certificate */
 
-        verify_md_alg = mbedtls_pk_ecgost( mbedtls_ssl_own_cert( ssl )->pk )->gost_md_alg;
+        const mbedtls_x509_crt *client_cert;
+        const mbedtls_ecgost_context* client_ecgost;
+        mbedtls_md_type_t verify_md_alg;
+
+#if defined(MBEDTLS_SSL_CLI_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        {
+            client_cert = mbedtls_ssl_own_cert( ssl );
+        }
+        else
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
+        {
+            client_cert = mbedtls_ssl_get_peer_cert( ssl );
+        }
+        else
+#endif /* MBEDTLS_SSL_SRV_C */
+        {
+            client_cert = NULL;
+        }
+
+        if( client_cert == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        client_ecgost = mbedtls_pk_ecgost( client_cert->pk );
+
+        if( client_ecgost == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        verify_md_alg = client_ecgost->gost_md_alg;
 
         if( verify_md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
             handshake->calc_verify = ssl_calc_verify_tls_gost94;
@@ -601,6 +632,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
+
+        handshake->tls_prf = tls_prf_gost94;
+        handshake->calc_finished = ssl_calc_finished_tls_gost94;
     }
     else
 #endif /* MBEDTLS_GOST94_C */
@@ -608,14 +642,45 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     if( ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
         ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
     {
-        mbedtls_md_type_t verify_md_alg;
-
-        handshake->tls_prf = tls_prf_gost12_256;
-        handshake->calc_finished = ssl_calc_finished_tls_gost12_256;
-
         /* Get verify MD algorithm from client certificate */
 
-        verify_md_alg = mbedtls_pk_ecgost( mbedtls_ssl_own_cert( ssl )->pk )->gost_md_alg;
+        const mbedtls_x509_crt *client_cert;
+        const mbedtls_ecgost_context* client_ecgost;
+        mbedtls_md_type_t verify_md_alg;
+
+#if defined(MBEDTLS_SSL_CLI_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        {
+            client_cert = mbedtls_ssl_own_cert( ssl );
+        }
+        else
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
+        {
+            client_cert = mbedtls_ssl_get_peer_cert( ssl );
+        }
+        else
+#endif /* MBEDTLS_SSL_SRV_C */
+        {
+            client_cert = NULL;
+        }
+
+        if( client_cert == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        client_ecgost = mbedtls_pk_ecgost( client_cert->pk );
+
+        if( client_ecgost == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        verify_md_alg = client_ecgost->gost_md_alg;
 
         if( verify_md_alg == MBEDTLS_MD_GOST12_256 )
             handshake->calc_verify = ssl_calc_verify_tls_gost12_256;
@@ -630,6 +695,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
+
+        handshake->tls_prf = tls_prf_gost12_256;
+        handshake->calc_finished = ssl_calc_finished_tls_gost12_256;
     }
     else
 #endif /* MBEDTLS_GOST12_C */
