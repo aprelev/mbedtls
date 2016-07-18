@@ -5139,6 +5139,10 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 static void ssl_update_checksum_gost( mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len )
 {
+    /*
+     * TODO optimize this through checking ciphersuite and client certificate
+     */
+
 #if defined(MBEDTLS_GOST94_C)
     mbedtls_gost94_update( &ssl->handshake->fin_gost94, buf, len );
 #endif /* MBEDTLS_GOST94_C */
