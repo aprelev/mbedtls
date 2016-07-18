@@ -7,7 +7,7 @@
 #define MBEDTLS_ECDH_GOST_H
 
 #include "ecgost.h"
-#include "mbedtls/pk.h"
+#include "pk.h"
 
 #ifdef __cplusplus
 extern "C" {
