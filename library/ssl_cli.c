@@ -3124,7 +3124,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                                  kek, 1, ukm, ssl->handshake->premaster,
                                  wrapped_key );
 
-        /* From RFC 4357:
+        /*
+         * From RFC 4357:
          *
          * Gost28147-89-Key ::= OCTET STRING (SIZE (32))
          * Gost28147-89-MAC ::= OCTET STRING (SIZE (1..4))
