@@ -3015,7 +3015,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         unsigned char pubkey[200];
         unsigned char kek[32];
         unsigned char wrapped_key[44];
-        unsigned char buf[500];
+        unsigned char buf[300];
         unsigned char *p = buf + sizeof( buf );
         const char *oid;
         size_t ukm_len = 0, olen;
