@@ -3285,10 +3285,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     ssl->handshake->calc_verify( ssl, hash );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-    if( ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
-        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 ||
-        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
-        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+    if( ssl->transform_negotiate->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
     {
         const mbedtls_md_info_t *md_info;
         mbedtls_pk_context *pk_ctx;
@@ -3395,10 +3392,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-    if( ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
-        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 ||
-        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
-        ssl->transform_negotiate->ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+    if( ssl->transform_negotiate->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
     {
         /* We need to reverse GOST signature in certificate verify */
 

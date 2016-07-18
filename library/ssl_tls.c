@@ -5020,10 +5020,7 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
     ((void) ciphersuite_info);
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
-    if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
-        ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 ||
-        ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
-        ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
         ssl->handshake->update_checksum = ssl_update_checksum_gost;
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
