@@ -581,9 +581,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
         /* Get verify MD algorithm from client certificate */
 
-        const mbedtls_x509_crt *client_cert;
-        const mbedtls_ecgost_context* client_ecgost;
-        mbedtls_md_type_t verify_md_alg;
+        const mbedtls_x509_crt *client_cert = NULL;
+        const mbedtls_ecgost_context* client_ecgost = NULL;
 
 #if defined(MBEDTLS_SSL_CLI_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
@@ -597,40 +596,39 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         {
             client_cert = mbedtls_ssl_get_peer_cert( ssl );
         }
-        else
 #endif /* MBEDTLS_SSL_SRV_C */
+
+        if( client_cert != NULL )
         {
-            client_cert = NULL;
+            if( mbedtls_pk_get_type( &client_cert->pk ) == MBEDTLS_PK_GOST01     ||
+                mbedtls_pk_get_type( &client_cert->pk ) == MBEDTLS_PK_GOST12_256 ||
+                mbedtls_pk_get_type( &client_cert->pk ) == MBEDTLS_PK_GOST12_512 )
+                client_ecgost = mbedtls_pk_ecgost( client_cert->pk );
         }
 
-        if( client_cert == NULL )
+        if( client_ecgost != NULL )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
+            mbedtls_md_type_t verify_md_alg = client_ecgost->gost_md_alg;
 
-        client_ecgost = mbedtls_pk_ecgost( client_cert->pk );
-
-        if( client_ecgost == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
-        verify_md_alg = client_ecgost->gost_md_alg;
-
-        if( verify_md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
-            handshake->calc_verify = ssl_calc_verify_tls_gost94;
+            if( verify_md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
+                handshake->calc_verify = ssl_calc_verify_tls_gost94;
 #if defined(MBEDTLS_GOST12_C)
-        else if( verify_md_alg == MBEDTLS_MD_GOST12_256 )
-            handshake->calc_verify = ssl_calc_verify_tls_gost12_256;
-        else if( verify_md_alg == MBEDTLS_MD_GOST12_512 )
-            handshake->calc_verify = ssl_calc_verify_tls_gost12_512;
+            else if( verify_md_alg == MBEDTLS_MD_GOST12_256 )
+                handshake->calc_verify = ssl_calc_verify_tls_gost12_256;
+            else if( verify_md_alg == MBEDTLS_MD_GOST12_512 )
+                handshake->calc_verify = ssl_calc_verify_tls_gost12_512;
 #endif /* MBEDTLS_GOST12_C */
+            else
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+        }
         else
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            /* Avoid NULL pointer */
+
+            handshake->calc_verify = ssl_calc_verify_tls_gost94;
         }
 
         handshake->tls_prf = tls_prf_gost94;
@@ -644,9 +642,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
         /* Get verify MD algorithm from client certificate */
 
-        const mbedtls_x509_crt *client_cert;
-        const mbedtls_ecgost_context* client_ecgost;
-        mbedtls_md_type_t verify_md_alg;
+        const mbedtls_x509_crt *client_cert = NULL;
+        const mbedtls_ecgost_context* client_ecgost = NULL;
 
 #if defined(MBEDTLS_SSL_CLI_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
@@ -660,40 +657,39 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         {
             client_cert = mbedtls_ssl_get_peer_cert( ssl );
         }
-        else
 #endif /* MBEDTLS_SSL_SRV_C */
+
+        if( client_cert != NULL )
         {
-            client_cert = NULL;
+            if( mbedtls_pk_get_type( &client_cert->pk ) == MBEDTLS_PK_GOST01     ||
+                mbedtls_pk_get_type( &client_cert->pk ) == MBEDTLS_PK_GOST12_256 ||
+                mbedtls_pk_get_type( &client_cert->pk ) == MBEDTLS_PK_GOST12_512 )
+                client_ecgost = mbedtls_pk_ecgost( client_cert->pk );
         }
 
-        if( client_cert == NULL )
+        if( client_ecgost != NULL )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
+            mbedtls_md_type_t verify_md_alg = client_ecgost->gost_md_alg;
 
-        client_ecgost = mbedtls_pk_ecgost( client_cert->pk );
-
-        if( client_ecgost == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
-        verify_md_alg = client_ecgost->gost_md_alg;
-
-        if( verify_md_alg == MBEDTLS_MD_GOST12_256 )
-            handshake->calc_verify = ssl_calc_verify_tls_gost12_256;
-        else if( verify_md_alg == MBEDTLS_MD_GOST12_512 )
-            handshake->calc_verify = ssl_calc_verify_tls_gost12_512;
+            if( verify_md_alg == MBEDTLS_MD_GOST12_256 )
+                handshake->calc_verify = ssl_calc_verify_tls_gost12_256;
+            else if( verify_md_alg == MBEDTLS_MD_GOST12_512 )
+                handshake->calc_verify = ssl_calc_verify_tls_gost12_512;
 #if defined(MBEDTLS_GOST94_C)
-        else if( verify_md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
-            handshake->calc_verify = ssl_calc_verify_tls_gost94;
+            else if( verify_md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
+                handshake->calc_verify = ssl_calc_verify_tls_gost94;
 #endif /* MBEDTLS_GOST94_C */
+            else
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+        }
         else
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            /* Avoid NULL pointer */
+
+            handshake->calc_verify = ssl_calc_verify_tls_gost12_256;
         }
 
         handshake->tls_prf = tls_prf_gost12_256;
