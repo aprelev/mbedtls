@@ -6805,6 +6805,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
         case MBEDTLS_MODE_STREAM:
+        case MBEDTLS_MODE_CTR:
             transform_expansion = transform->minlen;
             break;
 
