@@ -161,7 +161,8 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
 /*
  * Setup and export the client public value
  */
-int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls_pk_info_t *pk_info,
+int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx,
+                      const mbedtls_pk_info_t *pk_info,
                       size_t *olen, unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng )
@@ -178,9 +179,11 @@ int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls
                         &ctx->ecgost.key.Q, f_rng, p_rng ) ) != 0 )
         return( ret );
 
-    pk.pk_info = pk_info;
-    pk.pk_ctx = &ctx->ecgost;
+    /* Clearly set key_exchange to 1 because mbedtls_ecdh_gost_init is not called */
     ctx->ecgost.key_exchange = 1;
+
+    pk.pk_ctx = &ctx->ecgost;
+    pk.pk_info = pk_info;
 
     MBEDTLS_ASN1_CHK_ADD( pub_len, mbedtls_pk_write_pubkey_der( &pk, pubkey, sizeof( pubkey ) ) );
 
@@ -197,12 +200,30 @@ int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls
  * Parse and import the client's public value
  */
 int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
+                      const mbedtls_pk_info_t *pk_info,
                       const unsigned char *buf, size_t blen )
 {
+    int ret;
+    mbedtls_pk_context pk;
+    mbedtls_ecgost_context dummy_pub_key;
+
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    return mbedtls_ecgost_read_pubkey( &ctx->ecgost.key.grp, &ctx->Qp, buf, blen );
+    /* Just set key_exchange flag without full initialization */
+    dummy_pub_key.key_exchange = 1;
+
+    pk.pk_ctx = &dummy_pub_key;
+    pk.pk_info = pk_info;
+
+    /* Allocates memory in pk, need to call mbedtls_pk_free */
+    ret = mbedtls_pk_parse_public_key( &pk, buf, blen );
+
+    mbedtls_ecp_copy( &ctx->Qp, &mbedtls_pk_ecgost( pk )->key.Q );
+
+    mbedtls_pk_free( &pk );
+
+    return( ret );
 }
 
 /*

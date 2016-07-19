@@ -671,11 +671,39 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
     const mbedtls_pk_info_t *pk_info;
 
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_GOST01     ||
+        mbedtls_pk_get_type( pk ) == MBEDTLS_PK_GOST12_256 ||
+        mbedtls_pk_get_type( pk ) == MBEDTLS_PK_GOST12_512 )
     {
-        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+        if( ! mbedtls_pk_ecgost( *pk )->key_exchange )
+        {
+            if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+            {
+                return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+            }
+        }
+        else
+        {
+            /* Set correct length */
+            len = end - *p;
+
+            /* For next successful call mbedtls_pk_setup */
+            pk->pk_info = NULL;
+        }
     }
+    else
+    {
+#endif
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+        }
+#if defined(MBEDTLS_ECGOST_C)
+    }
+#endif
 
     end = *p + len;
 

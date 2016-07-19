@@ -124,7 +124,8 @@ int mbedtls_ecdh_gost_get_params( mbedtls_ecdh_gost_context *ctx, const mbedtls_
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
-int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls_pk_info_t *pk_info,
+int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx,
+                      const mbedtls_pk_info_t *pk_info,
                       size_t *olen, unsigned char *buf, size_t blen,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng );
@@ -134,12 +135,14 @@ int mbedtls_ecdh_gost_make_public( mbedtls_ecdh_gost_context *ctx, const mbedtls
  *                  (Second function used by a TLS server for ECDH(E)-GOST.)
  *
  * \param ctx       ECDH-GOST context
+ * \param pk_info   GOST PK information to use
  * \param buf       start of input buffer
  * \param blen      length of input buffer
  *
  * \return          0 if successful, or an MBEDTLS_ERR_ECP_XXX error code
  */
 int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
+                      const mbedtls_pk_info_t *pk_info,
                       const unsigned char *buf, size_t blen );
 
 /**

@@ -41,6 +41,14 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+#include "mbedtls/asn1.h"
+#include "mbedtls/gost89.h"
+#include "mbedtls/oid.h"
+#include "mbedtls/md.h"
+#include "mbedtls/pk.h"
+#endif
+
 #include <string.h>
 
 #if defined(MBEDTLS_ECP_C)
@@ -51,7 +59,8 @@
 #include <time.h>
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -2665,6 +2674,31 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+static int ssl_get_ecdh_gost_params_from_cert( mbedtls_ssl_context *ssl )
+{
+    int ret;
+
+    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_GOST01 ) &&
+        ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_GOST12_256 ) &&
+        ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_GOST12_512 ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH-GOST capable" ) );
+        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+    }
+
+    if( ( ret = mbedtls_ecdh_gost_get_params( &ssl->handshake->ecdh_gost_ctx,
+                                 mbedtls_pk_ecgost( *mbedtls_ssl_own_key( ssl ) ),
+                                 MBEDTLS_ECDH_GOST_OURS ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_gost_get_params" ), ret );
+        return( ret );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
+
 static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -2713,6 +2747,21 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 #endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        if( ( ret = ssl_get_ecdh_gost_params_from_cert( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_get_ecdh_gost_params_from_cert" ), ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
+        ssl->state++;
+        return( 0 );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
@@ -3485,6 +3534,218 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+# if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        mbedtls_md_type_t md_alg;
+        const mbedtls_md_info_t *md_info;
+        mbedtls_pk_context *own_key;
+        mbedtls_asn1_buf wrap_oid;
+        mbedtls_cipher_id_t wrap_alg;
+        unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
+        unsigned char kek[32];
+        unsigned char wrapped_key[44];
+        unsigned char *p_check;
+        size_t len, len_check;
+
+        own_key = mbedtls_ssl_own_key( ssl );
+        if( own_key == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        /* Set MD algorithm */
+
+        if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
+            ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 )
+            md_alg = MBEDTLS_MD_GOST94_CRYPTOPRO;
+        else
+        if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
+            ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+            md_alg = MBEDTLS_MD_GOST12_256;
+        else
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        /* Compute ukm */
+
+        ret = mbedtls_md( md_info, ssl->handshake->randbytes, 64, ukm );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md", ret );
+            return( ret );
+        }
+
+        /* Read wrapped premaster and client public value */
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                    MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        if( p + len != end )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                    MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        if( p + len != end )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        /* Read wrapped premaster */
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len_check,
+                    MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        p_check = p;
+
+        /*
+         * From RFC 4357:
+         *
+         * Gost28147-89-Key ::= OCTET STRING (SIZE (32))
+         * Gost28147-89-MAC ::= OCTET STRING (SIZE (1..4))
+         */
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                    MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        if( len != 32 )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        memcpy( &wrapped_key[8], p, 32 );
+        p += 32;
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                    MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        if( len != 4 )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        memcpy( &wrapped_key[40], p, 4 );
+        p += 4;
+
+        if( p_check + len_check != p )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        /* Read encryptionParamSet */
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len_check, 0xA0 ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        p_check = p;
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &wrap_oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+
+        wrap_oid.p = p;
+        p += wrap_oid.len;
+
+        if( ( ret = mbedtls_oid_get_gost89_alg( &wrap_oid, &wrap_alg ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_oid_get_cipher_alg", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        if( wrap_alg != mbedtls_pk_ecgost( *own_key )->gost89_alg )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        /* Read public key */
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, 0xA0 ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+
+        if( ( ret = mbedtls_ecdh_gost_read_public( &ssl->handshake->ecdh_gost_ctx,
+                                      own_key->pk_info,
+                                      p, len ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_read_public", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+        }
+        p += len;
+
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Qp ", &ssl->handshake->ecdh_gost_ctx.Qp );
+
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                    MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+        if( len != 8 )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        memcpy( wrapped_key, p, 8 );
+        p += 8;
+
+        if( p_check + len_check != p )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        /* Check ukm */
+
+        if( memcmp( ukm, wrapped_key, 8 ) != 0 )
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        /* Calculate shared secret and unwrap premaster */
+
+        md_alg = ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg;
+        if( md_alg == MBEDTLS_MD_GOST12_512 )
+            md_alg = MBEDTLS_MD_GOST12_256;
+
+        if( ( ret = mbedtls_ecdh_gost_calc_secret( &ssl->handshake->ecdh_gost_ctx,
+                                       md_alg, ukm, 8, &len, kek, 32,
+                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_calc_secret", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
+        }
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "ECDH-GOST: z", ssl->handshake->ecdh_gost_ctx.z, 32 );
+
+        if( ( ret = mbedtls_gost89_key_unwrap( mbedtls_gost89_sbox_id_from_type( wrap_alg ),
+                                 kek, 1, wrapped_key, 44,
+                                 ssl->handshake->premaster ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_gost89_key_unwrap", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+
+        ssl->handshake->pmslen = 32;
+
+        /* Don't forget to clear local kek */
+
+        mbedtls_zeroize( kek, 32 );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
