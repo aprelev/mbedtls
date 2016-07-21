@@ -694,16 +694,14 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
         }
     }
     else
+#endif /* MBEDTLS_ECGOST_C */
     {
-#endif
         if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         {
             return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
         }
-#if defined(MBEDTLS_ECGOST_C)
     }
-#endif
 
     end = *p + len;
 

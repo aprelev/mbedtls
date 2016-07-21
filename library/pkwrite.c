@@ -286,14 +286,12 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
         }
     }
     else
+#endif /* MBEDTLS_ECGOST_C */
     {
-#endif
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED |
                                                     MBEDTLS_ASN1_SEQUENCE ) );
-#if defined(MBEDTLS_ECGOST_C)
     }
-#endif
 
     return( (int) len );
 }
