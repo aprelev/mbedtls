@@ -681,7 +681,7 @@ FN_OID_GET_ATTR1(mbedtls_oid_get_ecgost_grp, oid_ecgost_grp_t, ecgost_grp_id, mb
 FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ecgost_grp, oid_ecgost_grp_t, oid_ecgost_grp, mbedtls_ecp_group_id, ecgost_grp_id)
 #endif /* MBEDTLS_ECGOST_C */
 
-#if defined(MBEDTLS_GOST94_C)
+#if defined(MBEDTLS_GOST94_C) || defined(MBEDTLS_GOST12_C)
 /*
  * For GostR3410-2001-PublicKeyParameters / GostR3410-2012-PublicKeyParameters:
  *
@@ -719,7 +719,7 @@ static const oid_gost_md_alg_t oid_gost_md_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_gost_md_alg_t, gost_md_alg, oid_gost_md_alg)
 FN_OID_GET_ATTR1(mbedtls_oid_get_gost_md_alg, oid_gost_md_alg_t, gost_md_alg, mbedtls_md_type_t, gost_md_alg)
 FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_gost_md, oid_gost_md_alg_t, oid_gost_md_alg, mbedtls_md_type_t, gost_md_alg)
-#endif /* MBEDTLS_GOST94_C */
+#endif /* MBEDTLS_GOST94_C || MBEDTLS_GOST12_C */
 
 #if defined(MBEDTLS_GOST89_C)
 /*
