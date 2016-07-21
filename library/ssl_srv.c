@@ -2544,6 +2544,11 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ECDSA_C)
     p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN;
 #endif
+#if defined(MBEDTLS_ECGOST_C)
+    p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_GOST01;
+    p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_GOST12_256;
+    p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_GOST12_512;
+#endif
 
     p[0] = (unsigned char) ct_len++;
     p += ct_len;
@@ -2587,6 +2592,16 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ECDSA_C)
         p[2 + sa_len++] = ssl->handshake->verify_sig_alg;
         p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
+#endif
+#if defined(MBEDTLS_ECGOST_C)
+        p[2 + sa_len++] = MBEDTLS_SSL_HASH_GOST94;
+        p[2 + sa_len++] = MBEDTLS_SSL_SIG_GOST01;
+
+        p[2 + sa_len++] = MBEDTLS_SSL_HASH_GOST12_256;
+        p[2 + sa_len++] = MBEDTLS_SSL_SIG_GOST12_256;
+
+        p[2 + sa_len++] = MBEDTLS_SSL_HASH_GOST12_512;
+        p[2 + sa_len++] = MBEDTLS_SSL_SIG_GOST12_512;
 #endif
 
         p[0] = (unsigned char)( sa_len >> 8 );
@@ -3539,7 +3554,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     {
         mbedtls_md_type_t md_alg;
         const mbedtls_md_info_t *md_info;
-        mbedtls_pk_context *own_key;
+        const mbedtls_x509_crt *client_cert;
+        const mbedtls_pk_context *own_key, *client_key;
         mbedtls_asn1_buf wrap_oid;
         mbedtls_cipher_id_t wrap_alg;
         unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
@@ -3548,11 +3564,23 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         unsigned char *p_check;
         size_t len, len_check;
 
+        /* Get own key and client key */
+
         own_key = mbedtls_ssl_own_key( ssl );
         if( own_key == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        client_cert = ssl->session_negotiate->peer_cert;
+        if( client_cert != NULL )
+        {
+            client_key = &client_cert->pk;
+        }
+        else
+        {
+            client_key = NULL;
         }
 
         /* Set MD algorithm */
@@ -3677,6 +3705,34 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
         /* Read public key */
 
+        if( client_key != NULL )
+        {
+            /* GOST TLS client can use key from certificate if parameters are equal */
+
+            const mbedtls_ecgost_context *own_ecgost = mbedtls_pk_ecgost( *own_key );
+            const mbedtls_ecgost_context *client_ecgost = mbedtls_pk_ecgost( *client_key );
+
+            if( own_ecgost->key.grp.id == client_ecgost->key.grp.id &&
+                own_ecgost->gost89_alg == client_ecgost->gost89_alg &&
+                own_ecgost->gost_md_alg == own_ecgost->gost_md_alg )
+            {
+                if( mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) == 0 )
+                {
+                    if( ( ret = mbedtls_ecp_copy( &ssl->handshake->ecdh_gost_ctx.Qp,
+                                                  &mbedtls_pk_ecgost( *client_key )->key.Q ) ) != 0 )
+                    {
+                        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_copy", ret );
+                        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                    }
+
+                    /* Skip certificate verify in this case */
+                    ssl->state++;
+
+                    goto read_ukm;
+                }
+            }
+        }
+
         if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, 0xA0 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
@@ -3692,14 +3748,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         }
         p += len;
 
-        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Qp ", &ssl->handshake->ecdh_gost_ctx.Qp );
-
         if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
                     MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_asn1_get_tag", ret );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
+read_ukm:
         if( len != 8 )
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
 
@@ -3708,6 +3763,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
         if( p_check + len_check != p )
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Qp ", &ssl->handshake->ecdh_gost_ctx.Qp );
 
         /* Check ukm */
 
@@ -3815,7 +3872,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, sig_len;
-    unsigned char hash[48];
+    unsigned char hash[64];
     unsigned char *hash_start = hash;
     size_t hashlen;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -3868,16 +3925,37 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        md_alg = MBEDTLS_MD_NONE;
-        hashlen = 36;
-
-        /* For ECDSA, use SHA-1, not MD-5 + SHA-1 */
-        if( mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                        MBEDTLS_PK_ECDSA ) )
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
         {
-            hash_start += 16;
-            hashlen -= 16;
-            md_alg = MBEDTLS_MD_SHA1;
+            mbedtls_ecgost_context *ecgost;
+
+            ecgost = mbedtls_pk_ecgost( ssl->session_negotiate->peer_cert->pk );
+            if( ecgost == NULL )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
+            md_alg = ecgost->gost_md_alg;
+
+            /* Info from md_alg will be used */
+            hashlen = 0;
+        }
+        else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
+        {
+            md_alg = MBEDTLS_MD_NONE;
+            hashlen = 36;
+
+            /* For ECDSA, use SHA-1, not MD-5 + SHA-1 */
+            if( mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                            MBEDTLS_PK_ECDSA ) )
+            {
+                hash_start += 16;
+                hashlen -= 16;
+                md_alg = MBEDTLS_MD_SHA1;
+            }
         }
     }
     else
@@ -3895,6 +3973,14 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         /*
          * Hash
          */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+        {
+            /* Just set verify_sig_alg. We will check it later through md_alg */
+            ssl->handshake->verify_sig_alg = ssl->in_msg[i];
+        }
+        else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
         if( ssl->in_msg[i] != ssl->handshake->verify_sig_alg )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
@@ -3952,6 +4038,23 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        /* We need to reverse GOST signature in certificate verify */
+
+        size_t j;
+        unsigned char tmp;
+
+        for( j = 0; j < sig_len / 2; j++ )
+        {
+            tmp = ssl->in_msg[i + j];
+            ssl->in_msg[i + j] = ssl->in_msg[i + sig_len - 1 - j];
+            ssl->in_msg[i + sig_len - 1 - j] = tmp;
+        }
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     if( ( ret = mbedtls_pk_verify( &ssl->session_negotiate->peer_cert->pk,
                            md_alg, hash_start, hashlen,

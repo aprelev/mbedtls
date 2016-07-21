@@ -594,7 +594,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
         {
-            client_cert = mbedtls_ssl_get_peer_cert( ssl );
+            client_cert = ssl->session_negotiate->peer_cert;
         }
 #endif /* MBEDTLS_SSL_SRV_C */
 
@@ -655,7 +655,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER)
         {
-            client_cert = mbedtls_ssl_get_peer_cert( ssl );
+            client_cert = ssl->session_negotiate->peer_cert;
         }
 #endif /* MBEDTLS_SSL_SRV_C */
 
@@ -7933,6 +7933,14 @@ unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECDSA ) )
         return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
+#if defined(MBEDTLS_ECGOST_C)
+    if( mbedtls_pk_can_do( pk, MBEDTLS_PK_GOST01 ) )
+        return( MBEDTLS_SSL_SIG_GOST01 );
+    if( mbedtls_pk_can_do( pk, MBEDTLS_PK_GOST12_256 ) )
+        return( MBEDTLS_SSL_SIG_GOST12_256 );
+    if( mbedtls_pk_can_do( pk, MBEDTLS_PK_GOST12_512 ) )
+        return( MBEDTLS_SSL_SIG_GOST12_512 );
+#endif
     return( MBEDTLS_SSL_SIG_ANON );
 }
 
@@ -7947,6 +7955,14 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
 #if defined(MBEDTLS_ECDSA_C)
         case MBEDTLS_SSL_SIG_ECDSA:
             return( MBEDTLS_PK_ECDSA );
+#endif
+#if defined(MBEDTLS_ECGOST_C)
+        case MBEDTLS_SSL_SIG_GOST01:
+            return( MBEDTLS_PK_GOST01 );
+        case MBEDTLS_SSL_SIG_GOST12_256:
+            return( MBEDTLS_PK_GOST12_256 );
+        case MBEDTLS_SSL_SIG_GOST12_512:
+            return( MBEDTLS_PK_GOST12_512 );
 #endif
         default:
             return( MBEDTLS_PK_NONE );
@@ -7980,6 +7996,16 @@ mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash )
             return( MBEDTLS_MD_SHA384 );
         case MBEDTLS_SSL_HASH_SHA512:
             return( MBEDTLS_MD_SHA512 );
+#endif
+#if defined(MBEDTLS_GOST94_C)
+        case MBEDTLS_SSL_HASH_GOST94:
+            return( MBEDTLS_MD_GOST94_CRYPTOPRO );
+#endif
+#if defined(MBEDTLS_GOST12_C)
+        case MBEDTLS_SSL_HASH_GOST12_256:
+            return( MBEDTLS_MD_GOST12_256 );
+        case MBEDTLS_SSL_HASH_GOST12_512:
+            return( MBEDTLS_MD_GOST12_512 );
 #endif
         default:
             return( MBEDTLS_MD_NONE );

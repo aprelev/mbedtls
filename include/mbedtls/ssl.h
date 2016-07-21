@@ -262,6 +262,23 @@
 #define MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN    64
 
 /*
+ * GOST SSL types from:
+ *
+ * http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26TLS.pdf
+ */
+#define MBEDTLS_SSL_HASH_GOST94            237
+#define MBEDTLS_SSL_HASH_GOST12_256        238
+#define MBEDTLS_SSL_HASH_GOST12_512        239
+
+#define MBEDTLS_SSL_SIG_GOST01             237
+#define MBEDTLS_SSL_SIG_GOST12_256         238
+#define MBEDTLS_SSL_SIG_GOST12_512         239
+
+#define MBEDTLS_SSL_CERT_TYPE_GOST01        22
+#define MBEDTLS_SSL_CERT_TYPE_GOST12_256   238
+#define MBEDTLS_SSL_CERT_TYPE_GOST12_512   239
+
+/*
  * Message, alert and handshake types
  */
 #define MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC     20

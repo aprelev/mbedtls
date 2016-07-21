@@ -3288,25 +3288,51 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
     if( ssl->transform_negotiate->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
     {
-        const mbedtls_md_info_t *md_info;
-        mbedtls_pk_context *pk_ctx;
+        const mbedtls_x509_crt *own_cert;
+        const mbedtls_ecgost_context *ecgost;
 
-        pk_ctx = mbedtls_ssl_own_key( ssl );
-        if( pk_ctx == NULL )
+        own_cert = mbedtls_ssl_own_cert( ssl );
+        if( own_cert == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        md_alg = mbedtls_pk_ecgost( *pk_ctx )->gost_md_alg;
-
-        if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+        ecgost = mbedtls_pk_ecgost( own_cert->pk );
+        if( ecgost == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        hashlen = mbedtls_md_get_size( md_info );
+        md_alg = ecgost->gost_md_alg;
+
+        /* Info from md_alg will be used */
+        hashlen = 0;
+
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        {
+            if( md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
+            {
+                ssl->out_msg[4] = MBEDTLS_SSL_HASH_GOST94;
+            }
+            else if( md_alg == MBEDTLS_MD_GOST12_256 )
+            {
+                ssl->out_msg[4] = MBEDTLS_SSL_HASH_GOST12_256;
+            }
+            else if( md_alg == MBEDTLS_MD_GOST12_512 )
+            {
+                ssl->out_msg[4] = MBEDTLS_SSL_HASH_GOST12_512;
+            }
+            else
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+            ssl->out_msg[5] = mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
+
+            offset = 2;
+        }
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST */
