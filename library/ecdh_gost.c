@@ -217,10 +217,12 @@ int mbedtls_ecdh_gost_read_public( mbedtls_ecdh_gost_context *ctx,
     pk.pk_info = pk_info;
 
     /* Allocates memory in pk, need to call mbedtls_pk_free */
-    ret = mbedtls_pk_parse_public_key( &pk, buf, blen );
+    if( ( ret = mbedtls_pk_parse_public_key( &pk, buf, blen ) ) != 0 )
+        goto cleanup;
 
-    mbedtls_ecp_copy( &ctx->Qp, &mbedtls_pk_ecgost( pk )->key.Q );
+    ret = mbedtls_ecp_copy( &ctx->Qp, &mbedtls_pk_ecgost( pk )->key.Q );
 
+cleanup:
     mbedtls_pk_free( &pk );
 
     return( ret );
