@@ -57,11 +57,15 @@
  */
 typedef struct
 {
-    mbedtls_ecp_group grp;            /*!<  elliptic curve used             */
-    mbedtls_mpi d;                    /*!<  our secret value (private key)  */
-    mbedtls_ecp_point Q;              /*!<  our public value (public key)   */
-    mbedtls_md_type_t   gost_md_alg;  /*!<  GOST MD algorithm               */
-    mbedtls_cipher_id_t gost89_alg;   /*!<  GOST89 algorithm                */
+    mbedtls_ecp_keypair key;          /*!<  Key pair            */
+    mbedtls_md_type_t   gost_md_alg;  /*!<  GOST MD algorithm   */
+    mbedtls_cipher_id_t gost89_alg;   /*!<  GOST89 algorithm    */
+
+    /*
+     * Now is used to indicate that we don't need to write
+     * additional SEQUENCE tag in ClientKeyExchange.
+     */
+    int key_exchange;                 /*!<  context is for key exchange */
 }
 mbedtls_ecgost_context;
 
@@ -215,27 +219,17 @@ int mbedtls_ecgost_genkey( mbedtls_ecgost_context *ctx, mbedtls_ecp_group_id gid
 int mbedtls_ecgost_from_keypair( mbedtls_ecgost_context *ctx, const mbedtls_ecp_keypair *key );
 
 /**
- * \brief           Check a public-private key pair
- *
- * \param pub       ECGOST context holding a public key
- * \param prv       ECGOST context holding a private (plus public) key
- *
- * \return          0 if successful (keys are valid and match), or
- *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA, or
- *                  a MBEDTLS_ERR_ECP_XXX or MBEDTLS_ERR_MPI_XXX code.
- */
-int mbedtls_ecgost_check_pub_priv( const mbedtls_ecgost_context *pub, const mbedtls_ecgost_context *prv );
-
-/**
  * \brief           Initialize context
  *
  * \param ctx           Context to initialize
  * \param gost_md_alg   GOST MD algorithm to use
  * \param gost89_alg    GOST89 algorithm to use
+ * \param key_exchange  Context is for key exchange
  */
 void mbedtls_ecgost_init( mbedtls_ecgost_context *ctx,
                           mbedtls_md_type_t gost_md_alg,
-                          mbedtls_cipher_id_t gost89_alg );
+                          mbedtls_cipher_id_t gost89_alg,
+                          int key_exchange );
 
 /**
  * \brief           Free context

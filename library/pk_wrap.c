@@ -519,7 +519,7 @@ static size_t ecgost_get_bitlen( const void *ctx )
      * id-tc26-gost-3410-12-512-paramSetTest is exception,
      * it is 512-bits curve, but has zero MSB.
      */
-    return( ( ( ((mbedtls_ecgost_context *) ctx)->grp.nbits + 7 ) >> 3 ) << 3 );
+    return( ( ( ((mbedtls_ecgost_context *) ctx)->key.grp.nbits + 7 ) >> 3 ) << 3 );
 }
 
 static int ecgost_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
@@ -551,8 +551,8 @@ static int ecgost_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
 static int ecgost_check_pair( const void *pub, const void *prv )
 {
-    return( mbedtls_ecgost_check_pub_priv( (const mbedtls_ecgost_context *) pub,
-                                (const mbedtls_ecgost_context *) prv ) );
+    return( mbedtls_ecp_check_pub_priv( &((const mbedtls_ecgost_context *) pub)->key,
+                                &((const mbedtls_ecgost_context *) prv)->key ) );
 }
 
 static void *ecgost01_alloc_wrap( void )
@@ -562,7 +562,7 @@ static void *ecgost01_alloc_wrap( void )
     if( ctx != NULL )
         mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
                              MBEDTLS_MD_GOST94_CRYPTOPRO,
-                             MBEDTLS_CIPHER_ID_GOST89_A );
+                             MBEDTLS_CIPHER_ID_GOST89_A, 0 );
 
     return( ctx );
 }
@@ -574,7 +574,7 @@ static void *ecgost12_256_alloc_wrap( void )
     if( ctx != NULL )
         mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
                              MBEDTLS_MD_GOST12_256,
-                             MBEDTLS_CIPHER_ID_GOST89_Z );
+                             MBEDTLS_CIPHER_ID_GOST89_Z, 0 );
 
     return( ctx );
 }
@@ -586,7 +586,7 @@ static void *ecgost12_512_alloc_wrap( void )
     if( ctx != NULL )
         mbedtls_ecgost_init( (mbedtls_ecgost_context *) ctx,
                              MBEDTLS_MD_GOST12_512,
-                             MBEDTLS_CIPHER_ID_GOST89_Z );
+                             MBEDTLS_CIPHER_ID_GOST89_Z, 0 );
 
     return( ctx );
 }
@@ -601,7 +601,7 @@ static void ecgost_debug( const void *ctx, mbedtls_pk_debug_item *items )
 {
     items->type = MBEDTLS_PK_DEBUG_ECP;
     items->name = "ecgost.Q";
-    items->value = &( ((mbedtls_ecgost_context *) ctx)->Q );
+    items->value = &( ((mbedtls_ecgost_context *) ctx)->key.Q );
 }
 
 const mbedtls_pk_info_t mbedtls_ecgost01_info = {

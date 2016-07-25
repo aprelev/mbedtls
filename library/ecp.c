@@ -94,7 +94,10 @@ static unsigned long add_count, dbl_count, mul_count;
     defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED) || \
     defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)  ||   \
     defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)  ||   \
-    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
+    defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)  ||   \
+    defined(MBEDTLS_ECP_DP_GOST512TEST_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)  ||   \
+    defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
 #define ECP_SHORTWEIERSTRASS
 #endif
 
@@ -160,25 +163,27 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
     { MBEDTLS_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256TEST_ENABLED)
-    { MBEDTLS_ECP_DP_GOST256TEST,  -1,     256,    "id-GostR3410-2001-TestParamSet"         },
+    { MBEDTLS_ECP_DP_GOST256TEST,  -1,     256,    "gost256test"       },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256A_ENABLED)
-    { MBEDTLS_ECP_DP_GOST256A,     -2,     256,    "id-GostR3410-2001-CryptoPro-A-ParamSet" },
+    { MBEDTLS_ECP_DP_GOST256A,     -2,     256,    "gost256a"          },
+    { MBEDTLS_ECP_DP_GOST256A_ALT, -2,     256,    "gost256a_alt"      },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256B_ENABLED)
-    { MBEDTLS_ECP_DP_GOST256B,     -3,     256,    "id-GostR3410-2001-CryptoPro-B-ParamSet" },
+    { MBEDTLS_ECP_DP_GOST256B,     -3,     256,    "gost256b"          },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST256C_ENABLED)
-    { MBEDTLS_ECP_DP_GOST256C,     -4,     256,    "id-GostR3410-2001-CryptoPro-C-ParamSet" },
+    { MBEDTLS_ECP_DP_GOST256C,     -4,     256,    "gost256c"          },
+    { MBEDTLS_ECP_DP_GOST256C_ALT, -4,     256,    "gost256c_alt"      },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST512TEST_ENABLED)
-    { MBEDTLS_ECP_DP_GOST512TEST,  -5,     512,    "id-tc26-gost-3410-12-512-paramSetTest"  },
+    { MBEDTLS_ECP_DP_GOST512TEST,  -5,     512,    "gost512test"       },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST512A_ENABLED)
-    { MBEDTLS_ECP_DP_GOST512A,     -6,     512,    "id-tc26-gost-3410-12-512-paramSetA"     },
+    { MBEDTLS_ECP_DP_GOST512A,     -6,     512,    "gost512a"          },
 #endif
 #if defined(MBEDTLS_ECP_DP_GOST512B_ENABLED)
-    { MBEDTLS_ECP_DP_GOST512B,     -7,     512,    "id-tc26-gost-3410-12-512-paramSetB"     },
+    { MBEDTLS_ECP_DP_GOST512B,     -7,     512,    "gost512b"          },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };

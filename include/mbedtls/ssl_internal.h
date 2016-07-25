@@ -41,6 +41,14 @@
 #include "sha512.h"
 #endif
 
+#if defined(MBEDTLS_GOST94_C)
+#include "gost94.h"
+#endif
+
+#if defined(MBEDTLS_GOST12_C)
+#include "gost12.h"
+#endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #include "ecjpake.h"
 #endif
@@ -173,6 +181,9 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif
+#if defined(MBEDTLS_ECDH_GOST_C)
+    mbedtls_ecdh_gost_context ecdh_gost_ctx;    /*!<  ECDH-GOST key exchange  */
+#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -236,6 +247,16 @@ struct mbedtls_ssl_handshake_params
     mbedtls_sha512_context fin_sha512;
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+#if defined(MBEDTLS_GOST94_C)
+    mbedtls_gost94_context fin_gost94;
+#endif /* MBEDTLS_GOST94_C */
+#if defined(MBEDTLS_GOST12_C)
+    mbedtls_gost12_context fin_gost12_256;
+    mbedtls_gost12_context fin_gost12_512;
+#endif /* MBEDTLS_GOST12_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(mbedtls_ssl_context *, unsigned char *);

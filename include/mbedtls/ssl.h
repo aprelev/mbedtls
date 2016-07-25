@@ -47,6 +47,10 @@
 #include "ecdh.h"
 #endif
 
+#if defined(MBEDTLS_ECDH_GOST_C)
+#include "ecdh_gost.h"
+#endif
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
 #include "zlib.h"
 #endif
@@ -258,6 +262,23 @@
 #define MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN    64
 
 /*
+ * GOST SSL types from:
+ *
+ * http://tc26.ru/methods/recommendation/%D0%A2%D0%9A26TLS.pdf
+ */
+#define MBEDTLS_SSL_HASH_GOST94            237
+#define MBEDTLS_SSL_HASH_GOST12_256        238
+#define MBEDTLS_SSL_HASH_GOST12_512        239
+
+#define MBEDTLS_SSL_SIG_GOST01             237
+#define MBEDTLS_SSL_SIG_GOST12_256         238
+#define MBEDTLS_SSL_SIG_GOST12_512         239
+
+#define MBEDTLS_SSL_CERT_TYPE_GOST01        22
+#define MBEDTLS_SSL_CERT_TYPE_GOST12_256   238
+#define MBEDTLS_SSL_CERT_TYPE_GOST12_512   239
+
+/*
  * Message, alert and handshake types
  */
 #define MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC     20
@@ -372,6 +393,9 @@ union mbedtls_ssl_premaster_secret
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     unsigned char _pms_ecdhe_psk[4 + MBEDTLS_ECP_MAX_BYTES
                                    + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    unsigned char _pms_ecdh_gost[32];   /* GOST89 key */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     unsigned char _pms_ecjpake[32];     /* Thread spec: SHA-256 output */

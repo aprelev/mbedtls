@@ -1606,7 +1606,7 @@ mbedtls_md_file:"SHA512":"data_files/hash_file_4":"cf83e1357eefb8bdf1542850d66d8
 
 generic GOST89-TEST-MAC Hash file #1
 depends_on:MBEDTLS_GOST89_C
-mbedtls_md_file:"GOST89-TEST-MAC":"data_files/hash_file_1":"a2e5a85d"
+mbedtls_md_file:"GOST89-TEST-MAC":"data_files/hash_file_1":"82a431c0"
 
 generic GOST89-TEST-MAC Hash file #2
 depends_on:MBEDTLS_GOST89_C
@@ -1622,7 +1622,7 @@ mbedtls_md_file:"GOST89-TEST-MAC":"data_files/hash_file_4":"8cdefeca"
 
 generic GOST89-A-MAC Hash file #1
 depends_on:MBEDTLS_GOST89_C
-mbedtls_md_file:"GOST89-A-MAC":"data_files/hash_file_1":"4d1cfb86"
+mbedtls_md_file:"GOST89-A-MAC":"data_files/hash_file_1":"670db1b7"
 
 generic GOST89-A-MAC Hash file #2
 depends_on:MBEDTLS_GOST89_C
@@ -1638,7 +1638,7 @@ mbedtls_md_file:"GOST89-A-MAC":"data_files/hash_file_4":"d9c17d6b"
 
 generic GOST89-Z-MAC Hash file #1
 depends_on:MBEDTLS_GOST89_C
-mbedtls_md_file:"GOST89-Z-MAC":"data_files/hash_file_1":"99a72c6d"
+mbedtls_md_file:"GOST89-Z-MAC":"data_files/hash_file_1":"05d6fd83"
 
 generic GOST89-Z-MAC Hash file #2
 depends_on:MBEDTLS_GOST89_C

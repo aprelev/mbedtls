@@ -130,7 +130,7 @@ void pk_parse_keyfile_ecgost( int pk_type, char *key_file, char *password, int r
         mbedtls_ecgost_context *ecgost;
         TEST_ASSERT( mbedtls_pk_can_do( &ctx, pk_type ) );
         ecgost = mbedtls_pk_ecgost( ctx );
-        TEST_ASSERT( mbedtls_ecp_check_privkey( &ecgost->grp, &ecgost->d ) == 0 );
+        TEST_ASSERT( mbedtls_ecp_check_privkey( &ecgost->key.grp, &ecgost->key.d ) == 0 );
     }
 
 exit:

@@ -729,6 +729,27 @@
 #define MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
 /**
+ * \def MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED
+ *
+ * Enable the ECDH-GOST based ciphersuite modes in SSL / TLS.
+ *
+ * Requires: MBEDTLS_ECDH_GOST_C, MBEDTLS_GOST89_C,
+ *           MBEDTLS_GOST94_C or MBEDTLS_GOST12_C,
+ *           MBEDTLS_X509_CRT_PARSE_C,
+ *           MBEDTLS_SSL_PROTO_TLS1    or
+ *           MBEDTLS_SSL_PROTO_TLS1_1  or
+ *           MBEDTLS_SSL_PROTO_TLS1_2
+ *
+ * This enables the following ciphersuites (if other requisites are
+ * enabled as well):
+ *      MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT
+ *      MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411
+ *      MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT
+ *      MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411
+ */
+//#define MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED
+
+/**
  * \def MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
  *
  * Enable the ECJPAKE based ciphersuite modes in SSL / TLS.

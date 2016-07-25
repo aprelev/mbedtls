@@ -229,6 +229,13 @@ extern "C" {
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8      0xC0AE  /**< TLS 1.2 */
 #define MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8      0xC0AF  /**< TLS 1.2 */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+#define MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT     0x0081  /**< Not in SSL3! */
+#define MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411     0x0083  /**< Not in SSL3! */
+#define MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT 0xFF85  /**< Not in SSL3! */
+#define MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 0xFF87  /**< Not in SSL3! */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
+
 #define MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8          0xC0FF  /**< experimental */
 
 /* Reminder: update mbedtls_ssl_premaster_secret when adding a new key exchange.
@@ -247,6 +254,7 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECDH_RSA,
     MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA,
     MBEDTLS_KEY_EXCHANGE_ECJPAKE,
+    MBEDTLS_KEY_EXCHANGE_ECDH_GOST,
 } mbedtls_key_exchange_type_t;
 
 /* Key exchanges using a certificate */
@@ -256,7 +264,8 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED
 #endif
 

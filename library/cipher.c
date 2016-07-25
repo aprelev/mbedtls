@@ -292,10 +292,13 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
         return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
     }
 
-    if( input == output &&
-       ( ctx->unprocessed_len != 0 || ilen % block_size ) )
+    if( ctx->cipher_info->mode != MBEDTLS_MODE_CTR ) /* Workaround for GOST89-CNT mode */
     {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        if( input == output &&
+           ( ctx->unprocessed_len != 0 || ilen % block_size ) )
+        {
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)

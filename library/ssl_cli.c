@@ -41,6 +41,14 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+#include "mbedtls/asn1write.h"
+#include "mbedtls/gost89.h"
+#include "mbedtls/oid.h"
+#include "mbedtls/md.h"
+#include "mbedtls/pk.h"
+#endif
+
 #include <string.h>
 
 #include <stdint.h>
@@ -49,7 +57,8 @@
 #include <time.h>
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -1929,6 +1938,34 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+static int ssl_check_server_ecdh_gost_params( const mbedtls_ssl_context *ssl )
+{
+    const mbedtls_ecp_curve_info *curve_info;
+
+    curve_info = mbedtls_ecp_curve_info_from_grp_id( ssl->handshake->ecdh_gost_ctx.ecgost.key.grp.id );
+    if( curve_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH-GOST curve: %s", curve_info->name ) );
+
+#if defined(MBEDTLS_ECP_C)
+    if( mbedtls_ssl_check_curve( ssl, ssl->handshake->ecdh_gost_ctx.ecgost.key.grp.id ) != 0 )
+#else
+    if( ssl->handshake->ecdh_gost_ctx.grp.nbits < 163 ||
+        ssl->handshake->ecdh_gost_ctx.grp.nbits > 521 )
+#endif
+        return( -1 );
+
+    MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Qp", &ssl->handshake->ecdh_gost_ctx.Qp );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
@@ -2182,6 +2219,45 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+static int ssl_get_ecdh_gost_params_from_cert( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    const mbedtls_ecgost_context *peer_key;
+
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
+
+    if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, MBEDTLS_PK_GOST01 ) &&
+        ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, MBEDTLS_PK_GOST12_256 ) &&
+        ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, MBEDTLS_PK_GOST12_512 ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH-GOST capable" ) );
+        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+    }
+
+    peer_key = mbedtls_pk_ecgost( ssl->session_negotiate->peer_cert->pk );
+
+    if( ( ret = mbedtls_ecdh_gost_get_params( &ssl->handshake->ecdh_gost_ctx, peer_key,
+                                 MBEDTLS_ECDH_GOST_THEIRS ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_gost_get_params" ), ret );
+        return( ret );
+    }
+
+    if( ssl_check_server_ecdh_gost_params( ssl ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH-GOST curve)" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
+    }
+
+    return( ret );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
+
 static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -2220,6 +2296,21 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
     ((void) end);
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        if( ( ret = ssl_get_ecdh_gost_params_from_cert( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_ecdh_gost_params_from_cert", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
+        ssl->state++;
+        return( 0 );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
@@ -2911,6 +3002,162 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        /*
+         * ECDH-GOST key exchange -- send wrapped premaster and client public value
+         */
+        mbedtls_md_type_t md_alg;
+        const mbedtls_md_info_t *md_info;
+        mbedtls_cipher_id_t wrap_alg;
+        unsigned char ukm[MBEDTLS_MD_MAX_SIZE];
+        unsigned char pubkey[200];
+        unsigned char kek[32];
+        unsigned char wrapped_key[44];
+        unsigned char buf[300];
+        unsigned char *p = buf + sizeof( buf );
+        const char *oid;
+        size_t ukm_len = 0, olen;
+
+        i = 4;
+        n = 0;
+
+        /* Set MD algorithm */
+
+        if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_28147_CNT_IMIT ||
+            ciphersuite_info->id == MBEDTLS_TLS_GOSTR341001_WITH_NULL_GOSTR3411 )
+            md_alg = MBEDTLS_MD_GOST94_CRYPTOPRO;
+        else
+        if( ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_28147_CNT_IMIT ||
+            ciphersuite_info->id == MBEDTLS_TLS_GOSTR341112_256_WITH_NULL_GOSTR3411 )
+            md_alg = MBEDTLS_MD_GOST12_256;
+        else
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        /* Compute and write ukm */
+
+        ret = mbedtls_md( md_info, ssl->handshake->randbytes, 64, ukm );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md", ret );
+            return( ret );
+        }
+        MBEDTLS_ASN1_CHK_ADD( ukm_len, mbedtls_asn1_write_octet_string( &p, buf, ukm, 8 ) );
+
+        /* Generate ephemeralPublicKey and write it to SubjectPublicKeyInfo */
+
+        ret = mbedtls_ecdh_gost_make_public( &ssl->handshake->ecdh_gost_ctx,
+                                ssl->session_negotiate->peer_cert->pk.pk_info,
+                                &olen,
+                                pubkey, sizeof( pubkey ),
+                                ssl->conf->f_rng, ssl->conf->p_rng );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_make_public", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH-GOST: Q", &ssl->handshake->ecdh_gost_ctx.ecgost.key.Q );
+
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_raw_buffer( &p, buf, pubkey, olen ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf, 0xA0 ) );
+
+        /* Write encryptionParamSet */
+
+        /* S-Box for wrap is defined by encryptionParamSet in server certificate */
+
+        wrap_alg = ssl->handshake->ecdh_gost_ctx.ecgost.gost89_alg;
+
+        ret = mbedtls_oid_get_oid_by_gost89( wrap_alg, &oid, &olen );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_oid( &p, buf, oid, olen ) );
+
+        n += ukm_len;
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf, 0xA0 ) );
+
+        /* Generate shared secret and premaster */
+
+        /* MD for hashing coordinates is defined by digestParamSet in server certificate */
+
+        md_alg = ssl->handshake->ecdh_gost_ctx.ecgost.gost_md_alg;
+        if( md_alg == MBEDTLS_MD_GOST12_512 )
+            md_alg = MBEDTLS_MD_GOST12_256;
+
+        if( ( ret = mbedtls_ecdh_gost_calc_secret( &ssl->handshake->ecdh_gost_ctx,
+                                       md_alg, ukm, 8, &olen, kek, 32,
+                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_gost_calc_secret", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "ECDH-GOST: z", ssl->handshake->ecdh_gost_ctx.z, 32 );
+
+        ssl->handshake->pmslen = 32;
+        ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->handshake->premaster,
+                                ssl->handshake->pmslen );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
+            return( ret );
+        }
+
+        /* Wrap premaster using shared secret and write it to output buffer */
+
+        mbedtls_gost89_key_wrap( mbedtls_gost89_sbox_id_from_type( wrap_alg ),
+                                 kek, 1, ukm, ssl->handshake->premaster,
+                                 wrapped_key );
+
+        /*
+         * From RFC 4357:
+         *
+         * Gost28147-89-Key ::= OCTET STRING (SIZE (32))
+         * Gost28147-89-MAC ::= OCTET STRING (SIZE (1..4))
+         */
+
+        olen = 0;
+        MBEDTLS_ASN1_CHK_ADD( olen, mbedtls_asn1_write_octet_string( &p, buf,
+                                                        &wrapped_key[40], 4 ) );
+        MBEDTLS_ASN1_CHK_ADD( olen, mbedtls_asn1_write_octet_string( &p, buf,
+                                                        &wrapped_key[8], 32 ) );
+
+        n += olen;
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, olen ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf,
+                            MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf,
+                            MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_len( &p, buf, n ) );
+        MBEDTLS_ASN1_CHK_ADD( n, mbedtls_asn1_write_tag( &p, buf,
+                            MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED ) );
+
+        memcpy( &ssl->out_msg[i], p, n );
+
+        /* Don't forget to clear local kek */
+
+        mbedtls_zeroize( kek, 32 );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
@@ -2935,7 +3182,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         }
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
     {
         ((void) ciphersuite_info);
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -2996,7 +3243,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
     size_t n = 0, offset = 0;
-    unsigned char hash[48];
+    unsigned char hash[64];
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     unsigned int hashlen;
@@ -3038,6 +3285,57 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
      */
     ssl->handshake->calc_verify( ssl, hash );
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ssl->transform_negotiate->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        const mbedtls_x509_crt *own_cert;
+        const mbedtls_ecgost_context *ecgost;
+
+        own_cert = mbedtls_ssl_own_cert( ssl );
+        if( own_cert == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        ecgost = mbedtls_pk_ecgost( own_cert->pk );
+        if( ecgost == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        md_alg = ecgost->gost_md_alg;
+
+        /* Info from md_alg will be used */
+        hashlen = 0;
+
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        {
+            if( md_alg == MBEDTLS_MD_GOST94_CRYPTOPRO )
+            {
+                ssl->out_msg[4] = MBEDTLS_SSL_HASH_GOST94;
+            }
+            else if( md_alg == MBEDTLS_MD_GOST12_256 )
+            {
+                ssl->out_msg[4] = MBEDTLS_SSL_HASH_GOST12_256;
+            }
+            else if( md_alg == MBEDTLS_MD_GOST12_512 )
+            {
+                ssl->out_msg[4] = MBEDTLS_SSL_HASH_GOST12_512;
+            }
+            else
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+            ssl->out_msg[5] = mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
+
+            offset = 2;
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
@@ -3119,6 +3417,23 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );
     }
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED)
+    if( ssl->transform_negotiate->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_GOST )
+    {
+        /* We need to reverse GOST signature in certificate verify */
+
+        size_t i;
+        unsigned char tmp;
+
+        for( i = 0; i < n / 2; i++ )
+        {
+            tmp = ssl->out_msg[6 + offset + i];
+            ssl->out_msg[6 + offset + i] = ssl->out_msg[6 + offset + n - 1 - i];
+            ssl->out_msg[6 + offset + n - 1 - i] = tmp;
+        }
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_GOST_ENABLED */
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );

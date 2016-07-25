@@ -644,7 +644,7 @@ static const oid_ecgost_grp_t oid_ecgost_grp[] =
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256A_ALT ),   "id-GostR3410-2001-CryptoPro-XchA-ParamSet",    "id-GostR3410-2001-CryptoPro-XchA-ParamSet" },
-        MBEDTLS_ECP_DP_GOST256A,
+        MBEDTLS_ECP_DP_GOST256A_ALT,
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256B ),       "id-GostR3410-2001-CryptoPro-B-ParamSet",       "id-GostR3410-2001-CryptoPro-B-ParamSet" },
@@ -656,7 +656,7 @@ static const oid_ecgost_grp_t oid_ecgost_grp[] =
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST256C_ALT ),   "id-GostR3410-2001-CryptoPro-XchB-ParamSet",    "id-GostR3410-2001-CryptoPro-XchB-ParamSet" },
-        MBEDTLS_ECP_DP_GOST256C,
+        MBEDTLS_ECP_DP_GOST256C_ALT,
     },
     {
         { ADD_LEN( MBEDTLS_OID_EC_GRP_GOST512TEST ),    "id-tc26-gost-3410-12-512-paramSetTest",        "id-tc26-gost-3410-12-512-paramSetTest" },
@@ -681,7 +681,7 @@ FN_OID_GET_ATTR1(mbedtls_oid_get_ecgost_grp, oid_ecgost_grp_t, ecgost_grp_id, mb
 FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ecgost_grp, oid_ecgost_grp_t, oid_ecgost_grp, mbedtls_ecp_group_id, ecgost_grp_id)
 #endif /* MBEDTLS_ECGOST_C */
 
-#if defined(MBEDTLS_GOST94_C)
+#if defined(MBEDTLS_GOST94_C) || defined(MBEDTLS_GOST12_C)
 /*
  * For GostR3410-2001-PublicKeyParameters / GostR3410-2012-PublicKeyParameters:
  *
@@ -719,7 +719,7 @@ static const oid_gost_md_alg_t oid_gost_md_alg[] =
 FN_OID_TYPED_FROM_ASN1(oid_gost_md_alg_t, gost_md_alg, oid_gost_md_alg)
 FN_OID_GET_ATTR1(mbedtls_oid_get_gost_md_alg, oid_gost_md_alg_t, gost_md_alg, mbedtls_md_type_t, gost_md_alg)
 FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_gost_md, oid_gost_md_alg_t, oid_gost_md_alg, mbedtls_md_type_t, gost_md_alg)
-#endif /* MBEDTLS_GOST94_C */
+#endif /* MBEDTLS_GOST94_C || MBEDTLS_GOST12_C */
 
 #if defined(MBEDTLS_GOST89_C)
 /*

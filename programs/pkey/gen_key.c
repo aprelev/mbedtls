@@ -409,10 +409,10 @@ int main( int argc, char *argv[] )
     {
         mbedtls_ecgost_context *ctx = mbedtls_pk_ecgost( key );
         mbedtls_printf( "curve: %s\n",
-                mbedtls_ecp_curve_info_from_grp_id( ctx->grp.id )->name );
-        mbedtls_mpi_write_file( "X_Q:   ", &ctx->Q.X, 16, NULL );
-        mbedtls_mpi_write_file( "Y_Q:   ", &ctx->Q.Y, 16, NULL );
-        mbedtls_mpi_write_file( "D:     ", &ctx->d  , 16, NULL );
+                mbedtls_ecp_curve_info_from_grp_id( ctx->key.grp.id )->name );
+        mbedtls_mpi_write_file( "X_Q:   ", &ctx->key.Q.X, 16, NULL );
+        mbedtls_mpi_write_file( "Y_Q:   ", &ctx->key.Q.Y, 16, NULL );
+        mbedtls_mpi_write_file( "D:     ", &ctx->key.d  , 16, NULL );
     }
     else
 #endif
